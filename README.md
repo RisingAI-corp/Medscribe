@@ -1,7 +1,3 @@
-Here's the updated GitHub-friendly **README** file with the new addition for automatically applying ESLint to a directory:
-
----
-
 # Medscribe Project Setup
 
 ## Overview
