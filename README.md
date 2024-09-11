@@ -193,6 +193,10 @@ If Prettier and ESLint are conflicting, ensure both are properly configured not 
 #### Running Prettier on Save
 Ensure that your VSCode settings have `formatOnSave` enabled and that the Prettier extension is properly installed.
 
+#### Storybook
+command to run storybook 
+yarn storybook
+
 ### Helpful Links:
 - [ESLint Documentation](https://eslint.org/docs/latest/)
 - [Prettier Documentation](https://prettier.io/docs/en/index.html)
@@ -208,3 +212,4 @@ Ensure that your VSCode settings have `formatOnSave` enabled and that the Pretti
 - **Format files**: `npx prettier --write .`
 - **Pull with rebase**: `git pull upstream main --rebase`
 - **Push your changes**: `git push origin feature/new-feature`
+- **Runs storybook**: `yarn storybook`
