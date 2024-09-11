@@ -1,5 +1,4 @@
 // SampleComponent.stories.tsx
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import SampleComponent from './SampleComponent';
 
@@ -12,7 +11,6 @@ export default meta;
 
 // Create a type for the StoryObj to ensure type safety in stories
 type Story = StoryObj<typeof SampleComponent>;
-
 
 // Bind a copy of the template to create different stories
 export const Default: Story = {};
