@@ -143,7 +143,7 @@ export default tseslint.config(
 To run ESLint manually and automatically fix errors:
 
 ```bash
-npx eslint --fix yourdirectory/
+npx eslint --fix .
 ```
 
 This will apply ESLint fixes to your specified directory.
