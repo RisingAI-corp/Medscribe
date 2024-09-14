@@ -1,6 +1,8 @@
 import { Select, Button } from '@mantine/core';
 import { useState } from 'react';
 import ThreeBtnSelector from '../Utilities/ThreeBtnSelector';
+import { useDisclosure } from '@mantine/hooks';
+import { LoadingOverlay } from '@mantine/core';
 
 const visitSelectorLabel = 'Visit';
 const defaultPronoun = 'He';
@@ -8,6 +10,7 @@ const defaultPronoun = 'He';
 function NoteControlsLayout() {
   const [selectedPronoun, setSelectedPronoun] = useState(defaultPronoun);
   const [selectedVisitType, setSelectedVisitType] = useState('New Patient');
+  const [visible, { toggle }] = useDisclosure(false);
 
   const handleVisitTypeSelect = (value: string | null) => {
     setSelectedVisitType(value || '');
@@ -17,10 +20,19 @@ function NoteControlsLayout() {
     setSelectedPronoun(value);
   };
 
-  const handleRegenerate = () => {};
+  const handleRegenerate = () => {
+    toggle();
+  };
 
   return (
     <>
+      <LoadingOverlay
+        visible={visible}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+        loaderProps={{ color: 'blue', type: 'bars' }}
+      />
+
       <Select
         label={visitSelectorLabel}
         placeholder="Select visit type"
