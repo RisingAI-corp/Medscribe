@@ -2,20 +2,18 @@ import { Button } from '@mantine/core';
 import { useState, useEffect } from 'react';
 
 interface ThreeBtnSelectorProps {
-  options: string[]; // Array of button labels
-  initialSelected?: string; // Optional initial selected value
-  onSelect: (value: string) => void; // Callback when a button is selected
+  buttonLabelOptions: string[];
+  initialSelected?: string;
+  onSelect: (value: string) => void;
 }
 
-function ThreeBtnSelector({ options, initialSelected = '', onSelect }: ThreeBtnSelectorProps) {
+function ThreeBtnSelector({ buttonLabelOptions, initialSelected = '', onSelect }: ThreeBtnSelectorProps) {
   const [selected, setSelected] = useState(initialSelected);
 
-  // Update the selected state when initialSelected prop changes
   useEffect(() => {
     setSelected(initialSelected);
   }, [initialSelected]);
 
-  // Handler to set selected option and notify parent component
   const handleSelect = (value: string) => {
     setSelected(value);
     onSelect(value);
@@ -23,7 +21,7 @@ function ThreeBtnSelector({ options, initialSelected = '', onSelect }: ThreeBtnS
 
   return (
     <Button.Group variant="outline" aria-label="button group">
-      {options.map(option => (
+      {buttonLabelOptions.map(option => (
         <Button key={option} variant={selected === option ? 'filled' : 'outline'} onClick={() => handleSelect(option)}>
           {option}
         </Button>

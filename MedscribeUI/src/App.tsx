@@ -7,13 +7,7 @@ import './App.css';
 import NoteControlsLayout from './components/NoteControls/NotecontrolsLayout';
 
 function App() {
-  return (
-    <>
-      <div>
-        <NoteControlsLayout />
-      </div>
-    </>
-  );
+  return <></>;
 }
 
 export default App;
