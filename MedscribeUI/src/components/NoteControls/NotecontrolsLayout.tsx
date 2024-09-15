@@ -1,28 +1,65 @@
 import { Select, Button } from '@mantine/core';
-import { useState } from 'react';
-import ThreeBtnSelector from '../Utilities/ThreeBtnSelector';
+import { useState, useEffect } from 'react';
+import BtnGroupSelector from '../Utilities/BtnGroupSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { LoadingOverlay } from '@mantine/core';
 
-const visitSelectorLabel = 'Visit';
-const defaultPronoun = 'He';
+type NoteControlsLayoutProps = {
+  isStatus: boolean;
+  defaultHover: {
+    visitType: 'New Patient' | 'Returning Patient';
+    pronoun: 'SHE' | 'HE' | 'THEY';
+    patientClient: 'Patient' | 'Client';
+  };
+};
 
-function NoteControlsLayout() {
-  const [selectedPronoun, setSelectedPronoun] = useState(defaultPronoun);
-  const [selectedVisitType, setSelectedVisitType] = useState('New Patient');
-  const [visible, { toggle }] = useDisclosure(false);
+function NoteControlsLayout({ isStatus, defaultHover }: NoteControlsLayoutProps) {
+  const [selectedPronoun, setSelectedPronoun] = useState(defaultHover.pronoun);
+  const [selectedVisitType, setSelectedVisitType] = useState(defaultHover.visitType);
+  const [selectedPatientClient, setSelectedPatientClient] = useState(defaultHover.patientClient);
+  const [visible, { toggle }] = useDisclosure(isStatus);
+
+  const [isDirty, setIsDirty] = useState(false);
 
   const handleVisitTypeSelect = (value: string | null) => {
-    setSelectedVisitType(value || '');
+    if (value === 'New Patient' || value === 'Returning Patient') {
+      setSelectedVisitType(value);
+      return;
+    }
+    setSelectedVisitType(defaultHover.visitType);
   };
 
   const handlePronounSelect = (value: string) => {
-    setSelectedPronoun(value);
+    if (value === 'SHE' || value === 'HE' || value === 'THEY') {
+      setSelectedPronoun(value);
+      return;
+    }
+    setSelectedPronoun(defaultHover.pronoun);
+  };
+
+  const handlePatientClientSelect = (value: string) => {
+    if (value === 'Patient' || value === 'Client') {
+      setSelectedPatientClient(value);
+      return;
+    }
+    setSelectedPatientClient(defaultHover.patientClient);
   };
 
   const handleRegenerate = () => {
     toggle();
   };
+
+  useEffect(() => {
+    if (
+      selectedVisitType !== defaultHover.visitType ||
+      selectedPronoun !== defaultHover.pronoun ||
+      selectedPatientClient !== defaultHover.patientClient
+    ) {
+      setIsDirty(true);
+    } else {
+      setIsDirty(false);
+    }
+  }, [selectedVisitType, selectedPronoun, selectedPatientClient, defaultHover]);
 
   return (
     <>
@@ -33,28 +70,34 @@ function NoteControlsLayout() {
         loaderProps={{ color: 'blue', type: 'bars' }}
       />
 
+      <span style={{ display: 'block', marginBottom: '8px' }}>Visit Type</span>
       <Select
-        label={visitSelectorLabel}
-        placeholder="Select visit type"
+        defaultValue={selectedVisitType}
         data={['New Patient', 'Returning Patient']}
         value={selectedVisitType}
         onChange={handleVisitTypeSelect}
       />
 
-      <hr />
+      <hr style={{ margin: '16px 0' }} />
 
-      <span>Pronoun Selector</span>
-      <ThreeBtnSelector
-        buttonLabelOptions={['She', 'He', 'They']}
-        initialSelected={selectedPronoun}
+      <span style={{ display: 'block', marginBottom: '8px' }}>Pronoun Selector</span>
+      <BtnGroupSelector
+        buttonLabelOptions={['HE', 'SHE', 'THEY']}
+        selectedBtn={selectedPronoun}
         onSelect={handlePronounSelect}
       />
 
-      <hr />
+      <span style={{ display: 'block', margin: '16px 0 8px' }}>Patient/Client</span>
+      <BtnGroupSelector
+        buttonLabelOptions={['Patient', 'Client']}
+        selectedBtn={selectedPatientClient}
+        onSelect={handlePatientClientSelect}
+      />
 
-      <Button onClick={handleRegenerate} style={{ width: '100%' }}>
-        {' '}
-        Regenerate Report{' '}
+      <hr style={{ margin: '16px 0' }} />
+
+      <Button onClick={handleRegenerate} style={{ width: '100%' }} disabled={!isDirty}>
+        Regenerate Report
       </Button>
     </>
   );
