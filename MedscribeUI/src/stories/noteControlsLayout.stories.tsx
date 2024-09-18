@@ -7,12 +7,12 @@ const WIDTH = '300px';
 const HEIGHT = '500px';
 const PADDING = '10px';
 
-const NoteControlsWrapper = ({ isStatus, defaultHover }) => {
+const NoteControlsWrapper = ({ isStatus }) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
       <div style={{ width: WIDTH, height: HEIGHT, border: '1px dotted red', padding: PADDING }}>
         <MantineProvider>
-          <NoteControlsLayout isStatus={isStatus} defaultHover={defaultHover} />
+          <NoteControlsLayout isStatus={isStatus} />
         </MantineProvider>
       </div>
     </div>
@@ -20,16 +20,7 @@ const NoteControlsWrapper = ({ isStatus, defaultHover }) => {
 };
 
 const Wrapper = () => {
-  return (
-    <NoteControlsWrapper
-      isStatus={false}
-      defaultHover={{
-        visitType: 'New Patient',
-        pronoun: 'HE',
-        patientClient: 'Patient',
-      }}
-    />
-  );
+  return <NoteControlsWrapper isStatus={false} />;
 };
 
 const meta: Meta<typeof Wrapper> = {

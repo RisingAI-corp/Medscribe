@@ -4,40 +4,35 @@ import BtnGroupSelector from '../Utilities/BtnGroupSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { LoadingOverlay } from '@mantine/core';
 
-type NoteControlsLayoutProps = {
-  isStatus: boolean;
-  defaultHover: {
-    visitType: 'New Patient' | 'Returning Patient';
-    pronoun: 'SHE' | 'HE' | 'THEY';
-    patientClient: 'Patient' | 'Client';
-  };
-};
+const defaultVisitType = 'New Patient';
+const defaultPronoun = 'HE';
+const defaultPatientClient = 'Patient';
 
-function NoteControlsLayout({ isStatus, defaultHover }: NoteControlsLayoutProps) {
-  const [selectedPronoun, setSelectedPronoun] = useState(defaultHover.pronoun);
-  const [selectedVisitType, setSelectedVisitType] = useState(defaultHover.visitType);
-  const [selectedPatientClient, setSelectedPatientClient] = useState(defaultHover.patientClient);
+function NoteControlsLayout({ isStatus }: { isStatus: boolean }) {
+  const [selectedPronoun, setSelectedPronoun] = useState(defaultPronoun);
+  const [selectedVisitType, setSelectedVisitType] = useState(defaultVisitType);
+  const [selectedPatientClient, setSelectedPatientClient] = useState(defaultPatientClient);
   const [isDirty, setIsDirty] = useState(false);
   const [visible, { toggle }] = useDisclosure(isStatus);
 
   useEffect(() => {
     if (
-      selectedVisitType !== defaultHover.visitType ||
-      selectedPronoun !== defaultHover.pronoun ||
-      selectedPatientClient !== defaultHover.patientClient
+      selectedVisitType !== defaultVisitType ||
+      selectedPronoun !== defaultPronoun ||
+      selectedPatientClient !== defaultPatientClient
     ) {
       setIsDirty(true);
     } else {
       setIsDirty(false);
     }
-  }, [selectedVisitType, selectedPronoun, selectedPatientClient, defaultHover]);
+  }, [selectedVisitType, selectedPronoun, selectedPatientClient]);
 
   const handleVisitTypeSelect = (value: string | null) => {
     if (value === 'New Patient' || value === 'Returning Patient') {
       setSelectedVisitType(value);
       return;
     }
-    setSelectedVisitType(defaultHover.visitType);
+    setSelectedVisitType(defaultVisitType);
   };
 
   const handlePronounSelect = (value: string) => {
@@ -45,7 +40,7 @@ function NoteControlsLayout({ isStatus, defaultHover }: NoteControlsLayoutProps)
       setSelectedPronoun(value);
       return;
     }
-    setSelectedPronoun(defaultHover.pronoun);
+    setSelectedPronoun(defaultPronoun);
   };
 
   const handlePatientClientSelect = (value: string) => {
@@ -53,7 +48,7 @@ function NoteControlsLayout({ isStatus, defaultHover }: NoteControlsLayoutProps)
       setSelectedPatientClient(value);
       return;
     }
-    setSelectedPatientClient(defaultHover.patientClient);
+    setSelectedPatientClient(defaultPatientClient);
   };
 
   const handleRegenerate = () => {
