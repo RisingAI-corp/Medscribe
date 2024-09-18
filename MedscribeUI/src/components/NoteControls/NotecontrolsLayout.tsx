@@ -17,9 +17,20 @@ function NoteControlsLayout({ isStatus, defaultHover }: NoteControlsLayoutProps)
   const [selectedPronoun, setSelectedPronoun] = useState(defaultHover.pronoun);
   const [selectedVisitType, setSelectedVisitType] = useState(defaultHover.visitType);
   const [selectedPatientClient, setSelectedPatientClient] = useState(defaultHover.patientClient);
+  const [isDirty, setIsDirty] = useState(false);
   const [visible, { toggle }] = useDisclosure(isStatus);
 
-  const [isDirty, setIsDirty] = useState(false);
+  useEffect(() => {
+    if (
+      selectedVisitType !== defaultHover.visitType ||
+      selectedPronoun !== defaultHover.pronoun ||
+      selectedPatientClient !== defaultHover.patientClient
+    ) {
+      setIsDirty(true);
+    } else {
+      setIsDirty(false);
+    }
+  }, [selectedVisitType, selectedPronoun, selectedPatientClient, defaultHover]);
 
   const handleVisitTypeSelect = (value: string | null) => {
     if (value === 'New Patient' || value === 'Returning Patient') {
@@ -48,18 +59,6 @@ function NoteControlsLayout({ isStatus, defaultHover }: NoteControlsLayoutProps)
   const handleRegenerate = () => {
     toggle();
   };
-
-  useEffect(() => {
-    if (
-      selectedVisitType !== defaultHover.visitType ||
-      selectedPronoun !== defaultHover.pronoun ||
-      selectedPatientClient !== defaultHover.patientClient
-    ) {
-      setIsDirty(true);
-    } else {
-      setIsDirty(false);
-    }
-  }, [selectedVisitType, selectedPronoun, selectedPatientClient, defaultHover]);
 
   return (
     <>

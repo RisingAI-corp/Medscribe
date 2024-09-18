@@ -3,11 +3,18 @@ import NoteControlsLayout from '../components/NoteControls/NotecontrolsLayout';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 
+const WIDTH = '300px';
+const HEIGHT = '500px';
+
 const NoteControlsWrapper = ({ isStatus, defaultHover }) => {
   return (
-    <MantineProvider>
-      <NoteControlsLayout isStatus={isStatus} defaultHover={defaultHover} />
-    </MantineProvider>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
+      <div style={{ width: WIDTH, height: HEIGHT, border: '1px dotted red' }}>
+        <MantineProvider>
+          <NoteControlsLayout isStatus={isStatus} defaultHover={defaultHover} />
+        </MantineProvider>
+      </div>
+    </div>
   );
 };
 
