@@ -4,8 +4,6 @@ import App from './App';
 import '@mantine/core/styles.css';
 import './index.css';
 
-import '@mantine/core/styles.css';
-
 import { MantineProvider } from '@mantine/core';
 
 const rootElement = document.getElementById('root');
