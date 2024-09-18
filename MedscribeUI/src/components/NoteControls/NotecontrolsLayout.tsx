@@ -1,8 +1,7 @@
-import { Select, Button } from '@mantine/core';
+import { Select, Button, LoadingOverlay } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import BtnGroupSelector from '../Utilities/BtnGroupSelector';
 import { useDisclosure } from '@mantine/hooks';
-import { LoadingOverlay } from '@mantine/core';
 
 type NoteControlsLayoutProps = {
   isStatus: boolean;
