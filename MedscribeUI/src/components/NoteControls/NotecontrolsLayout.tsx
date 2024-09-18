@@ -4,11 +4,19 @@ import BtnGroupSelector from '../Utilities/BtnGroupSelector';
 import { useDisclosure } from '@mantine/hooks';
 import { LoadingOverlay } from '@mantine/core';
 
-const defaultVisitType = 'New Patient';
-const defaultPronoun = 'HE';
-const defaultPatientClient = 'Patient';
+type NoteControlsLayoutProps = {
+  isStatus: boolean;
+  defaultVisitType: 'New Patient' | 'Returning Patient';
+  defaultPronoun: 'SHE' | 'HE' | 'THEY';
+  defaultPatientClient: 'Patient' | 'Client';
+};
 
-function NoteControlsLayout({ isStatus }: { isStatus: boolean }) {
+function NoteControlsLayout({
+  isStatus,
+  defaultVisitType,
+  defaultPronoun,
+  defaultPatientClient,
+}: NoteControlsLayoutProps) {
   const [selectedPronoun, setSelectedPronoun] = useState(defaultPronoun);
   const [selectedVisitType, setSelectedVisitType] = useState(defaultVisitType);
   const [selectedPatientClient, setSelectedPatientClient] = useState(defaultPatientClient);
@@ -25,7 +33,14 @@ function NoteControlsLayout({ isStatus }: { isStatus: boolean }) {
     } else {
       setIsDirty(false);
     }
-  }, [selectedVisitType, selectedPronoun, selectedPatientClient]);
+  }, [
+    selectedVisitType,
+    selectedPronoun,
+    selectedPatientClient,
+    defaultVisitType,
+    defaultPronoun,
+    defaultPatientClient,
+  ]);
 
   const handleVisitTypeSelect = (value: string | null) => {
     if (value === 'New Patient' || value === 'Returning Patient') {
