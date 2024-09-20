@@ -9,7 +9,13 @@ interface Props {
   isDisabled: boolean;
 }
 
-const SampleComponent = ({ title, subtitle, backgroundColor, textColor, isDisabled }: Props) => {
+const SampleComponent = ({
+  title,
+  subtitle,
+  backgroundColor,
+  textColor,
+  isDisabled,
+}: Props) => {
   return (
     <div
       style={{

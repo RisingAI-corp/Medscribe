@@ -37,7 +37,10 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
       'prettier/prettier': ['error', { usePrettierrc: true }], // Enforce your Prettier config from .prettierrc.json
     },
   },

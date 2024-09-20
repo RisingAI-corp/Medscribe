@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 import BtnGroupSelector from '../Utilities/BtnGroupSelector';
 import { useDisclosure } from '@mantine/hooks';
 
-type NoteControlsLayoutProps = {
+interface NoteControlsLayoutProps {
   isStatus: boolean;
   defaultVisitType: 'New Patient' | 'Returning Patient';
   defaultPronoun: 'SHE' | 'HE' | 'THEY';
   defaultPatientClient: 'Patient' | 'Client';
-};
+}
 
 function NoteControlsLayout({
   isStatus,
@@ -18,7 +18,8 @@ function NoteControlsLayout({
 }: NoteControlsLayoutProps) {
   const [selectedPronoun, setSelectedPronoun] = useState(defaultPronoun);
   const [selectedVisitType, setSelectedVisitType] = useState(defaultVisitType);
-  const [selectedPatientClient, setSelectedPatientClient] = useState(defaultPatientClient);
+  const [selectedPatientClient, setSelectedPatientClient] =
+    useState(defaultPatientClient);
   const [isDirty, setIsDirty] = useState(false);
   const [visible, { toggle }] = useDisclosure(isStatus);
 
@@ -88,14 +89,18 @@ function NoteControlsLayout({
 
       <hr style={{ margin: '16px 0' }} />
 
-      <span style={{ display: 'block', marginBottom: '8px' }}>Pronoun Selector</span>
+      <span style={{ display: 'block', marginBottom: '8px' }}>
+        Pronoun Selector
+      </span>
       <BtnGroupSelector
         buttonLabelOptions={['HE', 'SHE', 'THEY']}
         selectedBtn={selectedPronoun}
         onSelect={handlePronounSelect}
       />
 
-      <span style={{ display: 'block', margin: '16px 0 8px' }}>Patient/Client</span>
+      <span style={{ display: 'block', margin: '16px 0 8px' }}>
+        Patient/Client
+      </span>
       <BtnGroupSelector
         buttonLabelOptions={['Patient', 'Client']}
         selectedBtn={selectedPatientClient}
@@ -104,7 +109,11 @@ function NoteControlsLayout({
 
       <hr style={{ margin: '16px 0' }} />
 
-      <Button onClick={handleRegenerate} style={{ width: '100%' }} disabled={!isDirty}>
+      <Button
+        onClick={handleRegenerate}
+        style={{ width: '100%' }}
+        disabled={!isDirty}
+      >
         Regenerate Report
       </Button>
     </>

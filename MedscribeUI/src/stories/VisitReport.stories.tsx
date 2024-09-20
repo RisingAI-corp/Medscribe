@@ -3,18 +3,23 @@ import VisitReportLayout from '../components/VisitReport/VisitReportLayout';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 
-const WIDTH = '1000px';
+const WIDTH = '500px';
 const HEIGHT = '600px';
 const PADDING = '10px';
 
 const VisitReportWrapper = ({}) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '90vh' }}>
-      <div style={{ width: WIDTH, height: HEIGHT, border: '1px dotted red', padding: PADDING }}>
-        <MantineProvider>
-          <VisitReportLayout />
-        </MantineProvider>
-      </div>
+    <div
+      style={{
+        width: WIDTH,
+        height: HEIGHT,
+        border: '1px dotted red',
+        padding: PADDING,
+      }}
+    >
+      <MantineProvider>
+        <VisitReportLayout />
+      </MantineProvider>
     </div>
   );
 };
