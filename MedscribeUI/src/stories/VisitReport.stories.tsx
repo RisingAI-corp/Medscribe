@@ -7,7 +7,7 @@ const WIDTH = '500px';
 const HEIGHT = '600px';
 const PADDING = '10px';
 
-const VisitReportWrapper = ({}) => {
+const VisitReportWrapper = () => {
   return (
     <div
       style={{

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import BtnGroupSelector from '../Utilities/BtnGroupSelector';
 import { useDisclosure } from '@mantine/hooks';
 
-interface NoteControlsLayoutProps {
+export interface NoteControlsLayoutProps {
   isStatus: boolean;
   defaultVisitType: 'New Patient' | 'Returning Patient';
   defaultPronoun: 'SHE' | 'HE' | 'THEY';

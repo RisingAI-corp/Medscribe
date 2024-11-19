@@ -2,17 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react';
 import NoteControlsLayout from '../components/NoteControls/NotecontrolsLayout';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import { NoteControlsLayoutProps } from '../components/NoteControls/NotecontrolsLayout';
 
 const WIDTH = '300px';
 const HEIGHT = '500px';
 const PADDING = '10px';
 
-const NoteControlsWrapper = ({
-  isStatus,
-  defaultVisitType,
-  defaultPronoun,
-  defaultPatientClient,
-}) => {
+const NoteControlsWrapper = (props: NoteControlsLayoutProps) => {
   return (
     <div
       style={{
@@ -31,12 +27,7 @@ const NoteControlsWrapper = ({
         }}
       >
         <MantineProvider>
-          <NoteControlsLayout
-            isStatus={isStatus}
-            defaultVisitType={defaultVisitType}
-            defaultPronoun={defaultPronoun}
-            defaultPatientClient={defaultPatientClient}
-          />
+          <NoteControlsLayout {...props} />
         </MantineProvider>
       </div>
     </div>

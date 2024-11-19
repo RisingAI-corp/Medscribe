@@ -7,6 +7,7 @@ import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import react from 'eslint-plugin-react'; // Updated from require
 
 export default tseslint.config(
   { ignores: ['dist', 'node_modules'] },
@@ -34,6 +35,7 @@ export default tseslint.config(
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       prettier,
+      react,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -42,6 +44,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       'prettier/prettier': ['error', { usePrettierrc: true }], // Enforce your Prettier config from .prettierrc.json
+      'react/jsx-max-props-per-line': [1, { maximum: 3 }],
     },
   },
 );
