@@ -1,6 +1,4 @@
-### UI README (`MedscribeUI/README.md`)
-
-````markdown
+```markdown
 # MedscribeUI – Frontend Setup & Philosophy
 
 ## Table of Contents
@@ -29,10 +27,8 @@ Welcome to MedscribeUI! This guide outlines the setup for our frontend project a
   We chose [Vite](https://vitejs.dev/) because of its incredible speed and efficient development experience. Research more on your own if interested.
 - **Component-Centric Story Organization:**  
   Instead of placing all Storybook stories in one massive directory, we include stories alongside the components that use them. This makes finding and maintaining stories much more intuitive.
-
 - **State-Management Approach**  
   Our state management is based on atoms:
-
   - **Central Atom:**  
     A single, central atom holds the main state.
   - **Derived Atoms for Layouts:**  
@@ -48,8 +44,6 @@ Welcome to MedscribeUI! This guide outlines the setup for our frontend project a
    ```bash
    npm install   # or yarn install
    ```
-````
-
 2. **Configure Prettier in VSCode**  
    To enable formatting on save, add the following to your VSCode settings:
    ```json
@@ -64,7 +58,6 @@ Welcome to MedscribeUI! This guide outlines the setup for our frontend project a
 ## Running the UI
 
 Start the frontend development server with:
-
 ```bash
 npm run dev
 ```
@@ -86,9 +79,10 @@ npm run dev
 ## Component & Story Organization
 
 We organize stories directly within the folders of their respective components. This approach:
-
 - Keeps the project structure clean.
 - Makes searching for specific stories faster and more intuitive.
+
+---
 
 ## API Handling with React Query
 
@@ -115,8 +109,4 @@ We use [React Query](https://react-query-v3.tanstack.com/) because it simplifies
   ```bash
   yarn storybook
   ```
-
-```
-
----
 ```
