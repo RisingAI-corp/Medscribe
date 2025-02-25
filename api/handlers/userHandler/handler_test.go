@@ -39,7 +39,12 @@ func checkCookie(cookies []*http.Cookie, cookieName string) (string, bool) {
 func TestSignUp(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should create user when credentials are valid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		mockReportsStore := new(reports.MockReports)
@@ -128,7 +133,12 @@ func TestSignUp(t *testing.T) {
 func TestLogin(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should authenticate user when credentials are valid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		mockReportsStore := new(reports.MockReports)
@@ -242,7 +252,12 @@ func TestLogin(t *testing.T) {
 func TestGetMe(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 
 	t.Run("should return user data when authenticated", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)

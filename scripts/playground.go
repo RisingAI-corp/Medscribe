@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -126,7 +128,12 @@ func main() {
 	if err != nil {
 		return
 	}
-	wipeCollection(helper.reportCol)
-	wipeCollection(helper.userCol)
+	err = wipeCollection(helper.reportCol)
+	if err != nil{
+		fmt.Println("error wiping collection: ", err)
+	}
+	if err := wipeCollection(helper.userCol); err != nil {
+		fmt.Println("error wiping collection: ", err)
+	}
 	// generateReports("67acf58a1a987f31bfe008f7", 1)
 }

@@ -24,7 +24,6 @@ const useAudioRecorder = () => {
         audioBlobRef.current = new Blob(audioChunksRef.current, {
           type: MIME_TYPE,
         });
-        console.log('this is audio current ', audioBlobRef.current);
       };
 
       setMediaRecorder(recorder);
@@ -56,7 +55,6 @@ const useAudioRecorder = () => {
         audioBlobRef.current = new Blob(audioChunksRef.current, {
           type: MIME_TYPE,
         });
-        console.log('this is audio current ', audioBlobRef.current);
         setIsRecording(false);
         resolve();
       };

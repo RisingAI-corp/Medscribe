@@ -5,6 +5,7 @@
 This project uses **Vite** for front-end development and **Node.js** for back-end services. We have configured **ESLint** and **Prettier** for linting and formatting, ensuring that the codebase remains clean and consistent across all contributors.
 
 ### Key Points:
+
 - **ESLint** is used for linting and ensuring code quality.
 - **Prettier** is used for automatic code formatting.
 - **TypeScript** is used for type safety.
@@ -77,6 +78,7 @@ npm run dev
 We have configured **Prettier** and **ESLint** to work together without conflicts.
 
 #### Formatting on Save with Prettier:
+
 1. Ensure you have the Prettier extension installed in your **VSCode**.
 2. Add the following settings to your VSCode settings:
 
@@ -88,6 +90,7 @@ We have configured **Prettier** and **ESLint** to work together without conflict
 ```
 
 #### Prettier Configuration:
+
 Prettier is configured using `.prettierrc.json`:
 
 ```json
@@ -121,7 +124,7 @@ export default tseslint.config(
   { ignores: ['dist', 'node_modules'] },
   {
     extends: [
-      js.configs.recommended, 
+      js.configs.recommended,
       ...tseslint.configs.strictTypeChecked,
       ...tseslint.configs.stylisticTypeChecked,
     ],
@@ -179,6 +182,7 @@ Make sure to provide a clear description of your changes.
 ### Common Errors:
 
 #### Node.js Version Incompatibility
+
 If you encounter an error like:
 
 ```
@@ -188,16 +192,20 @@ If you encounter an error like:
 You can resolve this by upgrading your Node.js version to a compatible version (>=18.18.0).
 
 #### Prettier Conflicts with ESLint
+
 If Prettier and ESLint are conflicting, ensure both are properly configured not to override each other. See the configuration above to make sure they are working harmoniously.
 
 #### Running Prettier on Save
+
 Ensure that your VSCode settings have `formatOnSave` enabled and that the Prettier extension is properly installed.
 
 #### Storybook
-command to run storybook 
+
+command to run storybook
 yarn storybook
 
 ### Helpful Links:
+
 - [ESLint Documentation](https://eslint.org/docs/latest/)
 - [Prettier Documentation](https://prettier.io/docs/en/index.html)
 - [Vite Documentation](https://vitejs.dev/guide/)

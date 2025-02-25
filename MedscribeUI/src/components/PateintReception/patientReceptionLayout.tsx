@@ -50,7 +50,6 @@ const PatientReception = () => {
   });
 
   const convertBlobToFormData = (blob: Blob) => {
-    console.log('before conversion ');
     const file = new File([blob], 'audio', { type: 'audio/webm' });
 
     const formData = new FormData();
@@ -77,7 +76,6 @@ const PatientReception = () => {
   });
 
   const handleGenerateReport = (duration: number) => {
-    console.log('before conversion ', audioBlobRef.current);
     if (audioBlobRef.current == null) {
       throw Error('cannot generate Report when Blob file is null');
     }
@@ -103,7 +101,6 @@ const PatientReception = () => {
   };
 
   const handleEndVisit = async () => {
-    console.log('this is the current audio blob ', audioBlobRef.current);
     if (!recordingStartTime.current) return;
 
     const elapsedSeconds = (Date.now() - recordingStartTime.current) / 1000;

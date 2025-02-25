@@ -26,7 +26,6 @@ export const UpdateReportsAtom = atom(
         // Create a new report object with updated values
         const updatedReport = { ...report }; // Shallow copy
         if (REPORT_CONTENT_SECTIONS.find(member => member === Key)) {
-          console.log('attempting udpate of ', Key);
           updatedReport[Key] = {
             data: Value,
             loading: false,
@@ -34,8 +33,6 @@ export const UpdateReportsAtom = atom(
         } else {
           updatedReport[Key] = Value;
         }
-
-        console.log('update successful', Key, Value);
 
         return updatedReport;
       }
@@ -58,7 +55,6 @@ export const createReportAtom = atom(
       console.error('report already exists');
       return;
     }
-    console.log('creating report');
     const newReport: Report = {
       id,
       providerID,

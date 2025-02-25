@@ -23,14 +23,6 @@ export const replaceReportAtom = atom(null, (get, set, newReport: Report) => {
   );
 });
 
-interface SoapSection {
-  type: string;
-  content: {
-    data: string;
-    loading: boolean;
-  };
-}
-
 export const SoapAtom = atom(
   get => {
     const currentlySelectedPatient = get(currentlySelectedPatientAtom);

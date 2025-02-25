@@ -89,14 +89,11 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 		return fmt.Errorf("error validating report config: %w", err)
 	}
 
-	fmt.Println("starting report transcription")
 	transcribedAudio, err := s.transcriptionService.Transcribe(ctx, report.AudioBytes)
-	fmt.Println("finishing report transcription")
 
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error transcribing audio: %w", err)
 	}
-	fmt.Println("here is audio file", transcribedAudio)
 	report.TranscribedAudio = transcribedAudio
 
 	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, Reports.THEY)
@@ -104,23 +101,19 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 		return fmt.Errorf("GenerateReportPipeline: error storing report: %w", err)
 	}
 
-	fmt.Println("starting report generation")
 	contentChan <- ContentChanPayload{Key: "_id", Value: reportID}
 	combinedUpdates, err := s.generateReportSections(ctx, report, contentChan, bson.D{})
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error generating report sections: %w", err)
 	}
-	fmt.Println("finished report generation")
 
 	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
 
 	combinedUpdates = append(combinedUpdates, bson.D{{Key: reports.FinishedGenerating, Value: true}}...)
 
-	fmt.Println("starting report update")
 	if err := s.reportsStore.UpdateReport(ctx, reportID, combinedUpdates); err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error updating report: %w", err)
 	}
-	fmt.Println("finishing report update")
 
 	return nil
 }
@@ -163,7 +156,6 @@ func (s *inferenceService) generateReportSections(ctx context.Context, report *R
 	if err := g.Wait(); err != nil {
 		return bson.D{}, fmt.Errorf("failed to generate report sections: %w", err)
 	}
-	fmt.Println("finished generating")
 
 	close(updatesChan)
 
@@ -177,10 +169,8 @@ func (s *inferenceService) generateReportSections(ctx context.Context, report *R
 func (s *inferenceService) generateReportSection(ctx context.Context, queryMessage string, field string, contentChan chan ContentChanPayload, aggregateUpdatesChan chan<- bson.E) error {
 	response, err := s.chat.Query(ctx, queryMessage, Chat.MaxTokens)
 	if err != nil {
-		fmt.Println("there has been a query error")
 		return fmt.Errorf("error generating report section: %w", err)
 	}
-	fmt.Println("this is the content ", response)
 	contentChan <- ContentChanPayload{Key: field, Value: response}
 	// Send the update to the updates channel.
 	aggregateUpdatesChan <- bson.E{

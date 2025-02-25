@@ -12,9 +12,6 @@ function PatientDashBoardLayout() {
   );
   const updateNameMutatuon = useMutation({
     mutationFn: changeName,
-    onSuccess: () => {
-      console.log('Name updated');
-    },
     onError: error => {
       console.error(error);
     },
@@ -33,7 +30,7 @@ function PatientDashBoardLayout() {
         <ProfileSummaryCard
           name={headerInformation.name}
           description={headerInformation.oneLiner}
-          onChange={updateHeaderInformation} // TODO: add API call to update patient name after update
+          onChange={updateHeaderInformation}
           handleUpdateName={handleUpdateName}
         />
       </div>

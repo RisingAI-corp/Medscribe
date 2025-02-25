@@ -2,14 +2,6 @@ import { atom } from 'jotai';
 import { patientsAtom, ReportContent } from '../../states/patientsAtom';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 import { Report } from '../../states/patientsAtom';
-import {
-  FollowUp,
-  NewVisit,
-  REPORT_CONTENT_TYPE_ASSESSMENT,
-  REPORT_CONTENT_TYPE_OBJECTIVE,
-  REPORT_CONTENT_TYPE_PLANNING,
-  REPORT_CONTENT_TYPE_SUBJECTIVE,
-} from '../../constants';
 
 export const NoteControlsAtom = atom(get => {
   const currentlySelectedPatient = get(currentlySelectedPatientAtom);
@@ -40,7 +32,6 @@ export const editPatientVisitAtom = atom(
     const currentVisits = get(patientsAtom);
 
     const updatedVisits = currentVisits.map(visit => {
-      console.log('these are the changes ', updates.changes);
       if (visit.id === updates.id) {
         return {
           ...visit,

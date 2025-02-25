@@ -33,7 +33,12 @@ const (
 func TestGenerateReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should generate report when request is valid", func(t *testing.T) {
 		mockReports := new(reports.MockReports)
 		mockInference := new(inferenceService.MockInferenceService)
@@ -233,7 +238,12 @@ func TestGenerateReport(t *testing.T) {
 func TestRegenerateReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should regenerate report when request is valid", func(t *testing.T) {
 		mockReports := new(reports.MockReports)
 		mockInference := new(inferenceService.MockInferenceService)
@@ -461,7 +471,12 @@ func TestRegenerateReport(t *testing.T) {
 func TestGetReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should return report when request is valid", func(t *testing.T) {
 		mockReports := new(reports.MockReports)
 		mockInference := new(inferenceService.MockInferenceService)
@@ -601,7 +616,12 @@ func TestGetReport(t *testing.T) {
 func TestLearnStyle(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	testContent := "test content"
 
 	t.Run("should learn style when request is valid", func(t *testing.T) {
@@ -788,7 +808,12 @@ func TestLearnStyle(t *testing.T) {
 func TestChangeReportName(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should change report name when request is valid", func(t *testing.T) {
 		mockReports := new(reports.MockReports)
 		mockInference := new(inferenceService.MockInferenceService)
@@ -961,7 +986,12 @@ func TestChangeReportName(t *testing.T) {
 func TestUpdateContentData(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should update report when request is valid", func(t *testing.T) {
 		mockReports := new(reports.MockReports)
 		mockInference := new(inferenceService.MockInferenceService)
@@ -1065,7 +1095,12 @@ func TestUpdateContentData(t *testing.T) {
 func TestDeleteReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			t.Errorf("failed to sync logger: %v", err)
+		}
+	}()
 	t.Run("should delete report when request is valid", func(t *testing.T) {
 		mockReports := new(reports.MockReports)
 		mockInference := new(inferenceService.MockInferenceService)

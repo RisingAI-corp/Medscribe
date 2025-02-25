@@ -25,10 +25,10 @@ function ProfileSummaryCard({
     return () => {
       debouncedNameChange.cancel();
       if (localNameRef.current !== name) {
-        console.log('updated Name');
         handleUpdateName(localNameRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

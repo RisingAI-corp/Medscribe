@@ -121,7 +121,6 @@ func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) 
 		if err := h.inferenceService.GenerateReportPipeline(context.Background(), &req, contentChan); err != nil {
 			errChan <- err
 			return
-			// TODO: log the actual error, but don't send it to the client. You don't want to expose the internals of the pipeline
 		}
 		errChan <- nil
 	}()
@@ -133,13 +132,11 @@ func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) 
 	}
 
 	for content := range contentChan {
-		fmt.Println("this is content key", content.Key)
 		if err := json.NewEncoder(w).Encode(content); err != nil {
 			h.logger.Error("error writing response", zap.Error(err))
 			http.Error(w, "error writing response", http.StatusInternalServerError)
 		}
 		flusher.Flush()
-		fmt.Println("here is content ", content)
 	}
 	if err := <-errChan; err != nil {
 		h.logger.Error("error generating report", zap.Error(err))
@@ -165,7 +162,6 @@ func (h *reportsHandler) RegenerateReport(w http.ResponseWriter, r *http.Request
 	defer r.Body.Close()
 
 	req.ProviderID = userID
-	fmt.Println("this is req here", req)	
 
 	report, err := h.reportsService.Get(r.Context(), req.ID)
 	if err != nil {
@@ -187,7 +183,6 @@ func (h *reportsHandler) RegenerateReport(w http.ResponseWriter, r *http.Request
 	errChan := make(chan error)
 	go func() {
 		if err := h.inferenceService.RegenerateReport(context.Background(), contentChan, &req); err != nil {
-			// TODO: log the actual error, but don't send it to the client. You don't want to expose the internals of the pipeline
 			errChan <- err
 			return
 		}
@@ -229,7 +224,6 @@ func (h *reportsHandler) LearnStyle(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	fmt.Println("this is req", req)
 
 	report, err := h.reportsService.Get(r.Context(), req.ReportID)
 	if err != nil {

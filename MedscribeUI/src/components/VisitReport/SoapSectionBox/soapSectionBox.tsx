@@ -40,10 +40,9 @@ const SoapSectionBox = ({
         handleAutoSave(latestLocalTextRef.current);
       }
     };
-  }, []);
+  }, [handleAutoSave, text]);
 
   const handleClick = () => {
-    console.log('learning style');
     handleLearnFormat(title, latestLocalTextRef.current);
     setClicked(true);
     setTimeout(() => {

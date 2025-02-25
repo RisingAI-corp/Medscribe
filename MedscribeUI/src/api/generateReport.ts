@@ -52,7 +52,6 @@ export async function generateReport(
     throw new Error('ReadableStream not supported.');
   }
 
-  console.log('✅ Starting to receive streaming data...');
   const reader = response.body.getReader();
   return reader;
 }

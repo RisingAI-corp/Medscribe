@@ -9,7 +9,6 @@ import { getReport, GetReportPayload } from '../../api/getReport';
 import { useMutation } from '@tanstack/react-query';
 import { reportStreamingAtom } from '../../states/patientsAtom';
 import { learnStyle } from '../../api/learnStyle';
-import { userAtom } from '../../states/userAtom';
 import { updateContentSection } from '../../api/updateContentSection';
 
 function VisitReportLayout() {
@@ -23,9 +22,7 @@ function VisitReportLayout() {
 
   const getReportMutation = useMutation({
     mutationFn: async (props: GetReportPayload) => {
-      console.log('fetching');
       const report = await getReport(props);
-      console.log('this is report ', report);
       replaceReport(report);
       if (!report.finishedGenerating) {
         throw new Error('Report not finished generating yet.');
@@ -36,7 +33,6 @@ function VisitReportLayout() {
     retryDelay: 4000,
     onSuccess: report => {
       replaceReport(report);
-      console.log('Report finished generating:', report);
     },
     onError: error => {
       console.error('Error generating report (will retry):', error);
@@ -52,9 +48,7 @@ function VisitReportLayout() {
 
   const updateContentSectionMutation = useMutation({
     mutationFn: updateContentSection,
-    onSuccess: data => {
-      console.log('success');
-    },
+
     onError: error => {
       console.error('Error updating content section:', error);
     },
@@ -62,17 +56,15 @@ function VisitReportLayout() {
 
   useEffect(() => {
     if (!reportStreaming.has(selectedPatientID) && !soapData?.loading) {
-      console.log('ran', reportStreaming);
       const payload: GetReportPayload = {
         reportID: selectedPatientID,
       };
       getReportMutation.mutate(payload);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSoapDataUpdate = (field: string, newData: string) => {
-    console.log('hello', newData);
-    // TODO: make api call later
     updateSoapData({ patientId: selectedPatientID, field, newData });
     updateContentSectionMutation.mutate({
       ReportID: selectedPatientID,
@@ -82,7 +74,6 @@ function VisitReportLayout() {
   };
 
   const handleSoapDataAutoUpdate = (field: string, newData: string) => {
-    // TODO: make api call later
     updateSoapData({ patientId: laggingSelectedPatient, field, newData });
     setLaggingSelectedPatient(selectedPatientID);
     updateContentSectionMutation.mutate({

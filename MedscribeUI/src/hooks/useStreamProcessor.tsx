@@ -36,7 +36,6 @@ export function useStreamProcessor({
     async (eventReader: ReadableStreamDefaultReader<Uint8Array>) => {
       const decoder = new TextDecoder();
       let buffer = '';
-      console.log('Starting to receive streaming data...');
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
@@ -52,7 +51,6 @@ export function useStreamProcessor({
                 );
               }
               updateReports({ id: reportID, ...data });
-              console.log('Parsed final chunk:', data);
               unsetReportStreamStatus(reportID);
             } catch (err) {
               console.error(
@@ -63,7 +61,6 @@ export function useStreamProcessor({
               );
             }
           }
-          console.log('✅ Server sent EOF (End of Stream).');
           break;
         }
         buffer += decoder.decode(value, { stream: true });
@@ -85,6 +82,7 @@ export function useStreamProcessor({
             }
             if (data.Key === '_id') {
               if (typeof data.Value === 'string' && attemptCreateReport) {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 reportID = data.Value;
                 setReportStreamStatus(reportID);
                 // For new report creation (or when regenerating an existing report)
@@ -103,7 +101,6 @@ export function useStreamProcessor({
             } else {
               updateReports({ id: reportID, ...data });
             }
-            console.log('Parsed chunk:', data);
           } catch (err) {
             console.error('Error parsing JSON:', err, 'Line:', trimmedLine);
           }

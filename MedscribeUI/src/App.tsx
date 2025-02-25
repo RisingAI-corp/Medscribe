@@ -58,6 +58,7 @@ function App() {
         setCurrentlySelectedPatient('');
       },
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuthMutation = useMutation({

@@ -20,7 +20,7 @@ import {
   They,
 } from '../../constants';
 import { useMutation } from '@tanstack/react-query';
-import { regenerateReport, Updates } from '../../api/regeneraTeReport';
+import { regenerateReport, Updates } from '../../api/regenerateReport';
 import { userAtom } from '../../states/userAtom';
 import { useStreamProcessor } from '../../hooks/useStreamProcessor';
 import { UpdateReportsAtom } from '../PateintReception/derivedAtoms';
@@ -77,9 +77,7 @@ function NoteControlsLayout() {
     selectedPatientClient !== noteControls.patientOrClient;
 
   const handleVisitTypeSelect = (value: boolean) => {
-    console.log(value, noteControls.visitType);
     if (value !== noteControls.visitType) {
-      console.log('in');
       setSelectedVisitType(value);
       setChanges(prevChanges => ({
         ...prevChanges,
@@ -145,13 +143,6 @@ function NoteControlsLayout() {
     }
     toggle();
     toggleContentLoading();
-    console.log('starting report generation');
-    console.log(
-      'currently selected ID and report id is ',
-      provider.ID,
-      currentlySelectedPatient,
-      'here is the formatted content',
-    );
     regenerateReportMutation.mutate({
       providerID: provider.ID,
       ID: currentlySelectedPatient,
