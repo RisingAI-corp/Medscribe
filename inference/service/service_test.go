@@ -274,9 +274,9 @@ func TestRegenerateReport_Valid(t *testing.T) {
 		Return(nil)
 
 	reportRequest := &ReportRequest{
-		ID:             reportID,
-		ReportContents: validReportContents,
-		Updates:        updates,
+		ID:                reportID,
+		ReportContents:    validReportContents,
+		Updates:           updates,
 		SubjectiveContent: "here is sample subjective content",
 	}
 	err := env.service.RegenerateReport(context.Background(), env.contentChan, reportRequest)

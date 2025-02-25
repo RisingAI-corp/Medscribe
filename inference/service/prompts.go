@@ -1,4 +1,3 @@
-
 package inferenceService
 
 import (
@@ -20,9 +19,8 @@ const RegenerationInitialPrompt = "You are an AI medical assistant that will be 
 	"IsFollowUp, IsReturning, Pronouns, and IsPatientOrClient. Accuracy and brevity are of supreme importance " +
 	"in generating these components from the transcript."
 
-
 // GenerateReportContentPrompt generates a prompt for generating or regenerating a report section based on the SOAP architecture.
-// It takes the transcribed audio, the specific SOAP section (Subjective, Objective, Assessment, Planning), the desired style, 
+// It takes the transcribed audio, the specific SOAP section (Subjective, Objective, Assessment, Planning), the desired style,
 // any updates to be incorporated, and the previously generated content (if any).
 //
 // Parameters:
@@ -95,7 +93,6 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, up
 
 	return prompt
 }
-
 
 const LearnStylePromptTemplate = `You are an AI medical assistant tasked with learning the writing style of an existing report.
 Content Section: %s

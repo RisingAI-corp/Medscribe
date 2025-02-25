@@ -52,24 +52,22 @@ type ReportContentSection struct {
 
 // ReportRequest holds the configuration for a report.
 type ReportRequest struct {
-	ID               string
-	PatientName      string
-	AudioBytes       []byte
-	TranscribedAudio string
-	ReportContents   []ReportContentSection
-	ProviderID       string
-	Timestamp        time.Time
-	Duration         float64
-	Updates          bson.D
-	SubjectiveContent  string
-	ObjectiveContent   string
-	AssessmentContent  string
-	PlanningContent    string
-	SummaryContent     string
+	ID                string
+	PatientName       string
+	AudioBytes        []byte
+	TranscribedAudio  string
+	ReportContents    []ReportContentSection
+	ProviderID        string
+	Timestamp         time.Time
+	Duration          float64
+	Updates           bson.D
+	SubjectiveContent string
+	ObjectiveContent  string
+	AssessmentContent string
+	PlanningContent   string
+	SummaryContent    string
 	user.Styles
 }
-
-
 
 func validateReportContents(reportContents *[]ReportContentSection) error {
 	for _, report := range *reportContents {
@@ -148,8 +146,8 @@ func (s *inferenceService) generateReportSections(ctx context.Context, report *R
 			if err != nil {
 				return fmt.Errorf("invalid content Section: %w", err)
 			}
-			contentPrompt := GenerateReportContentPrompt(report.TranscribedAudio, section, style, updates,content)
-			return s.generateReportSection(ctx, contentPrompt, section, contentChan, updatesChan,)
+			contentPrompt := GenerateReportContentPrompt(report.TranscribedAudio, section, style, updates, content)
+			return s.generateReportSection(ctx, contentPrompt, section, contentChan, updatesChan)
 		})
 	}
 
@@ -204,7 +202,7 @@ func (s *inferenceService) RegenerateReport(
 		reports.Pronouns:        true,
 		reports.VisitType:       true,
 		reports.PatientOrClient: true,
-		reports.IsFollowUp:true,
+		reports.IsFollowUp:      true,
 	}
 
 	for _, update := range report.Updates {

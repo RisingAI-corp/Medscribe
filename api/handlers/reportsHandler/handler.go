@@ -224,7 +224,6 @@ func (h *reportsHandler) LearnStyle(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-
 	report, err := h.reportsService.Get(r.Context(), req.ReportID)
 	if err != nil {
 		h.logger.Error("error fetching report", zap.Error(err))

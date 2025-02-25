@@ -14,7 +14,7 @@ func ReportRoutes(handler reportsHandler.ReportsHandler) *chi.Mux {
 	r.Patch("/regenerate", handler.RegenerateReport)
 
 	r.Patch("/changeName", handler.ChangeReportName)
-	
+
 	r.Patch("/updateContentSection", handler.UpdateContentSection)
 
 	r.Patch("/learn-style", handler.LearnStyle)

@@ -187,7 +187,7 @@ func (r *reportsStore) GetAll(ctx context.Context, providerId string) ([]Report,
 
 /* Delete removes a report by its unique identifier */
 func (r *reportsStore) Delete(ctx context.Context, reportId string) error {
-		objectID, err := primitive.ObjectIDFromHex(reportId)
+	objectID, err := primitive.ObjectIDFromHex(reportId)
 	if err != nil {
 		return fmt.Errorf("invalid ID format: %v", err)
 	}
