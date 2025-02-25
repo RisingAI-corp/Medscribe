@@ -1,4 +1,3 @@
-```markdown
 # Medscribe Repository – Project Setup & Development
 
 ## Table of Contents
@@ -165,4 +164,3 @@ After making changes:
 -   **Dependency Issues**
 
     If you encounter dependency issues, run `go mod tidy` in the root, and `npm install` in the MedscribeUI directory.
-```
