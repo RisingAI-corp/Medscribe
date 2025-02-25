@@ -3,7 +3,6 @@ package inferenceService
 import (
 	Chat "Medscribe/inference/store"
 	"Medscribe/reports"
-	Reports "Medscribe/reports"
 	Transcription "Medscribe/transcription"
 	"Medscribe/user"
 	"context"
@@ -25,7 +24,7 @@ type InferenceService interface {
 }
 
 type inferenceService struct {
-	reportsStore         Reports.Reports
+	reportsStore         reports.Reports
 	transcriptionService Transcription.Transcription
 	chat                 Chat.InferenceStore
 	userStore            user.UserStore
@@ -41,7 +40,7 @@ type inferenceService struct {
 //
 // Returns:
 // - An instance of InferenceService initialized with the provided dependencies.
-func NewInferenceService(reportsStore Reports.Reports, transcriptionService Transcription.Transcription, chat Chat.InferenceStore, userStore user.UserStore) InferenceService {
+func NewInferenceService(reportsStore reports.Reports, transcriptionService Transcription.Transcription, chat Chat.InferenceStore, userStore user.UserStore) InferenceService {
 	return &inferenceService{
 		userStore:            userStore,
 		reportsStore:         reportsStore,
@@ -116,7 +115,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	report.TranscribedAudio = transcribedAudio
 
 	// create pre-configured report
-	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, Reports.THEY)
+	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, reports.THEY)
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error storing report: %w", err)
 	}
