@@ -1,3 +1,4 @@
+```markdown
 # Medscribe Repository – Project Setup & Development
 
 ## Table of Contents
@@ -18,34 +19,27 @@
 
 ### Fork, Clone & Upstream Setup
 
-1.  **Fork the Repository**
+1. **Fork the Repository**  
+   Click the **Fork** button on GitHub to create your own copy.
 
-    Click the **Fork** button on GitHub to create your own copy.
+2. **Clone Your Fork**  
+   ```bash
+   git clone https://github.com/<YourUsername>/Medscribe.git
+   ```
 
-2.  **Clone Your Fork**
-
-    ```bash
-    git clone [https://github.com/](https://github.com/)<YourUsername>/Medscribe.git
-    ```
-
-3.  **Set Upstream**
-
-    Configure the original repository as upstream:
-
-    ```bash
-    git remote add upstream [https://github.com/RisingAI-corp/Medscribe.git](https://github.com/RisingAI-corp/Medscribe.git)
-    ```
-
-    Check to see if the remote you just made is there:
-
-    ```bash
-    git remote -v
-    ```
+3. **Set Upstream**  
+   Configure the original repository as upstream:
+   ```bash
+   git remote add upstream https://github.com/RisingAI-corp/Medscribe.git
+   ```
+   Check to see if the remote you just made is there:
+   ```bash
+   git remote -v
+   ```
 
 ### Create a Feature Branch
 
 Always create a new branch for each feature or bug fix:
-
 ```bash
 git checkout -b feature/your-feature-name
 ```
@@ -53,13 +47,10 @@ git checkout -b feature/your-feature-name
 ### Install Dependencies
 
 Run the following command in the project root to install backend dependencies:
-
 ```bash
 go mod tidy
 ```
-
 And run the following command in the MedscribeUI directory to install frontend dependencies:
-
 ```bash
 cd MedscribeUI && npm install
 ```
@@ -73,50 +64,41 @@ You have two options to start the development environment:
 ### Option 1: Run Both Servers Concurrently
 
 From the project root, run:
-
 ```bash
 npx concurrently "go run cmd/api/api.go" "cd MedscribeUI && npm run dev"
 ```
-
 This command uses `concurrently` to start both the backend and frontend servers at the same time.
 
 ### Option 2: Run Servers in Separate Terminals
 
-1.  **Start the Backend Server:**
+1. **Start the Backend Server:**  
+   Open one terminal in the project root and run:
+   ```bash
+   go run cmd/api/api.go
+   ```
 
-    Open one terminal in the project root and run:
-
-    ```bash
-    go run cmd/api/api.go
-    ```
-
-2.  **Start the Frontend Server:**
-
-    Open another terminal, navigate to the UI directory, and run:
-
-    ```bash
-    cd MedscribeUI && npm run dev
-    ```
+2. **Start the Frontend Server:**  
+   Open another terminal, navigate to the UI directory, and run:
+   ```bash
+   cd MedscribeUI && npm run dev
+   ```
 
 ---
 
 ## Expected Backend Behavior
 
-* The backend API serves data related to the Medscribe application.
-* CORS issues may arise if the frontend's URL is not included in the backend's `AllowedOrigins` configuration. Check `api/routes/entry` to configure these settings.
+- The backend API serves data related to the Medscribe application.
+- CORS issues may arise if the frontend's URL is not included in the backend's `AllowedOrigins` configuration. Check `api/routes/entry` to configure these settings.
 
 ---
 
 ## Code Quality & Formatting
 
 For backend linting, run:
-
 ```bash
 golangci-lint run
 ```
-
 For frontend linting, navigate to MedscribeUI and run:
-
 ```bash
 cd MedscribeUI && npx eslint --fix .
 ```
@@ -127,40 +109,33 @@ cd MedscribeUI && npx eslint --fix .
 
 After making changes:
 
-1.  **Sync with Upstream**
+1. **Sync with Upstream**
+   ```bash
+   git pull upstream main --rebase
+   ```
 
-    ```bash
-    git pull upstream main --rebase
-    ```
+2. **Push Your Feature Branch**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-2.  **Push Your Feature Branch**
-
-    ```bash
-    git push origin feature/your-feature-name
-    ```
-
-3.  **Open a Pull Request**
-
-    Create a PR to merge your feature branch into the upstream `main` branch.
+3. **Open a Pull Request**  
+   Create a PR to merge your feature branch into the upstream `main` branch.
 
 ---
 
 ## Troubleshooting
 
--   **Node.js Version Error**
+- **Node.js Version Error**  
+  If you see errors like:
+  ```
+  @eslint/js@9.10.0: The engine "node" is incompatible with this module. Expected version "^18.18.0 || ^20.9.0 || >=21.1.0". Got "18.13.0".
+  ```
+  Upgrade your Node.js version to at least **18.18.0**.
 
-    If you see errors like:
+- **CORS Issues**  
+  If you encounter CORS errors, ensure your frontend's URL is included in the `AllowedOrigins` configuration in `api/routes/entry`.
 
-    ```
-    @eslint/js@9.10.0: The engine "node" is incompatible with this module. Expected version "^18.18.0 || ^20.9.0 || >=21.1.0". Got "18.13.0".
-    ```
-
-    upgrade your Node.js version to at least **18.18.0**.
-
--   **CORS Issues**
-
-    If you encounter CORS errors, ensure your frontend's URL is included in the `AllowedOrigins` configuration in `api/routes/entry`.
-
--   **Dependency Issues**
-
-    If you encounter dependency issues, run `go mod tidy` in the root, and `npm install` in the MedscribeUI directory.
+- **Dependency Issues**  
+  If you encounter dependency issues, run `go mod tidy` in the root, and `npm install` in the MedscribeUI directory.
+```
