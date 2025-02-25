@@ -142,5 +142,3 @@ After making changes:
 - **Dependency Issues:**  
   If you encounter dependency issues, run `go mod tidy` in the project root, and `npm install` in the `MedscribeUI` directory.
 ```
-
-This version should display neatly on GitHub with clear sections and code blocks.
