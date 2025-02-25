@@ -1,10 +1,12 @@
+Below is an improved Markdown version with enhanced spacing and formatting for better GitHub readability:
+
 ```markdown
 # Medscribe Repository – Project Setup & Development
 
 ## Table of Contents
 
 - [Project Setup Instructions](#project-setup-instructions)
-  - [Fork, Clone, & Upstream Setup](#fork-clone--upstream-setup)
+  - [Fork, Clone & Upstream Setup](#fork-clone--upstream-setup)
   - [Create a Feature Branch](#create-a-feature-branch)
   - [Install Dependencies](#install-dependencies)
 - [Development Server](#development-server)
@@ -32,7 +34,7 @@
    ```bash
    git remote add upstream https://github.com/RisingAI-corp/Medscribe.git
    ```
-   Check to see if the remote you just made is there:
+   Verify the remote:
    ```bash
    git remote -v
    ```
@@ -46,14 +48,14 @@ git checkout -b feature/your-feature-name
 
 ### Install Dependencies
 
-Run the following command in the project root to install backend dependencies:
-```bash
-go mod tidy
-```
-And run the following command in the MedscribeUI directory to install frontend dependencies:
-```bash
-cd MedscribeUI && npm install
-```
+- **Backend:** Run in the project root:
+  ```bash
+  go mod tidy
+  ```
+- **Frontend:** Navigate to the `MedscribeUI` directory and run:
+  ```bash
+  cd MedscribeUI && npm install
+  ```
 
 ---
 
@@ -67,7 +69,7 @@ From the project root, run:
 ```bash
 npx concurrently "go run cmd/api/api.go" "cd MedscribeUI && npm run dev"
 ```
-This command uses `concurrently` to start both the backend and frontend servers at the same time.
+This command uses `concurrently` to start both the backend and frontend servers simultaneously.
 
 ### Option 2: Run Servers in Separate Terminals
 
@@ -78,7 +80,7 @@ This command uses `concurrently` to start both the backend and frontend servers 
    ```
 
 2. **Start the Frontend Server:**  
-   Open another terminal, navigate to the UI directory, and run:
+   Open another terminal, navigate to the `MedscribeUI` directory, and run:
    ```bash
    cd MedscribeUI && npm run dev
    ```
@@ -88,20 +90,23 @@ This command uses `concurrently` to start both the backend and frontend servers 
 ## Expected Backend Behavior
 
 - The backend API serves data related to the Medscribe application.
-- CORS issues may arise if the frontend's URL is not included in the backend's `AllowedOrigins` configuration. Check `api/routes/entry` to configure these settings.
+- CORS issues may occur if the frontend's URL is not included in the backend's `AllowedOrigins` configuration.  
+  *Check `api/routes/entry` to configure these settings.*
 
 ---
 
 ## Code Quality & Formatting
 
-For backend linting, run:
-```bash
-golangci-lint run
-```
-For frontend linting, navigate to MedscribeUI and run:
-```bash
-cd MedscribeUI && npx eslint --fix .
-```
+- **Backend Linting:**  
+  Run:
+  ```bash
+  golangci-lint run
+  ```
+- **Frontend Linting:**  
+  Navigate to the `MedscribeUI` directory and run:
+  ```bash
+  cd MedscribeUI && npx eslint --fix .
+  ```
 
 ---
 
@@ -126,16 +131,18 @@ After making changes:
 
 ## Troubleshooting
 
-- **Node.js Version Error**  
+- **Node.js Version Error:**  
   If you see errors like:
   ```
   @eslint/js@9.10.0: The engine "node" is incompatible with this module. Expected version "^18.18.0 || ^20.9.0 || >=21.1.0". Got "18.13.0".
   ```
   Upgrade your Node.js version to at least **18.18.0**.
 
-- **CORS Issues**  
+- **CORS Issues:**  
   If you encounter CORS errors, ensure your frontend's URL is included in the `AllowedOrigins` configuration in `api/routes/entry`.
 
-- **Dependency Issues**  
-  If you encounter dependency issues, run `go mod tidy` in the root, and `npm install` in the MedscribeUI directory.
+- **Dependency Issues:**  
+  If you encounter dependency issues, run `go mod tidy` in the project root, and `npm install` in the `MedscribeUI` directory.
 ```
+
+This version should display neatly on GitHub with clear sections and code blocks.
