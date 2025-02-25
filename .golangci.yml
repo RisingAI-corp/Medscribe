@@ -1,0 +1,10 @@
+go:
+  lintTool: golangci-lint
+  lintFlags:
+    - "--fast"
+
+linters-settings:
+  govet:
+    disable-all: false
+    disable:
+      - loopclosure

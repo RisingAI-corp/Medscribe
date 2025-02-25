@@ -1,0 +1,27 @@
+import '@mantine/core/styles.css';
+
+import { IconSearch } from '@tabler/icons-react';
+interface SearchBoxProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const SearchBox = ({ value = '', onChange }: SearchBoxProps) => {
+  return (
+    <div className="flex items-center border border-gray-300 rounded px-2 py-1 w-full max-w-sm bg-white">
+      <IconSearch size={30} className="text-gray-400 mr-2" />
+
+      <input
+        type="text"
+        value={value}
+        onChange={e => {
+          onChange(e.target.value);
+        }}
+        placeholder="Search for notes by name"
+        className="border-none outline-none flex-grow text-lg text-gray-800 placeholder-gray-500"
+      />
+    </div>
+  );
+};
+
+export default SearchBox;
