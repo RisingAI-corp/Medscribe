@@ -298,7 +298,7 @@ func (r *ReportRequest) styleFromContentSection(contentSection string) (string, 
 		return r.SummaryStyle, nil
 	default:
 		return "", fmt.Errorf("invalid content section: %s", contentSection)
-	}
+}
 }
 
 // styleFieldFromContentSection returns the style field for the given content section.
