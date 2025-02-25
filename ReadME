@@ -1,4 +1,40 @@
-```markdown
+The primary issue is that your entire markdown is wrapped in a code fence (using triple backticks with "markdown"), so GitHub treats it as literal code instead of rendering it. In a GitHub README, you typically want the markdown to render as formatted text, not as a code snippet.
+
+Here are some steps and tips to improve the appearance:
+
+1. **Remove the Code Fence**  
+   Instead of enclosing your content in:
+   ```markdown
+   ```markdown
+   ... your content ...
+   ```
+   ```
+   simply remove the surrounding triple backticks. That way, GitHub will render the markdown as intended.
+
+2. **Verify Your Table of Contents Links**  
+   GitHub automatically generates header IDs by converting the text to lowercase, removing punctuation, and replacing spaces with dashes. For example, the header  
+   `### Fork, Clone & Upstream Setup`  
+   becomes something like `fork-clone--upstream-setup`. Make sure your links in the table of contents match these IDs. You can hover over a rendered header on GitHub to see its actual ID.
+
+3. **Simplify Headings If Needed**  
+   If you encounter problems with special characters (like commas or ampersands), consider simplifying your headings. For example, you might change  
+   `Fork, Clone & Upstream Setup`  
+   to  
+   `Fork Clone and Upstream Setup`  
+   so that the auto-generated ID is more predictable.
+
+4. **Use HTML Anchors for Custom IDs (if necessary)**  
+   If you need more control over the header IDs, you can add HTML anchor tags before your headings. For example:
+   ```markdown
+   <a name="fork-clone-setup"></a>
+   ### Fork, Clone & Upstream Setup
+   ```
+   Then update your Table of Contents link accordingly.
+
+---
+
+**Revised Version (Without Code Fence):**
+
 # Medscribe Repository – Project Setup & Development
 
 ## Table of Contents
@@ -141,4 +177,7 @@ After making changes:
 
 - **Dependency Issues:**  
   If you encounter dependency issues, run `go mod tidy` in the project root, and `npm install` in the `MedscribeUI` directory.
-```
+
+---
+
+By making these adjustments, your markdown should render beautifully on GitHub.
