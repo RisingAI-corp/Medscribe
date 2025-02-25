@@ -31,6 +31,16 @@ type inferenceService struct {
 	userStore            user.UserStore
 }
 
+// NewInferenceService creates a new instance of InferenceService with the provided dependencies.
+// 
+// Parameters:
+// - reportsStore: An instance of Reports.Reports to handle report storage operations.
+// - transcriptionService: An instance of Transcription.Transcription to handle transcription operations.
+// - chat: An instance of Chat.InferenceStore to handle chat-related operations.
+// - userStore: An instance of user.UserStore to handle user-related operations.
+//
+// Returns:
+// - An instance of InferenceService initialized with the provided dependencies.
 func NewInferenceService(reportsStore Reports.Reports, transcriptionService Transcription.Transcription, chat Chat.InferenceStore, userStore user.UserStore) InferenceService {
 	return &inferenceService{
 		userStore:            userStore,
@@ -40,17 +50,21 @@ func NewInferenceService(reportsStore Reports.Reports, transcriptionService Tran
 	}
 }
 
+// ContentChanPayload represents a key-value pair for sending content to the frontend.
 type ContentChanPayload struct {
 	Key   string
 	Value interface{}
 }
 
+// ReportContentSection represents a section of a report with a specific content type and content.
+// ContentType specifies the type of content (e.g., text, image, etc.).
+// Content holds the actual content of the section.
 type ReportContentSection struct {
 	ContentType string
 	Content     string
 }
 
-// ReportRequest holds the configuration for a report.
+// ReportRequest holds the configuration request for generating a medical report.
 type ReportRequest struct {
 	ID                string
 	PatientName       string
@@ -80,13 +94,20 @@ func validateReportContents(reportContents *[]ReportContentSection) error {
 	return nil
 }
 
+//GenerateReportPipeline is a pipeline that generates a report based on the given audio bytes and report configuration.
+//parameters:
+// - ctx: The context of the request.
+// - report: The report configuration.
+// - contentChan: A channel to send content to the frontend.
+//returns:
+// - An error if the pipeline fails.
 func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *ReportRequest, contentChan chan ContentChanPayload) error {
-	// Create a context with a 2-minute timeout for the entire pipeline.
 	defer close(contentChan)
 	if err := validateReportContents(&report.ReportContents); err != nil {
 		return fmt.Errorf("error validating report config: %w", err)
 	}
 
+	// transcribe audio
 	transcribedAudio, err := s.transcriptionService.Transcribe(ctx, report.AudioBytes)
 
 	if err != nil {
@@ -94,25 +115,103 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	}
 	report.TranscribedAudio = transcribedAudio
 
+	// create pre-configured report
 	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, Reports.THEY)
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error storing report: %w", err)
 	}
 
+	// send id to the client
 	contentChan <- ContentChanPayload{Key: "_id", Value: reportID}
+
+	//generate the report sections (subjective, objective, assessment, planning, summary)
 	combinedUpdates, err := s.generateReportSections(ctx, report, contentChan, bson.D{})
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error generating report sections: %w", err)
 	}
 
+	// indicate to client that report finished generating
 	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
 
+	// batch update the report with the generated content
 	combinedUpdates = append(combinedUpdates, bson.D{{Key: reports.FinishedGenerating, Value: true}}...)
-
 	if err := s.reportsStore.UpdateReport(ctx, reportID, combinedUpdates); err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error updating report: %w", err)
 	}
 
+	return nil
+}
+
+
+// RegenerateReport regenerates the SOAP content based on key-value updates.
+// probably will not make reportContents a pointer. it doesn't seem like it will have a high access pattern
+func (s *inferenceService) RegenerateReport(
+	ctx context.Context,
+	contentChan chan ContentChanPayload,
+	report *ReportRequest,
+) error {
+	defer close(contentChan)
+	if err := validateReportContents(&report.ReportContents); err != nil {
+		return fmt.Errorf("error validating report config: %w", err)
+	}
+
+	if report.Updates == nil {
+		return fmt.Errorf("RegenerateReport: no updates provided")
+	}
+
+	allowedKeys := map[string]bool{
+		reports.Pronouns:        true,
+		reports.VisitType:       true,
+		reports.PatientOrClient: true,
+		reports.IsFollowUp:      true,
+	}
+
+	for _, update := range report.Updates {
+		if !allowedKeys[update.Key] {
+			return fmt.Errorf("invalid update key: %s", update.Key)
+		}
+	}
+
+	preUpdates := append(report.Updates, bson.D{{Key: reports.FinishedGenerating, Value: false}}...)
+	if err := s.reportsStore.UpdateReport(ctx, report.ID, preUpdates); err != nil {
+		return fmt.Errorf("RegenerateReport: error updating loading status before report regeneration: %w", err)
+	}
+
+	combinedUpdates, err := s.generateReportSections(ctx, report, contentChan, report.Updates)
+	if err != nil {
+		return fmt.Errorf("RegenerateReport: error generating report sections: %w", err)
+	}
+
+	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
+
+	combinedUpdates = append(combinedUpdates, bson.D{{Key: reports.FinishedGenerating, Value: true}}...)
+	if err := s.reportsStore.UpdateReport(ctx, report.ID, combinedUpdates); err != nil {
+		return fmt.Errorf("RegenerateReport: error updating report after regeneration: %w", err)
+	}
+
+	return nil
+}
+
+// LearnStyle learns the style from the given report and content section.
+func (s *inferenceService) LearnStyle(ctx context.Context, provideID, contentSection, content string) error {
+	if content == "" {
+		return errors.New("cannot learn from empty content")
+	}
+
+	styleField, err := styleFieldFromContentSection(contentSection)
+	if err != nil {
+		return fmt.Errorf("LearnStyle: invalid content section%w", err)
+	}
+
+	learnStylePrompt := GenerateLearnStylePrompt(contentSection, content)
+	response, err := s.chat.Query(ctx, learnStylePrompt, 100)
+	if err != nil {
+		return fmt.Errorf("LearnStyle: error querying for style: %w", err)
+	}
+
+	if err = s.userStore.UpdateStyle(ctx, provideID, styleField, response); err != nil {
+		return fmt.Errorf("LearnStyle: error updating style: %w", err)
+	}
 	return nil
 }
 
@@ -170,6 +269,7 @@ func (s *inferenceService) generateReportSection(ctx context.Context, queryMessa
 		return fmt.Errorf("error generating report section: %w", err)
 	}
 	contentChan <- ContentChanPayload{Key: field, Value: response}
+
 	// Send the update to the updates channel.
 	aggregateUpdatesChan <- bson.E{
 		Key: field,
@@ -182,55 +282,9 @@ func (s *inferenceService) generateReportSection(ctx context.Context, queryMessa
 	return nil
 }
 
-// RegenerateReport regenerates the SOAP content based on key-value updates.
-// probably will not make reportContents a pointer. it doesn't seem like it will have a high access pattern
-func (s *inferenceService) RegenerateReport(
-	ctx context.Context,
-	contentChan chan ContentChanPayload,
-	report *ReportRequest,
-) error {
-	defer close(contentChan)
-	if err := validateReportContents(&report.ReportContents); err != nil {
-		return fmt.Errorf("error validating report config: %w", err)
-	}
 
-	if report.Updates == nil {
-		return fmt.Errorf("RegenerateReport: no updates provided")
-	}
 
-	allowedKeys := map[string]bool{
-		reports.Pronouns:        true,
-		reports.VisitType:       true,
-		reports.PatientOrClient: true,
-		reports.IsFollowUp:      true,
-	}
-
-	for _, update := range report.Updates {
-		if !allowedKeys[update.Key] {
-			return fmt.Errorf("invalid update key: %s", update.Key)
-		}
-	}
-
-	preUpdates := append(report.Updates, bson.D{{Key: reports.FinishedGenerating, Value: false}}...)
-	if err := s.reportsStore.UpdateReport(ctx, report.ID, preUpdates); err != nil {
-		return fmt.Errorf("RegenerateReport: error updating loading status before report regeneration: %w", err)
-	}
-
-	combinedUpdates, err := s.generateReportSections(ctx, report, contentChan, report.Updates)
-	if err != nil {
-		return fmt.Errorf("RegenerateReport: error generating report sections: %w", err)
-	}
-
-	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
-
-	combinedUpdates = append(combinedUpdates, bson.D{{Key: reports.FinishedGenerating, Value: true}}...)
-	if err := s.reportsStore.UpdateReport(ctx, report.ID, combinedUpdates); err != nil {
-		return fmt.Errorf("RegenerateReport: error updating report after regeneration: %w", err)
-	}
-
-	return nil
-}
-
+// styleFromContentSection returns the style for the given content section.
 func (r *ReportRequest) styleFromContentSection(contentSection string) (string, error) {
 	switch contentSection {
 	case reports.Subjective:
@@ -248,23 +302,7 @@ func (r *ReportRequest) styleFromContentSection(contentSection string) (string, 
 	}
 }
 
-func (r *ReportRequest) contentFromContentSection(contentSection string) (string, error) {
-	switch contentSection {
-	case reports.Subjective:
-		return r.SubjectiveContent, nil
-	case reports.Objective:
-		return r.ObjectiveContent, nil
-	case reports.Assessment:
-		return r.AssessmentContent, nil
-	case reports.Planning:
-		return r.PlanningContent, nil
-	case reports.Summary:
-		return r.SummaryContent, nil
-	default:
-		return "", fmt.Errorf("invalid content section: %s", contentSection)
-	}
-}
-
+// styleFieldFromContentSection returns the style field for the given content section.
 func styleFieldFromContentSection(contentSection string) (string, error) {
 	switch contentSection {
 	case reports.Subjective:
@@ -282,25 +320,20 @@ func styleFieldFromContentSection(contentSection string) (string, error) {
 	}
 }
 
-// LearnStyle learns the style from the given report and content section.
-func (s *inferenceService) LearnStyle(ctx context.Context, provideID, contentSection, content string) error {
-	if content == "" {
-		return errors.New("cannot learn from empty content")
+// contentFromContentSection returns the content for the given content section.
+func (r *ReportRequest) contentFromContentSection(contentSection string) (string, error) {
+	switch contentSection {
+	case reports.Subjective:
+		return r.SubjectiveContent, nil
+	case reports.Objective:
+		return r.ObjectiveContent, nil
+	case reports.Assessment:
+		return r.AssessmentContent, nil
+	case reports.Planning:
+		return r.PlanningContent, nil
+	case reports.Summary:
+		return r.SummaryContent, nil
+	default:
+		return "", fmt.Errorf("invalid content section: %s", contentSection)
 	}
-
-	styleField, err := styleFieldFromContentSection(contentSection)
-	if err != nil {
-		return fmt.Errorf("LearnStyle: invalid content section%w", err)
-	}
-
-	learnStylePrompt := GenerateLearnStylePrompt(contentSection, content)
-	response, err := s.chat.Query(ctx, learnStylePrompt, 100)
-	if err != nil {
-		return fmt.Errorf("LearnStyle: error querying for style: %w", err)
-	}
-
-	if err = s.userStore.UpdateStyle(ctx, provideID, styleField, response); err != nil {
-		return fmt.Errorf("LearnStyle: error updating style: %w", err)
-	}
-	return nil
 }
