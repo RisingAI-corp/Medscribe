@@ -1,223 +1,122 @@
-# Medscribe Project Setup
+### UI README (`MedscribeUI/README.md`)
 
-## Overview
+````markdown
+# MedscribeUI – Frontend Setup & Philosophy
 
-This project uses **Vite** for front-end development and **Node.js** for back-end services. We have configured **ESLint** and **Prettier** for linting and formatting, ensuring that the codebase remains clean and consistent across all contributors.
+## Table of Contents
 
-### Key Points:
+- [Introduction](#introduction)
+- [Project Philosophy](#project-philosophy)
+- [Setup Instructions](#setup-instructions)
+- [Running the UI](#running-the-ui)
+- [Code Quality & Linting](#code-quality--linting)
+- [Component & Story Organization](#component--story-organization)
+- [State Management Approach](#state-management-approach)
+- [API Handling with React Query](#api-handling-with-react-query)
+- [Commands Summary](#commands-summary)
 
-- **ESLint** is used for linting and ensuring code quality.
-- **Prettier** is used for automatic code formatting.
-- **TypeScript** is used for type safety.
-- **Vite** is used as a bundler for front-end development.
-- We use **feature branching** for individual work and rebase onto `main` to maintain a clean commit history.
+---
+
+## Introduction
+
+Welcome to MedscribeUI! This guide outlines the setup for our frontend project and explains the design philosophy behind our choices.
+
+---
+
+## Project Philosophy
+
+- **Vite for Speed:**  
+  We chose [Vite](https://vitejs.dev/) because of its incredible speed and efficient development experience. Research more on your own if interested.
+- **Component-Centric Story Organization:**  
+  Instead of placing all Storybook stories in one massive directory, we include stories alongside the components that use them. This makes finding and maintaining stories much more intuitive.
+
+- **State-Management Approach**  
+  Our state management is based on atoms:
+
+  - **Central Atom:**  
+    A single, central atom holds the main state.
+  - **Derived Atoms for Layouts:**  
+    Each layout component has a derived atom that extracts only the necessary data from the central atom. This derived atom is responsible for providing data to its layout and its presentational (dumb) children.  
+    _Benefits:_ Faster search, better organization, and more intuitive.
+
+---
 
 ## Setup Instructions
 
-### 1. Fork the Repository
-
-1. Fork the repository on GitHub by clicking the **Fork** button at the top of the repo page.
-2. Clone the forked repository:
-
+1. **Install Dependencies**  
+   Ensure you have Node.js installed, then run:
    ```bash
-   git clone https://github.com/YourUsername/Medscribe.git
-   cd Medscribe
+   npm install   # or yarn install
+   ```
+````
+
+2. **Configure Prettier in VSCode**  
+   To enable formatting on save, add the following to your VSCode settings:
+   ```json
+   {
+     "editor.formatOnSave": true,
+     "editor.defaultFormatter": "esbenp.prettier-vscode"
+   }
    ```
 
-### 2. Set Upstream to Main Repository
+---
 
-After cloning your fork, set the original repository as the upstream:
+## Running the UI
 
-```bash
-git remote add upstream https://github.com/RisingAI-corp/Medscribe.git
-```
-
-Verify your remotes:
-
-```bash
-git remote -v
-```
-
-You should see:
-
-```bash
-origin    https://github.com/YourUsername/Medscribe.git (fetch)
-origin    https://github.com/YourUsername/Medscribe.git (push)
-upstream  https://github.com/RisingAI-corp/Medscribe.git (fetch)
-upstream  https://github.com/RisingAI-corp/Medscribe.git (push)
-```
-
-### 3. Create a New Branch for Each Feature
-
-Always create a new branch for every feature or bug fix you work on:
-
-```bash
-git checkout -b feature/new-feature
-```
-
-This keeps your work isolated and avoids conflicts.
-
-### 4. Install Dependencies
-
-Before you start working, ensure all dependencies are installed by running:
-
-```bash
-npm install
-```
-
-### 5. Run Development Server
-
-To start the Vite development server, run:
+Start the frontend development server with:
 
 ```bash
 npm run dev
 ```
 
-### 6. Prettier and ESLint Setup
+---
 
-We have configured **Prettier** and **ESLint** to work together without conflicts.
+## Code Quality & Linting
 
-#### Formatting on Save with Prettier:
-
-1. Ensure you have the Prettier extension installed in your **VSCode**.
-2. Add the following settings to your VSCode settings:
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
-}
-```
-
-#### Prettier Configuration:
-
-Prettier is configured using `.prettierrc.json`:
-
-```json
-{
-  "trailingComma": "all",
-  "tabWidth": 2,
-  "semi": true,
-  "singleQuote": true,
-  "printWidth": 120,
-  "bracketSpacing": true
-}
-```
-
-To format files from the command line:
-
-```bash
-npx prettier --write .
-```
-
-#### ESLint Configuration:
-
-The **ESLint** configuration lives in the `eslint.config.mjs` file:
-
-```js
-import js from '@eslint/js';
-import globals from 'globals';
-import reactHooks from 'eslint-plugin-react-hooks';
-import tseslint from 'typescript-eslint';
-
-export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
-  {
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.strictTypeChecked,
-      ...tseslint.configs.stylisticTypeChecked,
-    ],
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-    },
-    plugins: {
-      'react-hooks': reactHooks,
-    },
-    rules: {
-      ...reactHooks.configs.recommended.rules,
-    },
-  },
-);
-```
-
-To run ESLint manually and automatically fix errors:
-
-```bash
-npx eslint --fix .
-```
-
-This will apply ESLint fixes to your specified directory.
-
-### 7. Sync Your Fork with the Upstream
-
-Before pushing your changes, ensure your fork is up-to-date with the upstream `main` branch by using rebase (not merge):
-
-```bash
-git pull upstream main --rebase
-```
-
-This will ensure your branch has the latest changes from the `main` branch and prevent merge conflicts.
-
-### 8. Push Your Changes
-
-After making changes on your feature branch, push them to your fork:
-
-```bash
-git push origin feature/new-feature
-```
-
-### 9. Open a Pull Request
-
-Once your changes are pushed, go to your GitHub fork and open a Pull Request (PR) to merge your feature branch into the upstream repository's `main` branch.
-
-Make sure to provide a clear description of your changes.
+- **ESLint in VSCode:**  
+  Make sure you have the ESLint extension installed. To run ESLint from the command line:
+  ```bash
+  npx eslint --fix .
+  ```
+- **VSCode Linting:**  
+  The integrated linting in VSCode will help you catch errors as you type.
 
 ---
 
-## Troubleshooting
+## Component & Story Organization
 
-### Common Errors:
+We organize stories directly within the folders of their respective components. This approach:
 
-#### Node.js Version Incompatibility
+- Keeps the project structure clean.
+- Makes searching for specific stories faster and more intuitive.
 
-If you encounter an error like:
+## API Handling with React Query
 
-```
-@eslint/js@9.10.0: The engine "node" is incompatible with this module. Expected version "^18.18.0 || ^20.9.0 || >=21.1.0". Got "18.13.0".
-```
-
-You can resolve this by upgrading your Node.js version to a compatible version (>=18.18.0).
-
-#### Prettier Conflicts with ESLint
-
-If Prettier and ESLint are conflicting, ensure both are properly configured not to override each other. See the configuration above to make sure they are working harmoniously.
-
-#### Running Prettier on Save
-
-Ensure that your VSCode settings have `formatOnSave` enabled and that the Prettier extension is properly installed.
-
-#### Storybook
-
-command to run storybook
-yarn storybook
-
-### Helpful Links:
-
-- [ESLint Documentation](https://eslint.org/docs/latest/)
-- [Prettier Documentation](https://prettier.io/docs/en/index.html)
-- [Vite Documentation](https://vitejs.dev/guide/)
+We use [React Query](https://react-query-v3.tanstack.com/) because it simplifies API request handling, caching, and state synchronization. It makes fetching and updating data effortless. Take some time to explore its benefits on your own!
 
 ---
 
 ## Commands Summary
 
-- **Start development server**: `npm run dev`
-- **Lint files**: `npx eslint .`
-- **Fix linting issues**: `npx eslint --fix yourdirectory/`
-- **Format files**: `npx prettier --write .`
-- **Pull with rebase**: `git pull upstream main --rebase`
-- **Push your changes**: `git push origin feature/new-feature`
-- **Runs storybook**: `yarn storybook`
+- **Install Dependencies:**
+  ```bash
+  npm install   # or yarn install
+  ```
+- **Start the UI Development Server:**
+  ```bash
+  npm run dev
+  ```
+- **Run ESLint (with auto-fix):**
+  ```bash
+  npx eslint --fix .
+  ```
+- **Run Storybook (if needed):**  
+  If you need to view UI components in isolation:
+  ```bash
+  yarn storybook
+  ```
+
+```
+
+---
+```
