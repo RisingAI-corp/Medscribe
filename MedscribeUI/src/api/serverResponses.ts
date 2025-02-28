@@ -9,7 +9,7 @@ export const ReportSchema = z.object({
   id: z.string(),
   providerID: z.string(),
   name: z.string(),
-  timeStamp: z.string(),
+  timestamp: z.string(),
   duration: z.number(),
   pronouns: z.string(),
   isFollowUp: z.boolean(),

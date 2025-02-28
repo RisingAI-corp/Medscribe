@@ -6,9 +6,10 @@ import { PatientPreviewRecord } from './patientRegistryLayout';
 
 export const PatientRegistryAtom = atom(get =>
   get(patientsAtom).map<PatientPreviewRecord>(patient => {
-    const dateOfRecording = new Date(patient.timeStamp);
+    const dateOfRecording = new Date(patient.timestamp);
     const date = format(dateOfRecording, 'MM/dd/yy').toLowerCase();
     const time = format(dateOfRecording, 'h:mmaaa').toLowerCase();
+
     const duration = (
       format(new Date(patient.duration), 'mm') + ' min'
     ).replace(/^0+/, '');

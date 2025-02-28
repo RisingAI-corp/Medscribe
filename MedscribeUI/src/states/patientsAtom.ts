@@ -9,7 +9,7 @@ export interface Report {
   id: string;
   providerID: string;
   name: string;
-  timeStamp: string;
+  timestamp: string;
   duration: number;
   pronouns: string;
   isFollowUp: boolean;
@@ -30,7 +30,7 @@ const reports: Report[] = [
     id: 'report1',
     providerID: 'provider123',
     name: 'Emenike',
-    timeStamp: '2024-07-26T10:00:00Z',
+    timestamp: '2024-07-26T10:00:00Z',
     duration: 600000,
     pronouns: She,
     isFollowUp: false,
@@ -68,7 +68,7 @@ const reports: Report[] = [
     id: 'report2',
     providerID: 'provider456',
     name: 'President',
-    timeStamp: '2024-07-26T11:30:00Z',
+    timestamp: '2024-07-26T11:30:00Z',
     duration: 1800000,
     pronouns: He,
     isFollowUp: true,
@@ -103,7 +103,7 @@ const reports: Report[] = [
     id: 'report3',
     providerID: 'provider123',
     name: 'Cockroach',
-    timeStamp: '2024-07-27T09:00:00Z',
+    timestamp: '2024-07-27T09:00:00Z',
     duration: 200000,
     pronouns: They, // Using imported constant
     isFollowUp: false,

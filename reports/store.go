@@ -55,6 +55,12 @@ const (
 	IsFollowUp = "isFollowUp"
 
 	Name = "name"
+
+	providerID = "providerid"
+
+	ID = "_id"
+
+	timestamp = "timestamp"
 )
 
 type ReportContent struct {
@@ -66,7 +72,7 @@ type Report struct {
 	ID                 primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	ProviderID         string             `json:"providerID"`
 	Name               string             `json:"name"`
-	TimeStamp          primitive.DateTime `json:"timeStamp"`
+	TimeStamp          primitive.DateTime `json:"timestamp"`
 	Duration           float64            `json:"duration"`
 	Pronouns           string             `json:"pronouns"`
 	IsFollowUp         bool               `json:"isFollowUp"`
@@ -152,7 +158,7 @@ func (r *reportsStore) Get(ctx context.Context, reportId string) (Report, error)
 		return Report{}, fmt.Errorf("invalid ID format: %v", err)
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{ID: objectID}
 	var retrievedReport Report
 	err = r.client.FindOne(ctx, filter).Decode(&retrievedReport)
 	if err != nil {
@@ -167,9 +173,9 @@ func (r *reportsStore) GetAll(ctx context.Context, providerId string) ([]Report,
 	if providerId == "" {
 		return []Report{}, errors.New("missing provider ID")
 	}
-	filter := bson.M{"providerid": providerId}
+	filter := bson.M{providerID: providerId}
 
-	options := options.Find().SetSort(bson.M{"date": -1})
+	options := options.Find().SetSort(bson.M{timestamp: -1})
 
 	var retrievedReports []Report
 
@@ -192,7 +198,7 @@ func (r *reportsStore) Delete(ctx context.Context, reportId string) error {
 		return fmt.Errorf("invalid ID format: %v", err)
 	}
 
-	filter := bson.M{"_id": objectID}
+	filter := bson.M{ID: objectID}
 	result, err := r.client.DeleteOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("failed to delete report: %v", err)
@@ -370,7 +376,7 @@ func (r *reportsStore) UpdateReport(ctx context.Context, reportId string, update
 	}
 
 	// Perform the update in MongoDB
-	result, err := r.client.UpdateOne(ctx, bson.D{{Key: "_id", Value: objectId}}, bson.D{{Key: "$set", Value: updates}})
+	result, err := r.client.UpdateOne(ctx, bson.D{{Key: ID, Value: objectId}}, bson.D{{Key: "$set", Value: updates}})
 	if err != nil {
 		return fmt.Errorf("error updating the report field in MongoDB: %v", err)
 	}

@@ -15,7 +15,7 @@ export interface UseStreamProcessorOptions {
   updateReports: (update: UpdateProps) => void;
   providerID: string;
   patientName?: string;
-  timeStamp?: string;
+  timestamp?: string;
   duration?: number;
   reportID?: string;
 }
@@ -25,7 +25,7 @@ export function useStreamProcessor({
   updateReports,
   patientName = '',
   providerID = '',
-  timeStamp = '',
+  timestamp = '',
   duration = 0,
   reportID = '',
 }: UseStreamProcessorOptions) {
@@ -90,7 +90,7 @@ export function useStreamProcessor({
                   id: data.Value,
                   providerID,
                   name: patientName,
-                  timeStamp,
+                  timestamp,
                   duration,
                 });
               } else {
@@ -114,7 +114,7 @@ export function useStreamProcessor({
       attemptCreateReport,
       providerID,
       patientName,
-      timeStamp,
+      timestamp,
       duration,
     ],
   );

@@ -22,7 +22,7 @@ const PatientReception = () => {
   const [___, attemptCreateReport] = useAtom(createReportAtom);
   const [provider, _____] = useAtom(userAtom);
 
-  const [timeStamp, setTimeStamp] = useState<string>('');
+  const [timestamp, setTimeStamp] = useState<string>('');
   const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
   const [patientName, setPatientName] = useState('');
@@ -45,7 +45,7 @@ const PatientReception = () => {
     updateReports,
     providerID: provider.ID,
     patientName,
-    timeStamp,
+    timestamp,
     duration,
   });
 

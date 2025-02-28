@@ -119,20 +119,22 @@ const PatientRegistryLayout = () => {
         styles={{ label: { color: 'inherit' } }}
       />
 
-      <ScrollArea className="flex-grow h-full">
-        {filteredResults.map(patient => (
-          <div className="mt-2" key={patient.id}>
-            <PatientPreviewCard
-              {...patient}
-              isChecked={selectedPatientsToRemove.includes(patient.id)}
-              selectAllToggle={checked}
-              isSelected={currentlySelectedPatient === patient.id}
-              handleToggleCheckbox={handleToggleCheckbox}
-              onClick={handlePatientClick}
-              handleRemovePatient={handleRemovePatient}
-            />
-          </div>
-        ))}
+      <ScrollArea className="flex-grow h-full mb-4">
+        <div className="pb-40">
+          {filteredResults.map(patient => (
+            <div className="mt-2" key={patient.id}>
+              <PatientPreviewCard
+                {...patient}
+                isChecked={selectedPatientsToRemove.includes(patient.id)}
+                selectAllToggle={checked}
+                isSelected={currentlySelectedPatient === patient.id}
+                handleToggleCheckbox={handleToggleCheckbox}
+                onClick={handlePatientClick}
+                handleRemovePatient={handleRemovePatient}
+              />
+            </div>
+          ))}
+        </div>
       </ScrollArea>
 
       <Modal opened={opened} onClose={closeModal} size="auto">

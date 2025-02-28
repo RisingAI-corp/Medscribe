@@ -12,7 +12,7 @@ export interface CreateReportProps {
   id: string;
   providerID: string;
   name: string;
-  timeStamp: string;
+  timestamp: string;
   duration: number;
 }
 
@@ -48,7 +48,7 @@ export const createReportAtom = atom(
   (
     get,
     set,
-    { id, providerID, name, timeStamp, duration }: CreateReportProps,
+    { id, providerID, name, timestamp, duration }: CreateReportProps,
   ) => {
     const reports = get(patientsAtom);
     if (reports.find(report => report.id === id)) {
@@ -59,7 +59,7 @@ export const createReportAtom = atom(
       id,
       providerID,
       name,
-      timeStamp,
+      timestamp,
       duration,
       pronouns: '',
       isFollowUp: false,
