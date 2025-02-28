@@ -17,8 +17,6 @@ function VisitReportLayout() {
   const [selectedPatientID, _] = useAtom(currentlySelectedPatientAtom);
   const [__, replaceReport] = useAtom(replaceReportAtom);
   const [reportStreaming, ___] = useAtom(reportStreamingAtom);
-  const [laggingSelectedPatient, setLaggingSelectedPatient] =
-    useState(selectedPatientID);
 
   const getReportMutation = useMutation({
     mutationFn: async (props: GetReportPayload) => {
@@ -64,20 +62,14 @@ function VisitReportLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSoapDataUpdate = (field: string, newData: string) => {
-    updateSoapData({ patientId: selectedPatientID, field, newData });
+  const handleSoapDataUpdate = (
+    field: string,
+    newData: string,
+    reportID: string,
+  ) => {
+    updateSoapData({ patientId: reportID, field, newData });
     updateContentSectionMutation.mutate({
-      ReportID: selectedPatientID,
-      ContentSection: field,
-      Content: newData,
-    });
-  };
-
-  const handleSoapDataAutoUpdate = (field: string, newData: string) => {
-    updateSoapData({ patientId: laggingSelectedPatient, field, newData });
-    setLaggingSelectedPatient(selectedPatientID);
-    updateContentSectionMutation.mutate({
-      ReportID: selectedPatientID,
+      ReportID: reportID,
       ContentSection: field,
       Content: newData,
     });
@@ -97,15 +89,11 @@ function VisitReportLayout() {
         {soapData?.content.map(section => (
           <SoapSectionBox
             key={`${selectedPatientID}-${section.type}`}
+            reportID={selectedPatientID}
             title={section.type}
             text={section.content.data}
             isLoading={section.content.loading}
-            handleSave={(newText: string) => {
-              handleSoapDataUpdate(section.type, newText);
-            }}
-            handleAutoSave={(newText: string) => {
-              handleSoapDataAutoUpdate(section.type, newText);
-            }}
+            handleSave={handleSoapDataUpdate}
             handleLearnFormat={handleLearnFormat}
           />
         ))}

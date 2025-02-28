@@ -11,21 +11,21 @@ import { useRef, useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 
 interface SoapEditableSectionProps {
+  reportID: string;
   title: string;
   text: string;
   isLoading: boolean;
-  handleSave: (newText: string) => void;
+  handleSave: (field: string, newText: string, reportID: string) => void;
   handleLearnFormat: (contentSection: string, content: string) => void;
-  handleAutoSave: (newText: string) => void;
 }
 
 const SoapSectionBox = ({
+  reportID,
   title,
   text,
   isLoading,
   handleSave,
   handleLearnFormat,
-  handleAutoSave,
 }: SoapEditableSectionProps) => {
   const [clicked, setClicked] = useState(false);
 
@@ -37,10 +37,10 @@ const SoapSectionBox = ({
   useEffect(() => {
     return () => {
       if (latestLocalTextRef.current !== text) {
-        handleAutoSave(latestLocalTextRef.current);
+        handleSave(title, latestLocalTextRef.current, reportID);
       }
     };
-  }, [handleAutoSave, text]);
+  }, []);
 
   const handleClick = () => {
     handleLearnFormat(title, latestLocalTextRef.current);
@@ -110,7 +110,7 @@ const SoapSectionBox = ({
                     variant="outline"
                     rightSection={<IconDeviceFloppy size={20} />}
                     onClick={() => {
-                      handleSave(latestLocalTextRef.current);
+                      handleSave(title, latestLocalTextRef.current, reportID);
                       setIsDirty(false);
                     }}
                   >
