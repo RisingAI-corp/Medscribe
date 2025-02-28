@@ -67,8 +67,8 @@ const PatientReception = () => {
       metadata: GenerateReportMetadata;
     }) => generateReport(formData, metadata),
     onSuccess: async reader => {
-      await processStream(reader);
       setPatientName('');
+      await processStream(reader);
     },
     onError: error => {
       console.error('Error generating report:', error);
