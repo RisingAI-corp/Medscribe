@@ -91,7 +91,7 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, up
 			updateDetails
 	}
 
-	return prompt
+	return "no markdown" + prompt
 }
 
 const LearnStylePromptTemplate = `You are an AI medical assistant tasked with learning the writing style of an existing report.

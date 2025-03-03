@@ -8,6 +8,7 @@ import { userAtom } from '../../states/userAtom';
 import { patientsAtom } from '../../states/patientsAtom';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 import { useAtom } from 'jotai';
+import { useState } from 'react';
 
 export function AuthScreen() {
   const [_, setProvider] = useAtom(userAtom);
@@ -16,6 +17,8 @@ export function AuthScreen() {
   const [____, setCurrentlySelectedPatient] = useAtom(
     currentlySelectedPatientAtom,
   );
+  const [emailInUse, setUseEmail] = useState(false);
+  const [loginFailed, setLoginFailed] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: loginProvider,
@@ -49,6 +52,7 @@ export function AuthScreen() {
       setCurrentlySelectedPatient('');
     },
     onError: error => {
+      setLoginFailed(true);
       console.error('Error adding todo:', error);
     },
   });
@@ -70,6 +74,9 @@ export function AuthScreen() {
       setCurrentlySelectedPatient('');
     },
     onError: error => {
+      if (error.message === 'status conflict: user already exists') {
+        setUseEmail(true);
+      }
       console.error('Error signingUp User:', error);
     },
   });
@@ -93,6 +100,11 @@ export function AuthScreen() {
           <AuthenticationForm
             handleRegister={handleSignUp}
             handleLogin={handleLogin}
+            emailInUse={emailInUse}
+            showLoginFailedNotification={loginFailed}
+            handleCloseNotification={() => {
+              setLoginFailed(false);
+            }}
           />
         </Paper>
       </div>

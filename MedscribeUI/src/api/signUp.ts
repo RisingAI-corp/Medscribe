@@ -13,20 +13,27 @@ export async function createProvider({ name, email, password }: SignUpProps) {
   }
 
   const baseURL = String(import.meta.env.VITE_MEDSCRIBE_BASE_URL);
-  const response = await axios.post(
-    `${baseURL}/user/signup`,
-    {
-      name: name,
-      email: email,
-      password: password,
-    },
-    { withCredentials: true },
-  );
 
-  const { success, data, error } = AuthResponse.safeParse(response.data);
-  if (!success) {
-    throw new Error('Error parsing Api request: ' + error.toString());
+  try {
+    const response = await axios.post(
+      `${baseURL}/user/signup`,
+      { name, email, password },
+      { withCredentials: true },
+    );
+    console.log('donzo');
+
+    const { success, data, error } = AuthResponse.safeParse(response.data);
+    if (!success) {
+      throw new Error('Error parsing API response: ' + error.toString());
+    }
+
+    return data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      if (err.response.status === 409) {
+        throw new Error('status conflict: user already exists');
+      }
+    }
+    throw err;
   }
-
-  return data;
 }

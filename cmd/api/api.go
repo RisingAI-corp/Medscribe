@@ -23,7 +23,7 @@ import (
 )
 
 func main() {
-	logger, err := zap.NewProduction() // Or zap.NewDevelopment() for development
+	logger, err := zap.NewDevelopment() // Or zap.NewDevelopment() for development
 	if err != nil {
 		fmt.Println("Failed to initialize Zap logger:", err)
 		return
