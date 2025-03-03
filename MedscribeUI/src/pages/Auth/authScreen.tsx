@@ -88,7 +88,7 @@ export function AuthScreen() {
       <div className="flex-1 max-w-[450px] flex items-center justify-center shadow-md">
         <Paper radius={0} p={30} className="shadow-3d">
           <Title order={2} className="text-black text-center mb-6 ">
-            Welcome back to Medscribe!
+            Welcome To Medscribe!
           </Title>
           <AuthenticationForm
             handleRegister={handleSignUp}

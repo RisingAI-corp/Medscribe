@@ -9,10 +9,8 @@ export const PatientRegistryAtom = atom(get =>
     const dateOfRecording = new Date(patient.timestamp);
     const date = format(dateOfRecording, 'MM/dd/yy').toLowerCase();
     const time = format(dateOfRecording, 'h:mmaaa').toLowerCase();
-
-    const duration = (
-      format(new Date(patient.duration), 'mm') + ' min'
-    ).replace(/^0+/, '');
+    const durationInMinutes = Math.floor(patient.duration / 60);
+    const duration = `${String(durationInMinutes)} min`;
 
     return {
       id: patient.id,

@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-const InitialSystemPrompt = "You are an AI medical assistant that will be generating aspects of a report representing SOAP architecture: " +
+const initialSystemPrompt = "You are an AI medical assistant that will be generating aspects of a report representing SOAP architecture: " +
 	"Subjective, Objective, Assessment, and Planning. I will provide a transcript, and your task is to generate clear, " +
 	"concise, and reliable outputs for the following fields: Subjective, Objective, Assessment, Planning, " +
 	"IsFollowUp, IsReturning, Pronouns, and IsPatientOrClient. Accuracy and brevity are of supreme importance " +
@@ -63,7 +63,7 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, up
 
 	// If both updates and previous content exist, generate a regeneration prompt
 	if updateDetails != "" && content != "" {
-		prompt = InitialSystemPrompt + "\n\n"
+		prompt = RegenerationInitialPrompt + "\n\n"
 		if transcribedAudio != "" {
 			prompt += "Here is the transcribed audio: \n" + transcribedAudio + "\n\n"
 		} else {
@@ -78,7 +78,7 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, up
 			"Ensure that the report is accurate, concise, and formatted in a structured way that is useful for medical documentation."
 	} else {
 		// Original prompt generation
-		prompt = InitialSystemPrompt + "\n\n"
+		prompt = initialSystemPrompt + "\n\n"
 		if transcribedAudio != "" {
 			prompt += "Here is the transcribed audio: \n" + transcribedAudio + "\n\n"
 		} else {
