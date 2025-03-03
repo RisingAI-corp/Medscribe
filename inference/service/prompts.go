@@ -13,7 +13,7 @@ const initialSystemPrompt = "You are an AI medical assistant that will be genera
 	"IsFollowUp, IsReturning, Pronouns, and IsPatientOrClient. Accuracy and brevity are of supreme importance " +
 	"in generating these components from the transcript."
 
-const RegenerationInitialPrompt = "You are an AI medical assistant that will be generating aspects of a report representing SOAP architecture: " +
+const regenerationInitialPrompt = "You are an AI medical assistant that will be generating aspects of a report representing SOAP architecture: " +
 	"Subjective, Objective, Assessment, and Planning. I will provide a transcript, and your task is to generate clear, " +
 	"concise, and reliable outputs for the following fields: Subjective, Objective, Assessment, Planning, " +
 	"IsFollowUp, IsReturning, Pronouns, and IsPatientOrClient. Accuracy and brevity are of supreme importance " +
@@ -63,7 +63,7 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, up
 
 	// If both updates and previous content exist, generate a regeneration prompt
 	if updateDetails != "" && content != "" {
-		prompt = RegenerationInitialPrompt + "\n\n"
+		prompt = regenerationInitialPrompt + "\n\n"
 		if transcribedAudio != "" {
 			prompt += "Here is the transcribed audio: \n" + transcribedAudio + "\n\n"
 		} else {
