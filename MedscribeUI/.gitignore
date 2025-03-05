@@ -26,7 +26,6 @@ dist-ssr
 *storybook.log
 
 # Ignore other common files and directories
-.env
 build/
 coverage/
 *.lock

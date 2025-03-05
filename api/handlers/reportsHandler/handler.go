@@ -72,7 +72,11 @@ func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	
+	go func() {
+		<-r.Context().Done()
+		h.logger.Warn("Client disconnected, stopping stream...")
+	}()
+
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		h.logger.Error("failed to parse form", zap.Error(err))
 		http.Error(w, "failed to parse form", http.StatusBadRequest)
