@@ -77,6 +77,7 @@ const GenerateReportTest = () => {
       metadata: GenerateReportMetadata;
     }) => generateReport(formData, metadata),
     onSuccess: async reader => {
+      console.log(provider.ID);
       await processStream(reader);
     },
     onError: error => {
