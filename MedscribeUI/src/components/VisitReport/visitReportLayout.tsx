@@ -2,7 +2,7 @@ import { Flex } from '@mantine/core';
 import SoapSectionBox from './SoapSectionBox/soapSectionBox';
 import { useAtom } from 'jotai';
 import { SoapAtom } from './derivedAtoms';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 import { replaceReportAtom } from './derivedAtoms';
 import { getReport, GetReportPayload } from '../../api/getReport';

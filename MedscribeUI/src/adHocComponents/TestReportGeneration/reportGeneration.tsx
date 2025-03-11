@@ -26,8 +26,9 @@ import { HeaderInformationAtom } from '../../components/PaitentDashboard/derived
 import { userAtom } from '../../states/userAtom';
 import VisitReportLayout from '../../components/VisitReport/visitReportLayout';
 import NoteControlsLayout from '../../components/NoteControls/noteControlsLayout';
-import { MIME_TYPE, Patient } from '../../constants';
+import { MIME_TYPE } from '../../constants';
 import { useEffect } from 'react';
+import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 
 const GenerateReportTest = () => {
   const [headerInformation, updateHeaderInformation] = useAtom(
@@ -36,6 +37,7 @@ const GenerateReportTest = () => {
 
   const [__, updateReports] = useAtom(UpdateReportsAtom);
   const [___, attemptCreateReport] = useAtom(createReportAtom);
+  const [_____, setSelectedReport] = useAtom(currentlySelectedPatientAtom);
   const [provider, setProvider] = useAtom(userAtom);
 
   useEffect(() => {
@@ -86,6 +88,7 @@ const GenerateReportTest = () => {
   });
 
   const handleGenerateReport = () => {
+    setSelectedReport('');
     const formData = createSampleFormData();
     const metadata: GenerateReportMetadata = {
       providerID: provider.ID,
