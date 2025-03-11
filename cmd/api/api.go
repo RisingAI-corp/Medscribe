@@ -8,7 +8,6 @@ import (
 	inferenceService "Medscribe/inference/service"
 	inferencestore "Medscribe/inference/store"
 	"Medscribe/reports"
-	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -21,6 +20,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
+
+type mockTranscriber struct{
+
+}
+func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string, error) {
+	return "I have a itchy throat and i feel really sick", nil
+}
 
 func main() {
 	logger, err := zap.NewDevelopment() // Or zap.NewDevelopment() for development
@@ -71,10 +77,10 @@ func main() {
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
 
-	transcriber := azure.NewAzureTranscriber(
-		os.Getenv("OPENAI_API_SPEECH_URL"),
-		os.Getenv("OPENAI_API_KEY"),
-	)
+	// transcriber := azure.NewAzureTranscriber(
+	// 	os.Getenv("OPENAI_API_SPEECH_URL"),
+	// 	os.Getenv("OPENAI_API_KEY"),
+	// )
 
 	inferenceStore := inferencestore.NewInferenceStore(
 		os.Getenv("OPENAI_API_CHAT_URL"),
@@ -83,7 +89,7 @@ func main() {
 
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
-		transcriber,
+		&mockTranscriber{},
 		inferenceStore,
 		userStore,
 	)

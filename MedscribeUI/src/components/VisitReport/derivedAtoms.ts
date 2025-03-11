@@ -59,6 +59,13 @@ export const SoapAtom = atom(
               loading: patient.planning.loading,
             },
           },
+          {
+            type: REPORT_CONTENT_TYPE_SUMMARY,
+            content: {
+              data: patient.summary.data,
+              loading: patient.summary.loading,
+            },
+          },
         ],
         loading: patient.finishedGenerating,
       };

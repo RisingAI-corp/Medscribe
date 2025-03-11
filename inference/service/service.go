@@ -178,7 +178,7 @@ func (s *inferenceService) RegenerateReport(
 
 	combinedUpdates, err := s.generateReportSections(ctx, report, contentChan, report.Updates)
 	if err != nil {
-		return fmt.Errorf("RegenerateReport: error generating report sections: %w", err)
+		return fmt.Errorf("RegenerateReport: error generating report sections while regenerating report: %w", err)
 	}
 
 	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
@@ -244,7 +244,12 @@ func (s *inferenceService) generateReportSections(ctx context.Context, report *R
 			if err != nil {
 				return fmt.Errorf("invalid content Section: %w", err)
 			}
-			contentPrompt := GenerateReportContentPrompt(report.TranscribedAudio, section, style, updates, content)
+			contentPrompt := ""
+			if report.TranscribedAudio != ""{ // if there is no transcript then we are regenerating report
+				contentPrompt = GenerateReportContentPrompt(report.TranscribedAudio, section, style)
+			}else{
+				contentPrompt = RegenerateReportContentPrompt(content, section,style, report.Updates)
+			}
 			return s.generateReportSection(ctx, contentPrompt, section, contentChan, updatesChan)
 		})
 	}
