@@ -9,11 +9,24 @@ import (
 
 const(
 	// Soap Task Descriptions
-	subjectiveTaskDescription = "Extract patient-reported symptoms, concerns, and history relevant to the encounter."
-	objectiveTaskDescription = "Identify clinician-observed findings, including vitals, examination details, and test results."
-	assessmentTaskDescription = "Summarize diagnosis or evaluation of the patient’s condition based on subjective and objective data."
-	planningTaskDescription = "Outline recommended treatment from the transcript (if provided), follow-up instructions, and next steps for care."
-	summaryTaskDescription = "Summarize the key points of the patient's history, symptoms, and examination findings."
+	subjectiveTaskDescription = "Extract and summarize the patient's self-reported symptoms, concerns, and relevant history as explicitly stated in the transcript. " + 
+    "This includes the chief complaint, medical and mental health history, and any additional context provided by the patient or caregiver. " + 
+    "Ensure strict adherence to the transcript without inference or interpretation."
+
+	objectiveTaskDescription = "Document observable, measurable findings explicitly provided in the transcript. " + 
+		"This includes vital signs, physical examination details, clinician observations, and any relevant test results. " + 
+		"Ensure this section contains only factual data without incorporating any subjective statements from the patient."
+
+	assessmentTaskDescription = "Summarize the clinician's evaluation of the patient's condition based strictly on the provided subjective and objective data. " + 
+		"This may include diagnostic impressions, progress evaluations, or risk assessments if explicitly stated in the transcript. " + 
+		"Do not introduce new interpretations, diagnoses, or infer clinical reasoning beyond what is documented."
+
+	planningTaskDescription = "Outline the treatment plan, follow-up instructions, and next steps for care, strictly as provided in the transcript. " + 
+		"This may include prescribed medications, therapy recommendations, referrals, or future treatment goals. " + 
+		"If a plan is not explicitly stated in the transcript, do not attempt to infer or create one."
+
+	summaryTaskDescription = "Provide a structured summary of key points from the patient's history, reported symptoms, and examination findings, " + 
+		"ensuring complete adherence to the transcript. Do not introduce any additional details or interpretations beyond what is explicitly stated."
 
 	//Default Return format
 	defaultReturnFormat = "Return Format (Always Adhere to These Rules):" + 
