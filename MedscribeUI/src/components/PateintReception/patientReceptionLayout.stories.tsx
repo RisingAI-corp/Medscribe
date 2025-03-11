@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import PatientReception from './patientReceptionLayout';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const PatientReceptionWrapper = () => {
   const wrapperStyles = {
@@ -11,11 +12,15 @@ const PatientReceptionWrapper = () => {
     height: '90vh',
   };
 
+  const queryClient = new QueryClient();
+
   return (
     <div style={wrapperStyles}>
-      <MantineProvider>
-        <PatientReception />
-      </MantineProvider>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <PatientReception />
+        </MantineProvider>
+      </QueryClientProvider>
     </div>
   );
 };

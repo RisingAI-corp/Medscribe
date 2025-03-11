@@ -16,5 +16,9 @@ const config: StorybookConfig = {
   core: {
     disableTelemetry: true,
   },
+
+  server: {
+    port: 6007, // Specify your desired port here
+  },
 };
 export default config;

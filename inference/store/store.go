@@ -63,9 +63,6 @@ func NewInferenceStore(apiUrl, apiKey string) InferenceStore {
 
 // Query sends a request to the OpenAI API with the specified role and message, and returns the assistant's response.
 func (i *inferenceStore) Query(ctx context.Context, request string, tokens int) (string, error) {
-	// if role != SystemRole && role != UserRole {
-	// 	return "", fmt.Errorf("role must be '%s' or '%s' not %s", SystemRole, UserRole, role)
-	// }
 
 	if request == "" {
 		return "", errors.New("request cannot be empty")

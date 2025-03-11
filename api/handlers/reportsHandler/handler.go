@@ -69,13 +69,10 @@ func NewReportsHandler(reportsService reports.Reports, inferenceService inferenc
 func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.GetProviderIDFromContext(r.Context())
 	if !ok {
+		h.logger.Error("user is not authorized: ", zap.String("UserID: ", userID))
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	go func() {
-		<-r.Context().Done()
-		h.logger.Warn("Client disconnected, stopping stream...")
-	}()
 
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		h.logger.Error("failed to parse form", zap.Error(err))
@@ -142,7 +139,6 @@ func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) 
 		h.logger.Error("error generating report", zap.Error(err))
 		http.Error(w, "error generating report", http.StatusInternalServerError)
 	}
-	h.logger.Info("done")
 }
 
 func (h *reportsHandler) RegenerateReport(w http.ResponseWriter, r *http.Request) {

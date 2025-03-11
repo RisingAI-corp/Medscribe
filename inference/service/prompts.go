@@ -7,48 +7,104 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-const initialSystemPrompt = "You are an AI medical assistant that will be generating aspects of a report representing SOAP architecture: " +
-	"Subjective, Objective, Assessment, and Planning. I will provide a transcript, and your task is to generate clear, " +
-	"concise, and reliable outputs for the following fields: Subjective, Objective, Assessment, Planning, " +
-	"IsFollowUp, IsReturning, Pronouns, and IsPatientOrClient. Accuracy and brevity are of supreme importance " +
-	"in generating these components from the transcript."
+const(
+	// Soap Task Descriptions
+	subjectiveTaskDescription = "Extract patient-reported symptoms, concerns, and history relevant to the encounter."
+	objectiveTaskDescription = "Identify clinician-observed findings, including vitals, examination details, and test results."
+	assessmentTaskDescription = "Summarize diagnosis or evaluation of the patient’s condition based on subjective and objective data."
+	planningTaskDescription = "Outline recommended treatment, follow-up instructions, and next steps for care."
+	summaryTaskDescription = "Summarize the key points of the patient's history, symptoms, and examination findings."
 
-const regenerationInitialPrompt = "You are an AI medical assistant that will be generating aspects of a report representing SOAP architecture: " +
-	"Subjective, Objective, Assessment, and Planning. I will provide a transcript, and your task is to generate clear, " +
-	"concise, and reliable outputs for the following fields: Subjective, Objective, Assessment, Planning, " +
-	"IsFollowUp, IsReturning, Pronouns, and IsPatientOrClient. Accuracy and brevity are of supreme importance " +
-	"in generating these components from the transcript."
+	//Default Return format
+	defaultReturnFormat = "Return Format (Always Adhere to These Rules):" + 
+	" Responses must be strictly plain text, suitable for direct display in a textbox." + 
+	" Never use markdown formatting (no \"*\", \"-\", \"#\", or \"---\")." + 
+	" Do not include headers, special characters, or extraneous punctuation." + 
+	" Ensure all responses are brief, precise, and directly related to the requested component."
 
-// GenerateReportContentPrompt generates a prompt for generating or regenerating a report section based on the SOAP architecture.
-// It takes the transcribed audio, the specific SOAP section (Subjective, Objective, Assessment, Planning), the desired style,
-// any updates to be incorporated, and the previously generated content (if any).
-//
-// Parameters:
-// - transcribedAudio: The transcribed audio text to be used for generating the report content.
-// - soapSection: The specific section of the SOAP report to be generated (e.g., Subjective, Objective, Assessment, Planning).
-// - style: The desired writing style for the generated content.
-// - updates: BSON document containing updates to be incorporated into the regenerated content.
-// - content: The previously generated content for the specified SOAP section.
-//
-// Returns:
-// - A string containing the generated prompt for the AI medical assistant to generate or regenerate the report content.
+	//Default Warnings
+	defaultWarnings = "Warnings:" + 
+           " Never provide information or details outside of what's explicitly requested." +
+           " Always rely exclusively on the provided transcript without assumptions or inference beyond clearly available context." +
+		   " if more context is needed do not hallucinate and just specify that more context is needed"
+)
+
+
 func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, updates bson.D, content string) string {
 	var taskDescription string
 
 	switch soapSection {
 	case reports.Subjective:
-		taskDescription = "Extract patient-reported symptoms, concerns, and history relevant to the encounter."
+		taskDescription = subjectiveTaskDescription
 	case reports.Objective:
-		taskDescription = "Identify clinician-observed findings, including vitals, examination details, and test results."
+		taskDescription = objectiveTaskDescription
 	case reports.Assessment:
-		taskDescription = "Summarize diagnosis or evaluation of the patient’s condition based on subjective and objective data."
+		taskDescription = assessmentTaskDescription
 	case reports.Planning:
-		taskDescription = "Outline recommended treatment, follow-up instructions, and next steps for care."
+		taskDescription = planningTaskDescription
+	case reports.Summary:
+		taskDescription = summaryTaskDescription
 	default:
 		taskDescription = "Invalid SOAP section."
 	}
 
-	// Build update details if provided
+	prompt := "You are an AI medical assistant tasked with generating clinical notes strictly based on provided transcripts. " +
+		"Accuracy and brevity are paramount. Never include information not explicitly found in the provided transcript. " +
+		"If you lack sufficient information, clearly indicate that more context is required.\n\n" +
+
+		"Your current task (" + soapSection + "): " + taskDescription + "\n\n" +
+
+		"Transcript:\n" + transcribedAudio + "\n\n"
+
+	if style != "" {
+		prompt += "Follow this style strictly:\n" + style + "\n\n"
+	}
+
+	prompt += defaultReturnFormat + "\n\n" + defaultWarnings
+
+	return prompt
+}
+
+
+func RegenerateReportContentPrompt(previousContent string, soapSection, exampleStyle string, updates bson.D) string {
+	var taskDescription string
+
+	switch soapSection {
+	case reports.Subjective:
+		taskDescription = subjectiveTaskDescription
+	case reports.Objective:
+		taskDescription = objectiveTaskDescription
+	case reports.Assessment:
+		taskDescription = assessmentTaskDescription
+	case reports.Planning:
+		taskDescription = planningTaskDescription
+	case reports.Summary:
+		taskDescription = summaryTaskDescription
+	default:
+		taskDescription = "Invalid SOAP section."
+	}
+	
+	prompt := "You are an AI medical assistant tasked with regenerating a clinical SOAP note section (Subjective, Objective, Assessment, Planning). " +
+		"Your task is to clearly, accurately, and concisely regenerate the provided content, strictly incorporating the provided updates. " +
+		"Do NOT infer or add information not explicitly provided. If details are unclear or missing, state explicitly that more clarification or context is needed.\n\n" +
+
+		"Current SOAP Section: " + soapSection + "\n" +
+		"Task Description: " + taskDescription + "\n\n" +
+
+		"Previous Content:\n" + previousContent + "\n\n" +
+
+		"Updates to Incorporate:\n" + formatUpdateDetails(updates) + "\n\n"
+
+	if exampleStyle != "" {
+		prompt += "Ensure the regenerated content closely matches this style (if no style provided, disregard this):\n" + exampleStyle + "\n\n"
+	}
+
+	prompt += defaultReturnFormat + "\n\n" + defaultWarnings
+
+	return prompt
+}
+
+func formatUpdateDetails(updates bson.D) string{
 	updateDetails := ""
 	for _, update := range updates {
 		if value, ok := update.Value.(string); ok && value != "" {
@@ -58,41 +114,9 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style string, up
 	if updateDetails != "" {
 		updateDetails = "\n\nPlease also incorporate the following updates:\n" + updateDetails
 	}
-
-	var prompt string
-
-	// If both updates and previous content exist, generate a regeneration prompt
-	if updateDetails != "" && content != "" {
-		prompt = regenerationInitialPrompt + "\n\n"
-		if transcribedAudio != "" {
-			prompt += "Here is the transcribed audio: \n" + transcribedAudio + "\n\n"
-		} else {
-			prompt += "No transcribed audio provided.\n\n"
-		}
-		prompt += "The following is the previously generated content for the " + soapSection + " section:\n" +
-			content + "\n\n" +
-			"Based on the updates provided below, please regenerate the content to reflect these changes:" +
-			updateDetails + "\n\n" +
-			"Task Details: " + taskDescription + "\n\n" +
-			"Ensure that the regenerated content adheres to the SOAP framework and follows the given style: " + style + "\n\n" +
-			"Ensure that the report is accurate, concise, and formatted in a structured way that is useful for medical documentation."
-	} else {
-		// Original prompt generation
-		prompt = initialSystemPrompt + "\n\n"
-		if transcribedAudio != "" {
-			prompt += "Here is the transcribed audio: \n" + transcribedAudio + "\n\n"
-		} else {
-			prompt += "No transcribed audio provided.\n\n"
-		}
-		prompt += "Please generate the " + soapSection + " section of the report.\n" +
-			"Task Details: " + taskDescription + "\n\n" +
-			"Ensure that the generated content follows the SOAP framework and adheres to the given style: " + style + "\n\n" +
-			"Ensure that the report is accurate, concise, and formatted in a structured way that is useful for medical documentation." +
-			updateDetails
-	}
-
-	return "no markdown" + prompt
+	return updateDetails
 }
+
 
 const LearnStylePromptTemplate = `You are an AI medical assistant tasked with learning the writing style of an existing report.
 Content Section: %s
