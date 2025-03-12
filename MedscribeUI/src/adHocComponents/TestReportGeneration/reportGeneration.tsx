@@ -88,7 +88,7 @@ const GenerateReportTest = () => {
   });
 
   const handleGenerateReport = () => {
-    setSelectedReport('');
+    setSelectedReport(''); // need this because of the stream processor only switches when no patient is currently selected
     const formData = createSampleFormData();
     const metadata: GenerateReportMetadata = {
       providerID: provider.ID,

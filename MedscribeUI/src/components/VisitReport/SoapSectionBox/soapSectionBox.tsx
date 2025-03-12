@@ -6,12 +6,10 @@ import {
   LoadingOverlay,
   Box,
 } from '@mantine/core';
-import { useEditor } from '@tiptap/react';
 
 import { IconDeviceFloppy, IconDownload } from '@tabler/icons-react';
 import { useRef, useEffect, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
-import { RichTextEditor as MantineRichTextEditor } from '@mantine/tiptap';
 
 interface SoapEditableSectionProps {
   reportID: string;
