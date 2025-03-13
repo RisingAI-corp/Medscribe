@@ -24,14 +24,14 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 	reportsSubRoutes := ReportRoutes(config.ReportsHandler)
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000","http://localhost:6006"}, // Replace with your frontend's URL
+		AllowedOrigins:   []string{"http://localhost:3000","http://localhost:6006","http://localhost:8080"}, // dev server, storybook, backend server
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true, // Allows cookies & authentication headers
 	})
 
 	r := chi.NewRouter()
-
+	
 	r.Use(config.LoggerMiddleware)
 	r.Use(corsHandler.Handler)
 
@@ -44,6 +44,20 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 	r.Route("/report", func(r chi.Router) {
 		r.Use(config.AuthMiddleware)
 		r.Mount("/", reportsSubRoutes)
+	})
+
+	fs := http.FileServer(http.Dir("./MedscribeUI/dist"))
+	r.Handle("/*", fs) // Serves all static files correctly
+
+	// Ensure `index.html` is served for the root
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		http.ServeFile(w, r, "./MedscribeUI/dist/index.html")
+	})
+
+	// Fallback: Serve `index.html` for unknown frontend routes (for SPAs)
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./MedscribeUI/dist/index.html")
 	})
 
 	return r

@@ -9,7 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // /esm/icons/index.mjs only exports the icons statically, so no separate chunks are created
+      // Use a pre-bundled version of the icons to prevent individual file imports | without this we will be making 1 million network for dev-server because it doest have tree-shaking
       '@tabler/icons-react': '@tabler/icons-react/dist/esm/icons/index.mjs',
     },
   },
