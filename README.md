@@ -182,6 +182,22 @@ npm run dev
 
 ---
 
+## building the UI
+- with vite
+```bash
+yarn build --mode production ##if you want to use prod base url
+
+yarn build ##if you want to use localhost/local base  url
+
+```
+then just server the dist folder and index.html
+
+## building and running docker image
+```bash
+docker build -t medscribe:latest . ## build
+docker run -p 8080:8080 medscribe:latest ## run
+```
+
 ## Code Quality & Linting
 
 - **ESLint in VSCode:**  
