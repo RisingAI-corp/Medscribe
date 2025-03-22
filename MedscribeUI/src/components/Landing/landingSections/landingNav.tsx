@@ -1,6 +1,9 @@
 import { Button } from '@mantine/core';
 import logo from '../../../assets/medscribe-logo.png';
+import { useNavigate } from 'react-router-dom';
+
 function LandingNav() {
+  const navigate = useNavigate();
   return (
     <div className="h-20 w-full flex bg-white justify-between items-center px-8 fixed top-0 z-10">
         <div className="flex items-center">
@@ -14,8 +17,8 @@ function LandingNav() {
         </div>
 
         <div className="flex items-center gap-4">
-            <Button variant="outline">Sign Up</Button>
-            <Button variant="filled">Sign In</Button>
+            <Button variant="outline" onClick={() => navigate('/signin')}>Sign Up</Button>
+            <Button variant="filled" onClick={() => navigate('/signin')}>Sign In</Button>
         </div>
     </div>
   );

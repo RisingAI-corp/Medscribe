@@ -12,7 +12,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@mantine/carousel": "^7.12.2",
+    "@mantine/carousel": "^7.17.2",
     "@mantine/core": "^7.12.2",
     "@mantine/dates": "^7.12.2",
     "@mantine/dropzone": "^7.12.2",
@@ -35,7 +35,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
-    "embla-carousel-react": "^8.2.1",
+    "embla-carousel-react": "7.1.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "fast-fuzzy": "^1.12.0",
