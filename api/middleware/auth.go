@@ -39,7 +39,9 @@ type AuthMiddleware struct {
 
 func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddleware {
 	am := &AuthMiddleware{jwtSecret: secret, logger: logger, env: env, sameSite: http.SameSiteStrictMode}
+	am.sameSite = http.SameSiteLaxMode
 	if env == "production" {
+		fmt.Println("we are in production")
 		am.secure = true
 		am.sameSite = http.SameSiteStrictMode
 	}
