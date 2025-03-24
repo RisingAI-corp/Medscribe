@@ -17,8 +17,8 @@ function LandingNav() {
         </div>
 
         <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/signin')}>Sign Up</Button>
-            <Button variant="filled" onClick={() => navigate('/signin')}>Sign In</Button>
+            <Button variant="outline" onClick={() => navigate('/')}>Sign Up</Button>
+            <Button variant="filled" onClick={() => navigate('/')}>Sign In</Button>
         </div>
     </div>
   );

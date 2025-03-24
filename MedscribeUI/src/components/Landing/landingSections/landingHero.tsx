@@ -4,9 +4,11 @@ import hippaImage from '../../../assets/hippa-logo.svg';
 import { landingContent } from '../landingContent';
 import { Button } from '@mantine/core';
 import LandingCarousel from './landingCarousel';
+import { useNavigate } from 'react-router-dom';
 
 
 function LandingHero() {
+  const navigate = useNavigate();
   return (
     <div className="h-full w-full flex flex-col relative gap-10">
         <img src={landingBackground} alt="Landing Background" className="absolute inset-0 w-full h-full object-contain -z-10" />
@@ -15,7 +17,7 @@ function LandingHero() {
                 <h1 className="text-7xl font-bold bg-gradient-to-r from-[#0772BA] to-[#0493B3] bg-clip-text text-transparent">{landingContent.hero.title}</h1>
                 <p className="text-3xl">{landingContent.hero.subtitle}</p>
                 <div className="flex items-center gap-4">
-                    <Button variant="filled" size="lg">Start for Free</Button>
+                    <Button variant="filled" size="lg" onClick={() => navigate('/')}>Start for Free</Button>
                 </div>
                 <img src={hippaImage} alt="HIPPA" className="w-1/5" />
                 

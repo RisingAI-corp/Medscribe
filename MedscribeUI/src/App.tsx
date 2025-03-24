@@ -14,8 +14,6 @@ import FallbackScreen from './pages/Fallback/fallbackScreen';
 import LandingScreen from './pages/Landing/landingScreen';
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import SignIn from './components/Auth/authSignIn';
-import SignUp from './components/Auth/authSignUp';
 
 function App() {
   const [timerActive, setTimerActive] = useState(true);
@@ -88,8 +86,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/landing" element={<LandingScreen />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={renderAuthComponent()} />
       </Routes>
     </BrowserRouter>
