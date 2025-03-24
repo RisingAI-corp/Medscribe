@@ -11,7 +11,7 @@ const samplePatientData: PatientPreviewCardProps = {
   dateOfRecording: '2025-01-18',
   timeOfRecording: '10:30 AM',
   durationOfRecording: '15 min',
-  shortenedSummary: 'Follow-up consultation for back pain.',
+  sessionSummary: 'Follow-up consultation for back pain.',
   loading: false,
   isChecked: false,
   selectAllToggle: false,

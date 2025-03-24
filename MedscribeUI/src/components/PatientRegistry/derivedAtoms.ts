@@ -17,8 +17,8 @@ export const PatientRegistryAtom = atom(get =>
       patientName: patient.name,
       dateOfRecording: date,
       timeOfRecording: time,
-      durationOfRecording: duration,
-      shortenedSummary: patient.oneLinerSummary,
+      durationOfRecording: durationInMinutes > 1 ? duration : '< 1 min',
+      sessionSummary: patient.sessionSummary,
       finishedGenerating: patient.finishedGenerating,
       loading: !patient.finishedGenerating,
     };

@@ -86,14 +86,14 @@ const PatientReception = () => {
     const reportTime = new Date(recordingStartTime.current).toISOString();
     setTimeStamp(reportTime);
     const metadata: GenerateReportMetadata = {
-      providerID: provider.ID,
+      providerName: provider.name,
       patientName: patientName,
       timestamp: reportTime,
       duration: duration,
       subjectiveStyle: provider.subjectiveStyle,
       objectiveStyle: provider.objectiveStyle,
-      assessmentStyle: provider.assessmentStyle,
-      planningStyle: provider.planningStyle,
+      assessmentAndPlanStyle: provider.assessmentAndPlanStyle,
+      patientInstructionsStyle: provider.patientInstructionsStyle,
       summaryStyle: provider.summaryStyle,
     };
 
@@ -139,16 +139,18 @@ const PatientReception = () => {
           />
         </div>
       )}
-
-      <ControlButtons
-        isRecording={isRecording}
-        mediaRecorder={mediaRecorder}
-        onEndVisit={handleEndVisit}
-        onPause={handlePauseRecording}
-        onResume={() => {
-          handleResumeRecording();
-        }}
-      />
+      {mediaRecorder && (
+        <ControlButtons
+          isRecording={isRecording}
+          mediaRecorder={mediaRecorder}
+          onEndVisit={handleEndVisit}
+          onPause={handlePauseRecording}
+          onReset={handleResetMediaRecorder}
+          onResume={() => {
+            handleResumeRecording();
+          }}
+        />
+      )}
 
       <WarningModal
         isOpen={warningModalOpen}
@@ -163,13 +165,11 @@ const PatientReception = () => {
         onClose={() => {
           setCaptureModalOpen(false);
         }}
-        onChange={value => {
-          setPatientName(value);
-        }}
-        onSubmit={() => {
-          if (patientName.trim()) {
+        onSubmit={(name: string) => {
+          if (name.trim()) {
             setCaptureModalOpen(false);
             void handleStartRecording();
+            setPatientName(name);
           } else {
             alert('Please enter a valid patient name.');
           }

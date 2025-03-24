@@ -33,17 +33,11 @@ const (
 func TestGenerateReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
 	t.Run("should generate report when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		// Create multipart form data
 		body := &bytes.Buffer{}
@@ -78,8 +72,7 @@ func TestGenerateReport(t *testing.T) {
 			{Key: "_id", Value: testReportID},
 			{Key: reports.Subjective, Value: "test subjective content"},
 			{Key: reports.Objective, Value: "test objective content"},
-			{Key: reports.Assessment, Value: "test assessment content"},
-			{Key: reports.Planning, Value: "test planning content"},
+			{Key: reports.AssessmentAndPlan, Value: "test assessment content"},
 			{Key: reports.Summary, Value: "test summary content"},
 		}
 
@@ -125,10 +118,10 @@ func TestGenerateReport(t *testing.T) {
 	})
 
 	t.Run("should return internal server error when GenerateReportPipeline fails", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		// Create multipart form data
 		body := &bytes.Buffer{}
@@ -176,10 +169,10 @@ func TestGenerateReport(t *testing.T) {
 	})
 
 	t.Run("should return bad request when metadata is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -200,10 +193,10 @@ func TestGenerateReport(t *testing.T) {
 	})
 
 	t.Run("should return bad request when audio file isn't supplied", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -238,17 +231,12 @@ func TestGenerateReport(t *testing.T) {
 func TestRegenerateReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
+
 	t.Run("should regenerate report when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -258,11 +246,7 @@ func TestRegenerateReport(t *testing.T) {
 		req := inferenceService.ReportRequest{
 			ID:         testReportID,
 			ProviderID: testUserID,
-			ReportContents: []inferenceService.ReportContentSection{
-				{ContentType: "subjective"},
-				{ContentType: "objective"},
-			},
-			Updates: bson.D{{Key: "subjective.data", Value: "updated subjective content"}},
+			Updates:    bson.D{{Key: "subjective.data", Value: "updated subjective content"}},
 		}
 
 		body, err := json.Marshal(req)
@@ -274,7 +258,7 @@ func TestRegenerateReport(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Setup mock expectations
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		contentToBeStreamed := []inferenceService.ContentChanPayload{
@@ -315,15 +299,15 @@ func TestRegenerateReport(t *testing.T) {
 		assert.Equal(t, len(contentToBeStreamed), len(updates))
 		assert.True(t, reflect.DeepEqual(contentToBeStreamed, updates))
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 		mockInference.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/reports/regenerate", nil)
 		rr := httptest.NewRecorder()
@@ -335,10 +319,10 @@ func TestRegenerateReport(t *testing.T) {
 	})
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/regenerate", bytes.NewBuffer(invalidBody))
@@ -352,17 +336,14 @@ func TestRegenerateReport(t *testing.T) {
 	})
 
 	t.Run("should return error when report doesn't exist", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := inferenceService.ReportRequest{
 			ID:         testReportID,
 			ProviderID: testUserID,
-			ReportContents: []inferenceService.ReportContentSection{
-				{ContentType: "subjective"},
-			},
 		}
 
 		body, err := json.Marshal(req)
@@ -372,7 +353,7 @@ func TestRegenerateReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(reports.Report{}, errors.New("report not found")).Once()
 
 		handler.RegenerateReport(rr, httpReq)
@@ -380,14 +361,14 @@ func TestRegenerateReport(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error regenerating report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when provider ID doesn't match", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: "different-user-id",
@@ -397,9 +378,6 @@ func TestRegenerateReport(t *testing.T) {
 		req := inferenceService.ReportRequest{
 			ID:         testReportID,
 			ProviderID: testUserID,
-			ReportContents: []inferenceService.ReportContentSection{
-				{ContentType: "subjective"},
-			},
 		}
 
 		body, err := json.Marshal(req)
@@ -409,7 +387,7 @@ func TestRegenerateReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		handler.RegenerateReport(rr, httpReq)
@@ -417,14 +395,14 @@ func TestRegenerateReport(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error regenerating report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when regeneration fails", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -434,9 +412,6 @@ func TestRegenerateReport(t *testing.T) {
 		req := inferenceService.ReportRequest{
 			ID:         testReportID,
 			ProviderID: testUserID,
-			ReportContents: []inferenceService.ReportContentSection{
-				{ContentType: "subjective"},
-			},
 		}
 
 		body, err := json.Marshal(req)
@@ -446,7 +421,7 @@ func TestRegenerateReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		mockInference.On("RegenerateReport",
@@ -463,7 +438,7 @@ func TestRegenerateReport(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error regenerating report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 		mockInference.AssertExpectations(t)
 	})
 }
@@ -471,17 +446,12 @@ func TestRegenerateReport(t *testing.T) {
 func TestGetReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
+
 	t.Run("should return report when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		expectedReport := reports.Report{
 			ProviderID: testUserID,
@@ -502,7 +472,7 @@ func TestGetReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(expectedReport, nil).Once()
 
 		handler.GetReport(rr, httpReq)
@@ -518,14 +488,14 @@ func TestGetReport(t *testing.T) {
 		assert.Equal(t, expectedReport.Subjective, response.Subjective)
 		assert.Equal(t, expectedReport.Objective, response.Objective)
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/reports/GetReport", nil)
 		rr := httptest.NewRecorder()
@@ -537,10 +507,10 @@ func TestGetReport(t *testing.T) {
 	})
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodGet, "/reports/GetReport", bytes.NewBuffer(invalidBody))
@@ -554,10 +524,10 @@ func TestGetReport(t *testing.T) {
 	})
 
 	t.Run("should return not found when report doesn't exist", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := GetReportRequest{
 			ReportID: testReportID,
@@ -569,7 +539,7 @@ func TestGetReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(reports.Report{}, errors.New("report not found")).Once()
 
 		handler.GetReport(rr, httpReq)
@@ -577,14 +547,14 @@ func TestGetReport(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error fetching report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when provider ID doesn't match", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: "different-user-id",
@@ -601,7 +571,7 @@ func TestGetReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		handler.GetReport(rr, httpReq)
@@ -609,26 +579,21 @@ func TestGetReport(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 		assert.Contains(t, rr.Body.String(), "unauthorized")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 }
 
 func TestLearnStyle(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
+
 	testContent := "test content"
 
 	t.Run("should learn style when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -638,7 +603,8 @@ func TestLearnStyle(t *testing.T) {
 		req := LearnStyleRequest{
 			ReportID:       testReportID,
 			ContentSection: reports.Subjective,
-			Content:        testContent,
+			Previous:        testContent,
+			Current: testContent,
 		}
 
 		body, err := json.Marshal(req)
@@ -648,7 +614,7 @@ func TestLearnStyle(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		mockInference.On("LearnStyle",
@@ -662,15 +628,15 @@ func TestLearnStyle(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 		mockInference.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", nil)
 		rr := httptest.NewRecorder()
@@ -682,10 +648,10 @@ func TestLearnStyle(t *testing.T) {
 	})
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", bytes.NewBuffer(invalidBody))
@@ -699,10 +665,10 @@ func TestLearnStyle(t *testing.T) {
 	})
 
 	t.Run("should return error when report doesn't exist", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := LearnStyleRequest{
 			ReportID:       testReportID,
@@ -716,7 +682,7 @@ func TestLearnStyle(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(reports.Report{}, errors.New("report not found")).Once()
 
 		handler.LearnStyle(rr, httpReq)
@@ -724,14 +690,14 @@ func TestLearnStyle(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error fetching report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when provider ID doesn't match", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: "different-user-id",
@@ -750,7 +716,7 @@ func TestLearnStyle(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		handler.LearnStyle(rr, httpReq)
@@ -758,14 +724,14 @@ func TestLearnStyle(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 		assert.Contains(t, rr.Body.String(), "unauthorized")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when learning style fails", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -775,7 +741,8 @@ func TestLearnStyle(t *testing.T) {
 		req := LearnStyleRequest{
 			ReportID:       testReportID,
 			ContentSection: reports.Subjective,
-			Content:        testContent,
+			Previous:        testContent,
+			Current: testContent,
 		}
 
 		body, err := json.Marshal(req)
@@ -785,7 +752,7 @@ func TestLearnStyle(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		mockInference.On("LearnStyle",
@@ -800,25 +767,92 @@ func TestLearnStyle(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error learning style")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 		mockInference.AssertExpectations(t)
+	})
+}
+
+func TestGetTranscript(t *testing.T) {
+	logger, err := zap.NewDevelopment()
+	assert.Nil(t, err)
+
+	t.Run("should return transcript when request is valid", func(t *testing.T) {
+		MockReportsStore := new(reports.MockReportsStore)
+		mockInference := new(inferenceService.MockInferenceService)
+		mockUser := new(user.MockUserStore)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
+
+		expectedTranscript := "test transcript"
+
+		req := GetReportRequest{
+			ReportID: testReportID,
+		}
+
+		body, err := json.Marshal(req)
+		assert.NoError(t, err)
+
+		httpReq := httptest.NewRequest(http.MethodGet, "/reports/GetTranscript", bytes.NewBuffer(body))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		rr := httptest.NewRecorder()
+
+		MockReportsStore.On("GetTranscription", mock.Anything, testReportID).
+			Return(testUserID, expectedTranscript, nil).Once()
+
+		handler.GetTranscript(rr, httpReq)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+
+		var response string
+		err = json.NewDecoder(rr.Body).Decode(&response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expectedTranscript, response)
+		
+
+		MockReportsStore.AssertExpectations(t)
+	})
+
+	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
+		MockReportsStore := new(reports.MockReportsStore)
+		mockInference := new(inferenceService.MockInferenceService)
+		mockUser := new(user.MockUserStore)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
+
+		req := httptest.NewRequest(http.MethodGet, "/reports/GetTranscript", nil)
+		rr := httptest.NewRecorder()
+
+		handler.GetTranscript(rr, req)
+
+		assert.Equal(t, http.StatusUnauthorized, rr.Code)
+	})
+
+	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
+		MockReportsStore := new(reports.MockReportsStore)
+		mockInference := new(inferenceService.MockInferenceService)
+		mockUser := new(user.MockUserStore)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
+
+		invalidBody := []byte(`{"invalid json`)
+		req := httptest.NewRequest(http.MethodGet, "/reports/GetTranscript", bytes.NewBuffer(invalidBody))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		rr := httptest.NewRecorder()
+
+		handler.GetTranscript(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Code)
+		assert.Contains(t, rr.Body.String(), "invalid request body")
 	})
 }
 
 func TestChangeReportName(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
+
 	t.Run("should change report name when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -836,10 +870,10 @@ func TestChangeReportName(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
-		mockReports.On("UpdateReport", mock.Anything, testReportID, bson.D{
+		MockReportsStore.On("UpdateReport", mock.Anything, testReportID, bson.D{
 			{Key: "name", Value: "New Report Name"},
 		}).Return(nil).Once()
 
@@ -847,14 +881,14 @@ func TestChangeReportName(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", nil)
 		rr := httptest.NewRecorder()
@@ -866,10 +900,10 @@ func TestChangeReportName(t *testing.T) {
 	})
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", bytes.NewBuffer(invalidBody))
@@ -881,14 +915,14 @@ func TestChangeReportName(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rr.Code)
 		assert.Contains(t, rr.Body.String(), "invalid request body")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when report doesn't exist", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := ChangeNameRequest{
 			ReportID: testReportID,
@@ -901,7 +935,7 @@ func TestChangeReportName(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(reports.Report{}, errors.New("error changing report name")).Once()
 
 		handler.ChangeReportName(rr, httpReq)
@@ -909,14 +943,14 @@ func TestChangeReportName(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error changing report name")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when provider ID doesn't match", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: "different-user-id",
@@ -934,7 +968,7 @@ func TestChangeReportName(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		handler.ChangeReportName(rr, httpReq)
@@ -942,14 +976,14 @@ func TestChangeReportName(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 		assert.Contains(t, rr.Body.String(), "unauthorized")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when update fails", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -967,10 +1001,10 @@ func TestChangeReportName(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
-		mockReports.On("UpdateReport", mock.Anything, testReportID, bson.D{
+		MockReportsStore.On("UpdateReport", mock.Anything, testReportID, bson.D{
 			{Key: "name", Value: "New Report Name"},
 		}).Return(errors.New("update failed")).Once()
 
@@ -979,24 +1013,19 @@ func TestChangeReportName(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error updating report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 }
 
 func TestUpdateContentData(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
+
 	t.Run("should update report when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -1015,23 +1044,23 @@ func TestUpdateContentData(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
-		mockReports.On("UpdateReport", mock.Anything, testReportID, bson.D{bson.E{Key: req.ContentSection, Value: bson.D{bson.E{Key: "content", Value: req.Content}}}}).Return(nil).Once()
+		MockReportsStore.On("UpdateReport", mock.Anything, testReportID, bson.D{bson.E{Key: req.ContentSection, Value: bson.D{bson.E{Key: "data", Value: req.Content}}}}).Return(nil).Once()
 
 		handler.UpdateContentSection(rr, httpReq)
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/reports/UpdateReport", nil)
 		rr := httptest.NewRecorder()
@@ -1043,10 +1072,10 @@ func TestUpdateContentData(t *testing.T) {
 	})
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/UpdateReport", bytes.NewBuffer(invalidBody))
@@ -1058,14 +1087,14 @@ func TestUpdateContentData(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rr.Code)
 		assert.Contains(t, rr.Body.String(), "invalid request body")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when report doesn't exist", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := UpdateContentData{
 			ReportID:       testReportID,
@@ -1076,7 +1105,7 @@ func TestUpdateContentData(t *testing.T) {
 		body, err := json.Marshal(req)
 		require.NoError(t, err)
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(reports.Report{}, errors.New("report not found")).Once()
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/UpdateReport", bytes.NewBuffer(body))
@@ -1088,24 +1117,19 @@ func TestUpdateContentData(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error updating report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 }
 
 func TestDeleteReport(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
+
 	t.Run("should delete report when request is valid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -1122,24 +1146,24 @@ func TestDeleteReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
-		mockReports.On("Delete", mock.Anything, testReportID).
+		MockReportsStore.On("Delete", mock.Anything, testReportID).
 			Return(nil).Once()
 
 		handler.DeleteReport(rr, httpReq)
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user not authenticated", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", nil)
 		rr := httptest.NewRecorder()
@@ -1151,10 +1175,10 @@ func TestDeleteReport(t *testing.T) {
 	})
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", bytes.NewBuffer(invalidBody))
@@ -1168,10 +1192,10 @@ func TestDeleteReport(t *testing.T) {
 	})
 
 	t.Run("should return not found when report doesn't exist", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		req := DeleteReportRequest{
 			ReportIDs: []string{testReportID},
@@ -1183,7 +1207,7 @@ func TestDeleteReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(reports.Report{}, errors.New("report not found")).Once()
 
 		handler.DeleteReport(rr, httpReq)
@@ -1191,14 +1215,14 @@ func TestDeleteReport(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 		assert.Contains(t, rr.Body.String(), "unauthorized access to report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when provider ID doesn't match", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: "different-user-id",
@@ -1215,7 +1239,7 @@ func TestDeleteReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
 		handler.DeleteReport(rr, httpReq)
@@ -1223,14 +1247,14 @@ func TestDeleteReport(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 		assert.Contains(t, rr.Body.String(), "unauthorized")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 
 	t.Run("should return error when delete fails", func(t *testing.T) {
-		mockReports := new(reports.MockReports)
+		MockReportsStore := new(reports.MockReportsStore)
 		mockInference := new(inferenceService.MockInferenceService)
 		mockUser := new(user.MockUserStore)
-		handler := NewReportsHandler(mockReports, mockInference, mockUser, logger)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
@@ -1247,10 +1271,10 @@ func TestDeleteReport(t *testing.T) {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
 		rr := httptest.NewRecorder()
 
-		mockReports.On("Get", mock.Anything, testReportID).
+		MockReportsStore.On("Get", mock.Anything, testReportID).
 			Return(existingReport, nil).Once()
 
-		mockReports.On("Delete", mock.Anything, testReportID).
+		MockReportsStore.On("Delete", mock.Anything, testReportID).
 			Return(errors.New("delete failed")).Once()
 
 		handler.DeleteReport(rr, httpReq)
@@ -1258,6 +1282,6 @@ func TestDeleteReport(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 		assert.Contains(t, rr.Body.String(), "error deleting report")
 
-		mockReports.AssertExpectations(t)
+		MockReportsStore.AssertExpectations(t)
 	})
 }

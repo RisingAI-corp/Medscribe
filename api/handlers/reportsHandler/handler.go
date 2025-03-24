@@ -25,6 +25,7 @@ type ReportsHandler interface {
 	UpdateContentSection(w http.ResponseWriter, r *http.Request)
 	GetReport(w http.ResponseWriter, r *http.Request)
 	DeleteReport(w http.ResponseWriter, r *http.Request)
+	GetTranscript(w http.ResponseWriter, r *http.Request)
 }
 type GetReportRequest struct {
 	ReportID string `json:"reportID"`
@@ -36,7 +37,8 @@ type DeleteReportRequest struct {
 type LearnStyleRequest struct {
 	ReportID       string `json:"reportID"`
 	ContentSection string `json:"contentSection"`
-	Content        string `json:"content"`
+	Previous        string `json:"previous"`
+	Current string `json:"current"`
 }
 
 type ChangeNameRequest struct {
@@ -232,7 +234,7 @@ func (h *reportsHandler) LearnStyle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.inferenceService.LearnStyle(r.Context(), providerID, req.ContentSection, req.Content)
+	err = h.inferenceService.LearnStyle(r.Context(), providerID, req.ContentSection, req.Previous, req.Current)
 	if err != nil {
 		h.logger.Error("learning style failed", zap.Error(err))
 		http.Error(w, "error learning style", http.StatusInternalServerError)
@@ -314,6 +316,44 @@ func (h *reportsHandler) ChangeReportName(w http.ResponseWriter, r *http.Request
 	}
 
 	h.logger.Info("report name changed successfully", zap.String("reportID", req.ReportID), zap.String("newName", req.NewName))
+}
+
+func (h *reportsHandler) GetTranscript(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetProviderIDFromContext(r.Context())
+	if !ok {
+		h.logger.Warn("unauthorized access attempt")
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req GetReportRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("invalid request body", zap.Error(err))
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	h.logger.Info("attempting to get transcript", zap.String("userID", userID), zap.String("reportID", req.ReportID))
+
+	providerID, transcript, err := h.reportsService.GetTranscription(r.Context(), req.ReportID)
+	if err != nil {
+		h.logger.Error("error fetching report", zap.Error(err))
+		http.Error(w, "error fetching report", http.StatusInternalServerError)
+		return
+	}
+
+	if providerID != userID {
+		h.logger.Error("unauthorized access to report", zap.Error(err))
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	fmt.Println(transcript)
+	if err := json.NewEncoder(w).Encode(transcript); err != nil {
+		h.logger.Error("error encoding transcript", zap.Error(err))
+		http.Error(w, "error encoding transcript", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *reportsHandler) UpdateContentSection(w http.ResponseWriter, r *http.Request) {

@@ -29,8 +29,8 @@ export function AuthScreen() {
       reports,
       subjectiveStyle,
       objectiveStyle,
-      assessmentStyle,
-      planningStyle,
+      assessmentAndPlanStyle,
+      patientInstructionsStyle,
       summaryStyle,
     }) => {
       setProvider({
@@ -39,8 +39,8 @@ export function AuthScreen() {
         email: email,
         subjectiveStyle,
         objectiveStyle,
-        assessmentStyle,
-        planningStyle,
+        assessmentAndPlanStyle,
+        patientInstructionsStyle,
         summaryStyle,
       });
       setIsAuthenticated(true);
@@ -66,8 +66,8 @@ export function AuthScreen() {
         email: email,
         subjectiveStyle: '',
         objectiveStyle: '',
-        assessmentStyle: '',
-        planningStyle: '',
+        assessmentAndPlanStyle: '',
+        patientInstructionsStyle: '',
         summaryStyle: '',
       });
       setIsAuthenticated(true);

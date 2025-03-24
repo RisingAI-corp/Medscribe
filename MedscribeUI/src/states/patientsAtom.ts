@@ -16,12 +16,13 @@ export interface Report {
   patientOrClient: string;
   subjective: ReportContent;
   objective: ReportContent;
-  assessment: ReportContent;
-  planning: ReportContent;
+  assessmentAndPlan: ReportContent;
+  patientInstructions: ReportContent;
   summary: ReportContent;
-  oneLinerSummary: string;
-  shortSummary: string;
+  sessionSummary: string;
+  condensedSummary: string;
   finishedGenerating: boolean;
+  transcript: string;
 }
 
 //TODO: remove when apis are built
@@ -45,13 +46,13 @@ const reports: Report[] = [
 
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Likely tension headache.',
 
       loading: false,
     },
-    planning: {
-      data: 'Recommend rest and hydration.',
+    patientInstructions: {
+      data: 'Rest and drink fluids.',
 
       loading: false,
     },
@@ -60,9 +61,10 @@ const reports: Report[] = [
 
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 1',
-    shortSummary: 'Short summary of visit 1',
+    sessionSummary: 'Patient visit summary 1',
+    condensedSummary: 'condensed summary of visit 1',
     finishedGenerating: true,
+    transcript: 'some random text',
   },
   {
     id: 'report2',
@@ -82,12 +84,12 @@ const reports: Report[] = [
       data: 'Limited range of motion in lower back.',
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Chronic lower back pain, further evaluation needed.',
 
       loading: false,
     },
-    planning: {
+    patientInstructions: {
       data: 'Referral to physical therapy.',
       loading: false,
     },
@@ -95,9 +97,10 @@ const reports: Report[] = [
       data: 'Follow-up appointment scheduled.',
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 2',
-    shortSummary: 'Short summary of visit 2',
+    sessionSummary: 'Patient visit summary 2',
+    condensedSummary: 'condensed summary of visit 2',
     finishedGenerating: true,
+    transcript: '',
   },
   {
     id: 'report3',
@@ -118,12 +121,12 @@ const reports: Report[] = [
 
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Anxiety disorder.',
 
       loading: false,
     },
-    planning: {
+    patientInstructions: {
       data: 'Prescribed medication and therapy.',
 
       loading: false,
@@ -133,9 +136,10 @@ const reports: Report[] = [
 
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 3',
-    shortSummary: 'Short summary of visit 3',
+    sessionSummary: 'Patient visit summary 3',
+    condensedSummary: 'condensed summary of visit 3',
     finishedGenerating: true,
+    transcript: '',
   },
 ];
 
@@ -164,5 +168,27 @@ export const unsetReportStreamStatusAtom = atom(
     const newSet = new Set(currentSet);
     newSet.delete(id);
     set(reportStreamingAtom, newSet);
+  },
+);
+
+export const UpdateSelectedPatientNameAtom = atom(
+  null,
+  (get, set, newName: string) => {
+    const currentlySelectedPatient = get(currentlySelectedPatientAtom);
+    const patients = get(patientsAtom);
+    const patient = patients.find(p => p.id === currentlySelectedPatient);
+
+    if (patient) {
+      const updatedPatients = patients.map(p => {
+        if (p.id === patient.id) {
+          return {
+            ...p,
+            name: newName,
+          };
+        }
+        return p;
+      });
+      set(patientsAtom, updatedPatients);
+    }
   },
 );

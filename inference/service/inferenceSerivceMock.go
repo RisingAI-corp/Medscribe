@@ -20,7 +20,7 @@ func (m *MockInferenceService) RegenerateReport(ctx context.Context, contentChan
 	return args.Error(0)
 }
 
-func (m *MockInferenceService) LearnStyle(ctx context.Context, reportID, contentSection, content string) error {
+func (m *MockInferenceService) LearnStyle(ctx context.Context, reportID, contentSection, previous, content string) error {
 	args := m.Called(ctx, reportID, contentSection, content)
 	return args.Error(0)
 }

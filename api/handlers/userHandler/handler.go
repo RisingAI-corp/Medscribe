@@ -24,15 +24,16 @@ type LoginRequest struct {
 }
 
 type AuthResponse struct {
-	ID              string           `json:"id"`
-	Name            string           `json:"name"`
-	Email           string           `json:"email"`
-	Reports         []reports.Report `json:"reports"`
-	SubjectiveStyle string           `json:"subjectiveStyle"`
-	ObjectiveStyle  string           `json:"objectiveStyle"`
-	AssessmentStyle string           `json:"assessmentStyle"`
-	PlanningStyle   string           `json:"planningStyle"`
-	SummaryStyle    string           `json:"summaryStyle"`
+	ID                       string           `json:"id"`
+	Name                     string           `json:"name"`
+	Email                    string           `json:"email"`
+	Reports                  []reports.Report `json:"reports"`
+	SubjectiveStyle          string           `json:"subjectiveStyle"`
+	ObjectiveStyle           string           `json:"objectiveStyle"`
+	AssessmentAndPlanStyle   string           `json:"assessmentAndPlanStyle"`
+	PatientInstructionsStyle string           `json:"patientInstructionsStyle"`
+	PlanningStyle            string           `json:"planningStyle"`
+	SummaryStyle             string           `json:"summaryStyle"`
 }
 
 type UserHandler interface {
@@ -45,6 +46,7 @@ type userHandler struct {
 	userStore user.UserStore
 	reports   reports.Reports
 	logger    *zap.Logger
+	authMiddleware  middleware.AuthMiddleware
 }
 
 func NewUserHandler(userStore user.UserStore, reports reports.Reports, logger *zap.Logger) UserHandler {
@@ -73,7 +75,7 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := middleware.GenerateInitialTokens(w, ProviderID); err != nil {
+	if err := h.authMiddleware.GenerateTokens(w, ProviderID); err != nil {
 		http.Error(w, "failed to generate auth tokens", http.StatusInternalServerError)
 		return
 	}
@@ -89,7 +91,7 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error encoding auth response", http.StatusInternalServerError)
 		return
 	}
-	if err := middleware.AttachInitialTokens(w, ProviderID); err != nil {
+	if err :=  h.authMiddleware.AttachInitialTokens(w, ProviderID); err != nil {
 		//TODO: log specifically this error
 		http.Error(w, "error creating authentication", http.StatusInternalServerError)
 	}
@@ -110,7 +112,7 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := user.ID.Hex()
 
-	if err := middleware.GenerateInitialTokens(w, userID); err != nil {
+	if err :=  h.authMiddleware.AttachInitialTokens(w, userID); err != nil {
 		http.Error(w, "failed to generate auth tokens", http.StatusInternalServerError)
 		return
 	}
@@ -123,20 +125,20 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(AuthResponse{
-		ID:              user.ID.Hex(),
-		Name:            user.Name,
-		Email:           user.Email,
-		Reports:         reports,
-		SubjectiveStyle: user.SubjectiveStyle,
-		ObjectiveStyle:  user.ObjectiveStyle,
-		AssessmentStyle: user.AssessmentStyle,
-		PlanningStyle:   user.PlanningStyle,
-		SummaryStyle:    user.SummaryStyle,
+		ID:                       user.ID.Hex(),
+		Name:                     user.Name,
+		Email:                    user.Email,
+		Reports:                  reports,
+		SubjectiveStyle:          user.SubjectiveStyle,
+		ObjectiveStyle:           user.ObjectiveStyle,
+		AssessmentAndPlanStyle:   user.AssessmentAndPlanStyle,
+		PatientInstructionsStyle: user.PatientInstructionsStyle,
+		SummaryStyle:             user.SummaryStyle,
 	}); err != nil {
 		http.Error(w, "error encoding auth response", http.StatusInternalServerError)
 		return
 	}
-	if err := middleware.AttachInitialTokens(w, userID); err != nil {
+	if err := h.authMiddleware.AttachInitialTokens(w, userID); err != nil {
 		//TODO: log specifically this error
 		http.Error(w, "error creating authentication", http.StatusInternalServerError)
 	}
@@ -161,15 +163,15 @@ func (h *userHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(AuthResponse{
-		ID:              user.ID.Hex(),
-		Name:            user.Name,
-		Email:           user.Email,
-		Reports:         reports,
-		SubjectiveStyle: user.SubjectiveStyle,
-		ObjectiveStyle:  user.ObjectiveStyle,
-		AssessmentStyle: user.AssessmentStyle,
-		PlanningStyle:   user.PlanningStyle,
-		SummaryStyle:    user.SummaryStyle,
+		ID:                       user.ID.Hex(),
+		Name:                     user.Name,
+		Email:                    user.Email,
+		Reports:                  reports,
+		SubjectiveStyle:          user.SubjectiveStyle,
+		ObjectiveStyle:           user.ObjectiveStyle,
+		AssessmentAndPlanStyle:   user.AssessmentAndPlanStyle,
+		PatientInstructionsStyle: user.PatientInstructionsStyle,
+		SummaryStyle:             user.SummaryStyle,
 	})
 	if err != nil {
 		http.Error(w, "failed to fetch reports", http.StatusInternalServerError)

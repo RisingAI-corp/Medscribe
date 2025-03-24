@@ -12,8 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var auth *AuthMiddleware
+
 func TestMain(m *testing.M) {
-	os.Setenv("JWT_SECRET", "test-secret-key")
+	auth = NewAuthMiddleware("test-secret-key")
 	code := m.Run()
 	os.Exit(code)
 }
@@ -122,7 +124,8 @@ func getTokenFromCookies(t *testing.T, rr *httptest.ResponseRecorder, tokenType 
 }
 
 func TestAuthMiddleware_ValidAccessToken(t *testing.T) {
-	handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
+	handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := GetProviderIDFromContext(r.Context())
 		assert.True(t, ok)
 		assert.Equal(t, "userID", userID)
@@ -174,7 +177,8 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 		})
 
 		rr := httptest.NewRecorder()
-		handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
+		handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t.Error("handler should not be called")
 		}))
 
@@ -188,7 +192,7 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 		env.setToken(RefreshToken, time.Now().Add(time.Hour), "invalid.refresh.token")
 
 		rr := httptest.NewRecorder()
-		handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t.Error("handler should not be called")
 		}))
 
@@ -202,7 +206,8 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 		env.setToken(RefreshToken, time.Now().Add(-time.Hour), "")
 
 		rr := httptest.NewRecorder()
-		handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
+		handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t.Error("handler should not be called")
 		}))
 
@@ -213,7 +218,8 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 
 func TestGenerateInitialTokens_Success(t *testing.T) {
 	rr := httptest.NewRecorder()
-	err := GenerateInitialTokens(rr, "userID")
+	auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
+	err := auth.GenerateTokens(rr, "userID")
 	assert.NoError(t, err)
 
 	cookie := getTokenFromCookies(t, rr, AccessToken)

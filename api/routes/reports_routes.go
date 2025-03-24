@@ -22,6 +22,8 @@ func ReportRoutes(handler reportsHandler.ReportsHandler) *chi.Mux {
 	r.Delete("/delete", handler.DeleteReport)
 
 	r.Post("/get", handler.GetReport)
+	
+	r.Post("/getTranscript", handler.GetTranscript)
 
 	return r
 }

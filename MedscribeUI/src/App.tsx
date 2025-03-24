@@ -35,8 +35,8 @@ function App() {
         reports,
         subjectiveStyle,
         objectiveStyle,
-        assessmentStyle,
-        planningStyle,
+        assessmentAndPlanStyle,
+        patientInstructionsStyle,
         summaryStyle,
       }) => {
         setProvider({
@@ -45,8 +45,8 @@ function App() {
           email: email,
           subjectiveStyle,
           objectiveStyle,
-          assessmentStyle,
-          planningStyle,
+          assessmentAndPlanStyle,
+          patientInstructionsStyle,
           summaryStyle,
         });
         setPatients(reports ?? []);

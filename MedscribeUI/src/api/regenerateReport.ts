@@ -8,19 +8,18 @@ export interface ReportContentSection {
 }
 
 export interface RegenerateReportMetadata {
-  providerID: string;
   ID: string;
   subjectiveStyle: string;
   objectiveStyle: string;
-  assessmentStyle: string;
-  planningStyle: string;
   summaryStyle: string;
+  assessmentAndPlanStyle: string;
+  patientInstructionsStyle: string;
   updates: Updates[];
-  SubjectiveContent: string;
-  ObjectiveContent: string;
-  AssessmentContent: string;
-  PlanningContent: string;
-  SummaryContent: string;
+  subjectiveContent: string;
+  objectiveContent: string;
+  assessmentAndPlanContent: string;
+  patientInstructionsContent: string;
+  summaryContent: string;
 }
 
 export async function regenerateReport(payload: RegenerateReportMetadata) {

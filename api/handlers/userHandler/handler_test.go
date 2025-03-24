@@ -40,15 +40,15 @@ func TestSignUp(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
 	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
+		if err := logger.Sync(); err != nil && err.Error() != "sync /dev/stdout: bad file descriptor" && err.Error() != "sync /dev/stderr: bad file descriptor" {
+			t.Errorf("Logger sync failed: %v", err)
 		}
 	}()
+
 	t.Run("should create user when credentials are valid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		mockStore.On("Put", mock.Anything, testName, testEmail, testPassword).
 			Return(testUserID, nil)
@@ -90,8 +90,8 @@ func TestSignUp(t *testing.T) {
 
 	t.Run("should return conflict when email already exists", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		mockStore.On("Put", mock.Anything, testName, testEmail, testPassword).
 			Return("", fmt.Errorf("user already exists with this email: %s", testEmail))
@@ -117,8 +117,8 @@ func TestSignUp(t *testing.T) {
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewBufferString("invalid json"))
 		rr := httptest.NewRecorder()
@@ -134,15 +134,15 @@ func TestLogin(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
 	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
+		if err := logger.Sync(); err != nil && err.Error() != "sync /dev/stdout: bad file descriptor" && err.Error() != "sync /dev/stderr: bad file descriptor" {
+			t.Errorf("Logger sync failed: %v", err)
 		}
 	}()
+
 	t.Run("should authenticate user when credentials are valid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		objectID, err := primitive.ObjectIDFromHex(testUserID)
 		require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestLogin(t *testing.T) {
 		mockStore.On("GetByAuth", mock.Anything, testEmail, testPassword).
 			Return(mockUser, nil)
 
-		mockReports := []reports.Report{
+		MockReportsStore := []reports.Report{
 			{
 				ID:         objectID,
 				Name:       "Test Report",
@@ -164,8 +164,8 @@ func TestLogin(t *testing.T) {
 			},
 		}
 
-		mockReportsStore.On("GetAll", mock.Anything, testUserID).
-			Return(mockReports, nil).
+		MockReportsStoreStore.On("GetAll", mock.Anything, testUserID).
+			Return(MockReportsStore, nil).
 			Once()
 
 		reqBody := LoginRequest{
@@ -192,9 +192,9 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, testName, response.Name)
 		assert.Equal(t, testEmail, response.Email)
 		assert.Len(t, response.Reports, 1)
-		assert.Equal(t, mockReports[0].ID.Hex(), response.Reports[0].ID.Hex())
-		assert.Equal(t, mockReports[0].Name, response.Reports[0].Name)
-		assert.Equal(t, mockReports[0].ProviderID, response.Reports[0].ProviderID)
+		assert.Equal(t, MockReportsStore[0].ID.Hex(), response.Reports[0].ID.Hex())
+		assert.Equal(t, MockReportsStore[0].Name, response.Reports[0].Name)
+		assert.Equal(t, MockReportsStore[0].ProviderID, response.Reports[0].ProviderID)
 
 		accessToken, ok := checkCookie(rr.Result().Cookies(), "access_token")
 		assert.NotEmpty(t, accessToken)
@@ -205,13 +205,13 @@ func TestLogin(t *testing.T) {
 		assert.True(t, ok)
 
 		mockStore.AssertExpectations(t)
-		mockReportsStore.AssertExpectations(t)
+		MockReportsStoreStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when credentials are invalid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		mockStore.On("GetByAuth", mock.Anything, testEmail, testPassword).
 			Return(user.User{}, fmt.Errorf("incorrect authentication credentials"))
@@ -236,8 +236,8 @@ func TestLogin(t *testing.T) {
 
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStore, logger)
 
 		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBufferString("invalid json"))
 		rr := httptest.NewRecorder()
@@ -252,17 +252,11 @@ func TestLogin(t *testing.T) {
 func TestGetMe(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	assert.Nil(t, err)
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			t.Errorf("failed to sync logger: %v", err)
-		}
-	}()
 
 	t.Run("should return user data when authenticated", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		objectID, err := primitive.ObjectIDFromHex(testUserID)
 		if err != nil {
@@ -272,13 +266,11 @@ func TestGetMe(t *testing.T) {
 			ID:    objectID,
 			Name:  testName,
 			Email: testEmail,
-			Styles: user.Styles{
-				SubjectiveStyle: "Test Subjective Style", // Add test style values
-				ObjectiveStyle:  "Test Objective Style",
-				AssessmentStyle: "Test Assessment Style",
-				PlanningStyle:   "Test Planning Style",
-				SummaryStyle:    "Test Summary Style",
-			},
+			SubjectiveStyle:        "Test Subjective Style", // Add test style values
+			ObjectiveStyle:         "Test Objective Style",
+			AssessmentAndPlanStyle: "Test Assessment and Planning Style",
+			PatientInstructionsStyle:          "Test Patient Instruction Style",
+			SummaryStyle:           "Test Summary Style",
 		}
 
 		// Update mock expectations with correct arguments
@@ -286,7 +278,7 @@ func TestGetMe(t *testing.T) {
 			Return(mockUser, nil).
 			Once()
 
-		mockReports := []reports.Report{
+		MockReportsStore := []reports.Report{
 			{
 				ID:         objectID,
 				Name:       "Test Report",
@@ -294,8 +286,8 @@ func TestGetMe(t *testing.T) {
 			},
 		}
 
-		mockReportsStore.On("GetAll", mock.Anything, testUserID).
-			Return(mockReports, nil).
+		MockReportsStoreStore.On("GetAll", mock.Anything, testUserID).
+			Return(MockReportsStore, nil).
 			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -314,24 +306,24 @@ func TestGetMe(t *testing.T) {
 		// Verify response contents, including styles
 		assert.Equal(t, testUserID, response.ID)
 		assert.Len(t, response.Reports, 1)
-		assert.Equal(t, mockReports[0].ID.Hex(), response.Reports[0].ID.Hex())
-		assert.Equal(t, mockReports[0].Name, response.Reports[0].Name)
-		assert.Equal(t, mockReports[0].ProviderID, response.Reports[0].ProviderID)
+		assert.Equal(t, MockReportsStore[0].ID.Hex(), response.Reports[0].ID.Hex())
+		assert.Equal(t, MockReportsStore[0].Name, response.Reports[0].Name)
+		assert.Equal(t, MockReportsStore[0].ProviderID, response.Reports[0].ProviderID)
 
-		assert.Equal(t, "Test Subjective Style", response.SubjectiveStyle) // Assert styles
+		assert.Equal(t, "Test Subjective Style", response.SubjectiveStyle)
 		assert.Equal(t, "Test Objective Style", response.ObjectiveStyle)
-		assert.Equal(t, "Test Assessment Style", response.AssessmentStyle)
-		assert.Equal(t, "Test Planning Style", response.PlanningStyle)
+		assert.Equal(t, "Test Assessment and Planning Style", response.AssessmentAndPlanStyle)
+		assert.Equal(t, "Test Patient Instruction Style", response.PatientInstructionsStyle)
 		assert.Equal(t, "Test Summary Style", response.SummaryStyle)
 
 		mockStore.AssertExpectations(t)
-		mockReportsStore.AssertExpectations(t)
+		MockReportsStoreStore.AssertExpectations(t)
 	})
 
 	t.Run("should return unauthorized when user ID not in context", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
-		mockReportsStore := new(reports.MockReports)
-		handler := NewUserHandler(mockStore, mockReportsStore, logger)
+		MockReportsStoreStore := new(reports.MockReportsStore)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rr := httptest.NewRecorder()

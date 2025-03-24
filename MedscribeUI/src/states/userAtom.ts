@@ -6,9 +6,9 @@ export interface User {
   email: string;
   subjectiveStyle: string; // Added style fields
   objectiveStyle: string;
-  assessmentStyle: string;
-  planningStyle: string;
+  assessmentAndPlanStyle: string;
   summaryStyle: string;
+  patientInstructionsStyle: string;
 }
 
 //TODO:delete once api are created
@@ -16,11 +16,11 @@ const sampleUser: User = {
   ID: '1',
   name: 'Emenike',
   email: 'emenikeani3@gmail.com',
-  subjectiveStyle: 'Creative', // Added sample style values
-  objectiveStyle: 'Formal',
-  assessmentStyle: 'Analytical',
-  planningStyle: 'Detailed',
-  summaryStyle: 'Concise',
+  subjectiveStyle: '',
+  objectiveStyle: '',
+  summaryStyle: '',
+  assessmentAndPlanStyle: '',
+  patientInstructionsStyle: '',
 };
 
 export const isAuthenticatedAtom = atom(false);

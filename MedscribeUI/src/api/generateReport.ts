@@ -1,12 +1,12 @@
 export interface GenerateReportMetadata {
-  providerID: string;
   patientName: string;
+  providerName: string;
   timestamp: string;
   duration: number;
   subjectiveStyle: string;
   objectiveStyle: string;
-  assessmentStyle: string;
-  planningStyle: string;
+  assessmentAndPlanStyle: string;
+  patientInstructionsStyle: string;
   summaryStyle: string;
 }
 

@@ -22,7 +22,8 @@ import {
 import { useStreamProcessor } from '../../hooks/useStreamProcessor';
 import { Input } from '@mantine/core';
 
-import { HeaderInformationAtom } from '../../components/PaitentDashboard/derivedAtoms';
+import { SelectedPatientHeaderInformationAtom } from '../../components/PaitentDashboard/derivedAtoms';
+import { UpdateSelectedPatientNameAtom } from '../../states/patientsAtom';
 import { userAtom } from '../../states/userAtom';
 import VisitReportLayout from '../../components/VisitReport/visitReportLayout';
 import NoteControlsLayout from '../../components/NoteControls/noteControlsLayout';
@@ -31,9 +32,8 @@ import { useEffect } from 'react';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 
 const GenerateReportTest = () => {
-  const [headerInformation, updateHeaderInformation] = useAtom(
-    HeaderInformationAtom,
-  );
+  const [headerInformation] = useAtom(SelectedPatientHeaderInformationAtom);
+  const [, updateHeaderInformation] = useAtom(UpdateSelectedPatientNameAtom);
 
   const [__, updateReports] = useAtom(UpdateReportsAtom);
   const [___, attemptCreateReport] = useAtom(createReportAtom);
@@ -79,7 +79,6 @@ const GenerateReportTest = () => {
       metadata: GenerateReportMetadata;
     }) => generateReport(formData, metadata),
     onSuccess: async reader => {
-      console.log(provider.ID);
       await processStream(reader);
     },
     onError: error => {
@@ -91,14 +90,14 @@ const GenerateReportTest = () => {
     setSelectedReport(''); // need this because of the stream processor only switches when no patient is currently selected
     const formData = createSampleFormData();
     const metadata: GenerateReportMetadata = {
-      providerID: provider.ID,
       patientName: 'test name',
+      providerName: provider.name,
       timestamp: new Date().toISOString(),
       duration: 10,
       subjectiveStyle: provider.subjectiveStyle,
       objectiveStyle: provider.objectiveStyle,
-      assessmentStyle: provider.assessmentStyle,
-      planningStyle: provider.planningStyle,
+      assessmentAndPlanStyle: provider.assessmentAndPlanStyle,
+      patientInstructionsStyle: provider.patientInstructionsStyle,
       summaryStyle: provider.summaryStyle,
     };
 
@@ -142,7 +141,7 @@ const GenerateReportTest = () => {
       <div className="flex-shrink-0 border-b border-gray-300">
         <ProfileSummaryCard
           name={headerInformation.name}
-          description={headerInformation.oneLiner}
+          description={headerInformation.condensedSummary}
           onChange={updateHeaderInformation}
           handleUpdateName={() => {
             console.log('updating name');

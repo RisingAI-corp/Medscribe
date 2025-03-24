@@ -63,8 +63,8 @@ func SetupTestEnv() (*TestEnv, error) {
 	}
 
 	db := client.Database(os.Getenv("MONGODB_DB"))
-	userColl := db.Collection(os.Getenv("MONGODB_USER_COLLECTION_TEST"))
-	reportsColl := db.Collection(os.Getenv("MONGODB_REPORT_COLLECTION_TEST"))
+	userColl := db.Collection(os.Getenv("MONGODB_USER_COLLECTION_DEV"))
+	reportsColl := db.Collection(os.Getenv("MONGODB_REPORT_COLLECTION_DEV"))
 
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
@@ -93,11 +93,14 @@ func SetupTestEnv() (*TestEnv, error) {
 
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
-
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET not set in environment")
+	}
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,
 		ReportsHandler:   reportsHandler,
-		AuthMiddleware:   middleware.Middleware,
+		AuthMiddleware:   middleware.NewAuthMiddleware(jwtSecret).Middleware,
 		LoggerMiddleware: middleware.LoggingMiddleware,
 		Logger:           logger,
 	})
@@ -180,7 +183,6 @@ func (env *TestEnv) GetAllReports(userID string) ([]reports.Report, error) {
 
 // GenerateJWT generates a JWT token for the given userID and adds it to the request's cookies.
 func (env *TestEnv) GenerateJWT(req *http.Request, userID string) (*http.Request, error) {
-	// Get the JWT secret from the environment variable
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return nil, fmt.Errorf("JWT_SECRET not set in environment")

@@ -20,8 +20,6 @@ export async function createProvider({ name, email, password }: SignUpProps) {
       { name, email, password },
       { withCredentials: true },
     );
-    console.log('donzo');
-
     const { success, data, error } = AuthResponse.safeParse(response.data);
     if (!success) {
       throw new Error('Error parsing API response: ' + error.toString());
