@@ -26,9 +26,12 @@ function App() {
   );
 
   useEffect(() => {
+    if (isAuthenticated) return;
+
     setTimeout(() => {
       setTimerActive(false);
     }, 800);
+
     checkAuthMutation.mutate(undefined, {
       onSuccess: ({
         id,
@@ -51,20 +54,22 @@ function App() {
           patientInstructionsStyle,
           summaryStyle,
         });
-        setPatients(reports ?? []);
+        setPatients(reports);
         setIsAuthenticated(true);
-        if (reports && reports.length > 0) {
+        if (reports.length > 0) {
           setCurrentlySelectedPatient(reports[0].id);
-          return;
+        } else {
+          setCurrentlySelectedPatient('');
         }
-        setCurrentlySelectedPatient('');
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuthMutation = useMutation({
     mutationFn: checkAuth,
+    onSuccess: data => {
+      console.log('Authenticated:', data);
+    },
     onError: error => {
       console.error('Error adding todo:', error);
     },
@@ -78,15 +83,15 @@ function App() {
     } else if (isSuccess || isAuthenticated) {
       return <HomeScreen />;
     } else {
-      return <AuthScreen />;
+      return <LandingScreen />;
     }
   };
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/landing" element={<LandingScreen />} />
         <Route path="/" element={renderAuthComponent()} />
+        <Route path="/Auth" element={<AuthScreen />} />
       </Routes>
     </BrowserRouter>
   );

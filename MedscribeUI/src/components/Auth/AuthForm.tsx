@@ -99,4 +99,4 @@ const AuthForm: React.FC<AuthFormProps> = ({
   );
 };
 
-export default AuthForm; 
+export default AuthForm;

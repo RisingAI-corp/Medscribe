@@ -60,6 +60,7 @@ func NewUserHandler(userStore user.UserStore, reports reports.Reports, logger *z
 }
 
 func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("inside")
 	var req SignUpRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Error("Error decoding signup request", zap.Error(err))
@@ -93,6 +94,8 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		Name:   req.Name,
 		Email:  req.Email,
 		UserID: ProviderID, // Added UserID here
+		Reports: []reports.Report{},
+		
 	}); err != nil {
 		h.logger.Error("Error encoding auth response", zap.Error(err))
 		http.Error(w, "error encoding auth response", http.StatusInternalServerError)

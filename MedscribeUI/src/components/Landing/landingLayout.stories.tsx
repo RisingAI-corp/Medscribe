@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import LandingLayout from './landingLayout';
+import LandingLayout from '../../pages/Landing/landingScreen';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 
 const LandingLayoutWrapper = () => {
   return (
     <MantineProvider>
-        <LandingLayout />
+      <LandingLayout />
     </MantineProvider>
   );
 };

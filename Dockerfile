@@ -1,7 +1,7 @@
 # ===========================
 # Stage 1: Build the Frontend (Vite)
 # ===========================
-FROM node:18-alpine AS frontend
+FROM node:20-alpine AS frontend
 
 # Set working directory
 WORKDIR /MedscribeUI

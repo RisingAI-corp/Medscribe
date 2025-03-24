@@ -43,6 +43,7 @@ const SoapSectionBox = ({
   isContentSaveLoading,
   isLearnStyleLoading,
 }: SoapEditableSectionProps) => {
+  console.log('saving loading ', isContentSaveLoading);
   const [clicked, setClicked] = useState(false);
 
   const [isDirty, setIsDirty] = useState(false);
@@ -131,7 +132,7 @@ const SoapSectionBox = ({
                     </>
                   )}
 
-                  {(isDirty || isContentSaveLoading) && (
+                  {isDirty && (
                     <div className="flex gap-2 justify-center items-center">
                       <Button
                         variant="outline"

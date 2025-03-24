@@ -106,7 +106,8 @@ function VisitReportLayout() {
     fetchTranscriptMutation.mutate({ reportID: selectedPatientID });
   };
   const { isPending, isSuccess } = fetchTranscriptMutation;
-
+  const { variables } = updateContentSectionMutation;
+  console.log(variables?.ContentSection, 'here here');
   return (
     <>
       {soapData && (
@@ -126,8 +127,16 @@ function VisitReportLayout() {
               }}
               isExpanded={true}
               readonly={false}
-              isContentSaveLoading={updateContentSectionMutation.isPending}
-              isLearnStyleLoading={learnStyleMutation.isPending}
+              isContentSaveLoading={
+                updateContentSectionMutation.isPending &&
+                updateContentSectionMutation.variables.ContentSection ===
+                  section.sectionType
+              }
+              isLearnStyleLoading={
+                learnStyleMutation.isPending &&
+                learnStyleMutation.variables.ContentSection ===
+                  section.sectionType
+              }
             />
           ))}
           {soapData.loading && (

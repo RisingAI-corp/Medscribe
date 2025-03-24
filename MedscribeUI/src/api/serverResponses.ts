@@ -1,4 +1,17 @@
 import { z } from 'zod';
+import { Report } from '../states/patientsAtom';
+
+export interface AuthResponse {
+  id: string;
+  name: string;
+  email: string;
+  subjectiveStyle: string;
+  objectiveStyle: string;
+  assessmentAndPlanStyle: string;
+  summaryStyle: string;
+  patientInstructionsStyle: string;
+  reports: Report[];
+}
 
 export const ReportContentSchema = z.object({
   data: z.string(),
@@ -29,7 +42,7 @@ export const AuthResponse = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
-  reports: z.array(ReportSchema).nullable().default([]),
+  reports: z.array(ReportSchema).default([]),
   subjectiveStyle: z.string(),
   objectiveStyle: z.string(),
   assessmentAndPlanStyle: z.string(),

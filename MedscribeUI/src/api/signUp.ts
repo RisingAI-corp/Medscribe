@@ -8,6 +8,7 @@ interface SignUpProps {
 }
 
 export async function createProvider({ name, email, password }: SignUpProps) {
+  console.log('sending');
   if (!email || !name || !password) {
     throw new Error('Email, name, and password are required.');
   }

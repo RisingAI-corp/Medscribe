@@ -211,7 +211,7 @@ func (r *reportsStore) GetAll(ctx context.Context, providerId string) ([]Report,
 
 	options := options.Find().SetSort(bson.M{TimeStamp: -1})
 
-	var retrievedReports []Report
+	retrievedReports := []Report{}
 
 	cursor, err := r.client.Find(ctx, filter, options)
 	if err != nil {
