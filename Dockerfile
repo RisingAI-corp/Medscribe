@@ -59,8 +59,6 @@ COPY --from=frontend /MedscribeUI/dist ./MedscribeUI/dist
 # Ensure the binary is executable
 RUN chmod +x /app/app
 
-ENV ENVIRONMENT="production"
-
 EXPOSE 8080
 
 CMD ["/app/app"]

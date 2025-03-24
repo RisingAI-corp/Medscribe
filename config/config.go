@@ -34,6 +34,7 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 	isProd := strings.ToLower(env) == "production"
+	fmt.Println("yoos",isProd)
 
 	mongoURI, err := getEnvStrictConditional("MONGODB_URI", "MONGODB_URI_DEV", isProd)
 	if err != nil {
@@ -115,6 +116,7 @@ func LoadConfig() (*Config, error) {
 
 func getEnvStrict(key, fallback string) (string, error) {
 	val := os.Getenv(key)
+	fmt.Println("key",key, "val", val)
 	if val == "" && fallback == "" {
 		return "", fmt.Errorf("missing required environment variable: %s", key)
 	} else if val == "" {
