@@ -32,18 +32,16 @@ type AuthMiddleware struct {
 	logger    *zap.Logger
 	env      string
 	secure   bool
-	sameSite http.SameSite
 
 
 }
 
 func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddleware {
-	am := &AuthMiddleware{jwtSecret: secret, logger: logger, env: env, sameSite: http.SameSiteStrictMode}
+	am := &AuthMiddleware{jwtSecret: secret, logger: logger, env: env}
 	am.secure = env == "production"
-	am.sameSite = http.SameSiteLaxMode
+
 	if env == "production" {
 		fmt.Println("this is secure", am.secure )
-		am.sameSite = http.SameSiteStrictMode
 	}else{
 		fmt.Println("this is secure", am.secure )
 	}
@@ -168,7 +166,7 @@ func (am *AuthMiddleware) setCookies(w http.ResponseWriter, accessToken, refresh
 		MaxAge:   int(DefaultAccessTokenDuration.Seconds()),
 		HttpOnly: true,
 		Secure:   am.secure,
-		SameSite: am.sameSite,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	http.SetCookie(w, &http.Cookie{
@@ -178,7 +176,7 @@ func (am *AuthMiddleware) setCookies(w http.ResponseWriter, accessToken, refresh
 		MaxAge:   int(DefaultRefreshTokenDuration.Seconds()),
 		HttpOnly: true,
 		Secure:   am.secure,
-		SameSite: am.sameSite,
+		SameSite: http.SameSiteLaxMode,
 	})
 }
 
