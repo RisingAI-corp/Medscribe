@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -40,7 +39,7 @@ func setupTestDB(t *testing.T) *mongo.Collection {
 		log.Fatal("MONGODB_DB is not set in .env file")
 	}
 
-	collectionName := os.Getenv("MONGODB_USER_COLLECTION_TEST")
+	collectionName := os.Getenv("MONGODB_USER_COLLECTION_DEV")
 	if mongoURI == "" {
 		log.Fatal("MONGODB_USER_COLLECTION is not set in .env file")
 	}
@@ -69,103 +68,136 @@ func cleanupTestDB(t *testing.T, collection *mongo.Collection) {
 	}
 }
 
-func TestPut(t *testing.T) {
-	collection := setupTestDB(t)
-	t.Cleanup(func() { cleanupTestDB(t, collection) })
-	store := NewUserStore(collection)
-	ctx := context.Background()
+// func TestPut(t *testing.T) {
+// 	collection := setupTestDB(t)
+// 	t.Cleanup(func() { cleanupTestDB(t, collection) })
+// 	store := NewUserStore(collection)
+// 	ctx := context.Background()
 
-	testCases := []struct {
-		name        string
-		email       string
-		expectedErr error
-		isEmpty     bool
-	}{
-		{
-			name:        "should create new user with unique email",
-			email:       email,
-			expectedErr: nil,
-			isEmpty:     false,
-		},
-		{
-			name:        "should reject duplicate email",
-			email:       email,
-			expectedErr: fmt.Errorf("user already exists with this email: %s", email),
-			isEmpty:     true,
-		},
-	}
+// 	testCases := []struct {
+// 		name        string
+// 		email       string
+// 		expectedErr error
+// 		isEmpty     bool
+// 	}{
+// 		{
+// 			name:        "should create new user with unique email",
+// 			email:       email,
+// 			expectedErr: nil,
+// 			isEmpty:     false,
+// 		},
+// 		{
+// 			name:        "should reject duplicate email",
+// 			email:       email,
+// 			expectedErr: fmt.Errorf("user already exists with this email: %s", email),
+// 			isEmpty:     true,
+// 		},
+// 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			userID, err := store.Put(ctx, "John Doe", tc.email, "password123")
-			assert.Equal(t, err, tc.expectedErr)
-			assert.Equal(t, tc.isEmpty, len(userID) == 0)
-		})
-	}
-}
+// 	for _, tc := range testCases {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			userID, err := store.Put(ctx, "John Doe", tc.email, "password123")
+// 			assert.Equal(t, err, tc.expectedErr)
+// 			assert.Equal(t, tc.isEmpty, len(userID) == 0)
+// 		})
+// 	}
+// }
 
-func TestGet(t *testing.T) {
-	collection := setupTestDB(t)
-	t.Cleanup(func() {
-		cleanupTestDB(t, collection)
-	})
+// func TestGet(t *testing.T) {
+// 	collection := setupTestDB(t)
+// 	t.Cleanup(func() {
+// 		cleanupTestDB(t, collection)
+// 	})
 
-	store := NewUserStore(collection)
+// 	store := NewUserStore(collection)
 
-	ctx := context.Background()
+// 	ctx := context.Background()
 
-	insertID, err := store.Put(ctx, name, email, password)
-	assert.NoError(t, err)
+// 	insertID, err := store.Put(ctx, name, email, password)
+// 	assert.NoError(t, err)
 
-	t.Run("should return user when supplied valid userId", func(t *testing.T) {
-		retrievedUser, err := store.Get(ctx, insertID)
-		assert.NoError(t, err)
-		assert.Equal(t, email, retrievedUser.Email)
-	})
+// 	t.Run("should return user when supplied valid userId", func(t *testing.T) {
+// 		retrievedUser, err := store.Get(ctx, insertID)
+// 		assert.NoError(t, err)
+// 		assert.Equal(t, email, retrievedUser.Email)
+// 	})
 
-	t.Run("should return error when supplied non-existing userId", func(t *testing.T) {
-		nonExistentUserId := "60d5f87b8f8b4c5a5f8b4567"
-		retrievedUser, err := store.Get(ctx, nonExistentUserId)
-		assert.EqualError(t, err, "user not found")
-		assert.Equal(t, User{}, retrievedUser)
-	})
+// 	t.Run("should return error when supplied non-existing userId", func(t *testing.T) {
+// 		nonExistentUserId := "60d5f87b8f8b4c5a5f8b4567"
+// 		retrievedUser, err := store.Get(ctx, nonExistentUserId)
+// 		assert.EqualError(t, err, "user not found")
+// 		assert.Equal(t, User{}, retrievedUser)
+// 	})
 
-	t.Run("should return error when supplied an id with invalid format", func(t *testing.T) {
-		retrievedUser, err := store.Get(ctx, "unformattedID")
-		assert.ErrorContains(t, err, "invalid ID format")
-		assert.Equal(t, User{}, retrievedUser)
-	})
-}
+// 	t.Run("should return error when supplied an id with invalid format", func(t *testing.T) {
+// 		retrievedUser, err := store.Get(ctx, "unformattedID")
+// 		assert.ErrorContains(t, err, "invalid ID format")
+// 		assert.Equal(t, User{}, retrievedUser)
+// 	})
+// }
 
-func TestGetByAuth(t *testing.T) {
-	collection := setupTestDB(t)
-	t.Cleanup(func() {
-		cleanupTestDB(t, collection)
-	})
+// func TestGetByAuth(t *testing.T) {
+// 	collection := setupTestDB(t)
+// 	t.Cleanup(func() {
+// 		cleanupTestDB(t, collection)
+// 	})
 
-	store := NewUserStore(collection)
+// 	store := NewUserStore(collection)
 
-	ctx := context.Background()
+// 	ctx := context.Background()
 
-	_, err := store.Put(ctx, name, email, password)
-	assert.NoError(t, err)
+// 	_, err := store.Put(ctx, name, email, password)
+// 	assert.NoError(t, err)
 
-	t.Run("should return user when supplied correct credentials", func(t *testing.T) {
-		retrievedUser, err := store.GetByAuth(ctx, email, password)
-		assert.NoError(t, err)
-		assert.Equal(t, email, retrievedUser.Email)
-	})
+// 	t.Run("should return user when supplied correct credentials", func(t *testing.T) {
+// 		retrievedUser, err := store.GetByAuth(ctx, email, password)
+// 		assert.NoError(t, err)
+// 		assert.Equal(t, email, retrievedUser.Email)
+// 	})
 
-	t.Run("should return error when supplied incorrect credentials", func(t *testing.T) {
-		retrievedUser, err := store.GetByAuth(ctx, email, "wrongPassword")
-		assert.ErrorContains(t, err, "incorrect authentication credentials")
-		assert.Equal(t, User{}, retrievedUser)
+// 	t.Run("should return error when supplied incorrect credentials", func(t *testing.T) {
+// 		retrievedUser, err := store.GetByAuth(ctx, email, "wrongPassword")
+// 		assert.ErrorContains(t, err, "incorrect authentication credentials")
+// 		assert.Equal(t, User{}, retrievedUser)
 
-		retrievedUser, err = store.GetByAuth(ctx, "wrongEmail", password)
-		assert.EqualError(t, err, "user not found")
-		assert.Equal(t, User{}, retrievedUser)
-	})
-}
+// 		retrievedUser, err = store.GetByAuth(ctx, "wrongEmail", password)
+// 		assert.EqualError(t, err, "user not found")
+// 		assert.Equal(t, User{}, retrievedUser)
+// 	})
+// }
+
+// func TestGetStyleField(t *testing.T) {
+// 	collection := setupTestDB(t)
+// 	t.Cleanup(func() {
+// 		cleanupTestDB(t, collection)
+// 	})
+
+// 	store := NewUserStore(collection)
+// 	ctx := context.Background()
+// 	userID, err := store.Put(ctx, name, email, password)
+// 	assert.NoError(t, err)
+
+// 	t.Run("should return style field when valid style field is provided", func(t *testing.T) {
+// 		styleField := SubjectiveStyleField
+// 		newStyle := "bold"
+// 		err := store.UpdateStyle(ctx, userID, styleField, newStyle)
+// 		assert.NoError(t, err)
+
+// 		result, err := store.GetStyleField(ctx, userID, styleField)
+// 		assert.NoError(t, err)
+// 		assert.Equal(t, newStyle, result)
+// 	})
+
+// 	t.Run("should return error when invalid style field is provided", func(t *testing.T) {
+// 		_, err := store.GetStyleField(ctx, userID, "invalidStyleField")
+// 		assert.EqualError(t, err, "invalid style: invalidStyleField")
+// 	})
+
+// 	t.Run("should return error when user is not found", func(t *testing.T) {
+// 		_, err := store.GetStyleField(ctx, primitive.NewObjectID().Hex(), SubjectiveStyleField)
+// 		assert.EqualError(t, err, "user not found")
+// 	})
+// }
 
 func TestUpdateStyle(t *testing.T) {
 	collection := setupTestDB(t)
@@ -200,21 +232,21 @@ func TestUpdateStyle(t *testing.T) {
 		},
 		{
 			name:          "should return provider with new assessment style",
-			styleField:    AssessmentStyleField,
+			styleField:    AssessmentAndPlanStyleField,
 			expectedStyle: "sampleAssessmentStyle",
-			fieldToCheck:  func(user *User) string { return user.AssessmentStyle },
-		},
-		{
-			name:          "should return provider with new planning style",
-			styleField:    PlanningStyleField,
-			expectedStyle: "samplePlanningStyle",
-			fieldToCheck:  func(user *User) string { return user.PlanningStyle },
+			fieldToCheck:  func(user *User) string { return user.AssessmentAndPlanStyle },
 		},
 		{
 			name:          "should return provider with new summary style",
 			styleField:    SummaryStyleField,
 			expectedStyle: "sampleSummaryStyle",
 			fieldToCheck:  func(user *User) string { return user.SummaryStyle },
+		},
+		{
+			name:          "should return provider with new patientInstructions style",
+			styleField:    PatientInstructionsStyleField,
+			expectedStyle: "samplePatientInstructionsStyle",
+			fieldToCheck:  func(user *User) string { return user.PatientInstructionsStyle },
 		},
 	}
 

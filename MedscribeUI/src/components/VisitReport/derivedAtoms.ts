@@ -2,9 +2,11 @@ import { atom } from 'jotai';
 import { patientsAtom } from '../../states/patientsAtom';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 import {
-  REPORT_CONTENT_TYPE_ASSESSMENT,
+  REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN,
+  REPORT_CONTENT_TYPE_CONDENSED_SUMMARY,
   REPORT_CONTENT_TYPE_OBJECTIVE,
-  REPORT_CONTENT_TYPE_PLANNING,
+  REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS,
+  REPORT_CONTENT_TYPE_SESSION_SUMMARY,
   REPORT_CONTENT_TYPE_SUBJECTIVE,
   REPORT_CONTENT_TYPE_SUMMARY,
 } from '../../constants';
@@ -23,6 +25,25 @@ export const replaceReportAtom = atom(null, (get, set, newReport: Report) => {
   );
 });
 
+export const updateTranscriptAtom = atom(
+  null,
+  (get, set, { id, transcript }: { id: string; transcript: string }) => {
+    const reports = get(patientsAtom);
+    set(
+      patientsAtom,
+      reports.map(report => {
+        if (report.id == id) {
+          return {
+            ...report,
+            transcript,
+          };
+        }
+        return report;
+      }),
+    );
+  },
+);
+
 export const SoapAtom = atom(
   get => {
     const currentlySelectedPatient = get(currentlySelectedPatientAtom);
@@ -30,44 +51,50 @@ export const SoapAtom = atom(
     const patient = patients.find(p => p.id === currentlySelectedPatient);
     if (patient) {
       return {
-        content: [
+        soapContent: [
           {
-            type: REPORT_CONTENT_TYPE_SUBJECTIVE,
+            title: 'Visit Summary',
+            sectionType: REPORT_CONTENT_TYPE_SUMMARY,
+            content: {
+              data: patient.summary.data,
+              loading: patient.summary.loading,
+            },
+          },
+          {
+            title: 'Subjective',
+            sectionType: REPORT_CONTENT_TYPE_SUBJECTIVE,
             content: {
               data: patient.subjective.data,
               loading: patient.subjective.loading,
             },
           },
           {
-            type: REPORT_CONTENT_TYPE_OBJECTIVE,
+            title: 'Objective',
+            sectionType: REPORT_CONTENT_TYPE_OBJECTIVE,
             content: {
               data: patient.objective.data,
               loading: patient.objective.loading,
             },
           },
           {
-            type: REPORT_CONTENT_TYPE_ASSESSMENT,
+            title: 'Assessment & Plan',
+            sectionType: REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN,
             content: {
-              data: patient.assessment.data,
-              loading: patient.assessment.loading,
+              data: patient.assessmentAndPlan.data,
+              loading: patient.assessmentAndPlan.loading,
             },
           },
           {
-            type: REPORT_CONTENT_TYPE_PLANNING,
+            title: 'Patient Instructions',
+            sectionType: REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS,
             content: {
-              data: patient.planning.data,
-              loading: patient.planning.loading,
-            },
-          },
-          {
-            type: REPORT_CONTENT_TYPE_SUMMARY,
-            content: {
-              data: patient.summary.data,
-              loading: patient.summary.loading,
+              data: patient.patientInstructions.data,
+              loading: patient.patientInstructions.loading,
             },
           },
         ],
         loading: patient.finishedGenerating,
+        transcript: patient.transcript,
       };
     }
 
@@ -104,12 +131,22 @@ function updateReportContent(
       return { ...report, subjective: { ...report.subjective, data: newData } };
     case REPORT_CONTENT_TYPE_OBJECTIVE:
       return { ...report, objective: { ...report.objective, data: newData } };
-    case REPORT_CONTENT_TYPE_ASSESSMENT:
-      return { ...report, assessment: { ...report.assessment, data: newData } };
-    case REPORT_CONTENT_TYPE_PLANNING:
-      return { ...report, planning: { ...report.planning, data: newData } };
+    case REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN:
+      return {
+        ...report,
+        assessmentAndPlan: { ...report.assessmentAndPlan, data: newData },
+      };
+    case REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS:
+      return {
+        ...report,
+        patientInstructions: { ...report.patientInstructions, data: newData },
+      };
     case REPORT_CONTENT_TYPE_SUMMARY:
       return { ...report, summary: { ...report.summary, data: newData } };
+    case REPORT_CONTENT_TYPE_CONDENSED_SUMMARY:
+      return { ...report, condensedSummary: newData };
+    case REPORT_CONTENT_TYPE_SESSION_SUMMARY:
+      return { ...report, sessionSummary: newData };
     default:
       console.error(`Unknown report content type: ${field}`);
       return report; // Return the original report if the field is unknown

@@ -17,7 +17,7 @@ export interface PatientPreviewRecord {
   dateOfRecording: string;
   timeOfRecording: string;
   durationOfRecording: string;
-  shortenedSummary: string;
+  sessionSummary: string;
   finishedGenerating: boolean;
   loading: boolean;
 }

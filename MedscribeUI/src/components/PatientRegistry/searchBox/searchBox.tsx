@@ -9,7 +9,7 @@ interface SearchBoxProps {
 const SearchBox = ({ value = '', onChange }: SearchBoxProps) => {
   return (
     <div className="flex items-center border border-gray-300 rounded px-2 py-1 w-full max-w-sm bg-white">
-      <IconSearch size={30} className="text-gray-400 mr-2" />
+      <IconSearch size={20} className="text-gray-400 mr-2" />
 
       <input
         type="text"
@@ -18,7 +18,7 @@ const SearchBox = ({ value = '', onChange }: SearchBoxProps) => {
           onChange(e.target.value);
         }}
         placeholder="Search for notes by name"
-        className="border-none outline-none flex-grow text-lg text-gray-800 placeholder-gray-500"
+        className="border-none outline-none flex-grow text-sm text-gray-800 placeholder-gray-500"
       />
     </div>
   );

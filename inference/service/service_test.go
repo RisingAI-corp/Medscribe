@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,7 +47,7 @@ type testEnv struct {
 	reportCfg      *ReportRequest
 	contentChan    chan ContentChanPayload
 	transcriber    *transcriber.MockTranscription
-	reports        *reports.MockReports
+	reports        *reports.MockReportsStore
 	inferenceStore *inferencestore.MockInferenceStore
 	users          *user.MockUserStore
 }
@@ -54,7 +55,7 @@ type testEnv struct {
 func setupTestEnvironment(t *testing.T) *testEnv {
 	t.Helper()
 	transcriber := new(transcriber.MockTranscription)
-	reportStore := new(reports.MockReports)
+	reportStore := new(reports.MockReportsStore)
 	inferenceStore := new(inferencestore.MockInferenceStore)
 	userStore := new(user.MockUserStore)
 
@@ -63,17 +64,10 @@ func setupTestEnvironment(t *testing.T) *testEnv {
 	reportCfg := &ReportRequest{
 		AudioBytes:       []byte("dummy audio"),
 		TranscribedAudio: "",
-		ReportContents: []ReportContentSection{
-			{ContentType: reports.Subjective, Content: reports.Content},
-			{ContentType: reports.Objective, Content: reports.Content},
-			{ContentType: reports.Assessment, Content: reports.Content},
-			{ContentType: reports.Planning, Content: reports.Content},
-			{ContentType: reports.Summary, Content: reports.Content},
-		},
-		PatientName: "John Doe",
-		ProviderID:  "provider-123",
-		Timestamp:   time.Now(),
-		Duration:    60,
+		PatientName:      "John Doe",
+		ProviderID:       "provider-123",
+		Timestamp:        time.Now(),
+		Duration:         60,
 	}
 
 	contentChan := make(chan ContentChanPayload, 10)
@@ -102,17 +96,19 @@ func TestSuccessfulReportGeneration(t *testing.T) {
 
 	env.inferenceStore.
 		On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("int")).
-		Return("test query response data", nil)
+		Return(sampleContentData, nil)
 
 	env.reports.
 		On("UpdateReport", mock.Anything, reportID, mock.MatchedBy(func(batchedUpdates bson.D) bool {
 			expectedBatchedUpdates := bson.D{
 				{Key: reports.Subjective, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.Objective, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.Assessment, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.Planning, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
+				{Key: reports.AssessmentAndPlan, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.Summary, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
+				{Key: reports.PatientInstructions, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.FinishedGenerating, Value: true},
+				{Key: reports.CondensedSummary, Value: sampleContentData},
+				{Key: reports.SessionSummary, Value: sampleContentData},
 			}
 			sortedBatchUpdates := sortedBsonD(batchedUpdates)
 			sortedExpectedBatchedUpdates := sortedBsonD(expectedBatchedUpdates)
@@ -121,7 +117,7 @@ func TestSuccessfulReportGeneration(t *testing.T) {
 		Return(nil)
 
 	err := env.service.GenerateReportPipeline(context.Background(), env.reportCfg, env.contentChan)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	received := make(map[string]interface{})
 
@@ -130,13 +126,15 @@ func TestSuccessfulReportGeneration(t *testing.T) {
 	}
 
 	expected := map[string]interface{}{
-		"_id":                      reportID,
-		reports.Subjective:         sampleContentData,
-		reports.Objective:          sampleContentData,
-		reports.Assessment:         sampleContentData,
-		reports.Planning:           sampleContentData,
-		reports.Summary:            sampleContentData,
-		reports.FinishedGenerating: true,
+		"_id":                       reportID,
+		reports.Subjective:          sampleContentData,
+		reports.Objective:           sampleContentData,
+		reports.AssessmentAndPlan:   sampleContentData,
+		reports.Summary:             sampleContentData,
+		reports.CondensedSummary:    sampleContentData,
+		reports.SessionSummary:      sampleContentData,
+		reports.FinishedGenerating:  true,
+		reports.PatientInstructions: sampleContentData,
 	}
 
 	require.Equal(t, expected, received)
@@ -145,21 +143,6 @@ func TestSuccessfulReportGeneration(t *testing.T) {
 	env.reports.AssertExpectations(t)
 	env.inferenceStore.AssertExpectations(t)
 
-}
-
-func TestFailedReportGeneration_InvalidContentType(t *testing.T) {
-	env := setupTestEnvironment(t)
-	env.reportCfg.ReportContents = []ReportContentSection{
-		{ContentType: "invalid_type", Content: reports.Content},
-	}
-
-	err := env.service.GenerateReportPipeline(context.Background(), env.reportCfg, env.contentChan)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "is not a valid contentType")
-
-	env.reports.AssertNotCalled(t, "Put", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
-	env.reports.AssertNotCalled(t, "UpdateReport", mock.Anything, mock.Anything, mock.Anything)
-	env.inferenceStore.AssertNotCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func TestFailedReportGeneration_Transcription(t *testing.T) {
@@ -233,14 +216,6 @@ func TestFailedReportGeneration_UpdateReport(t *testing.T) {
 func TestRegenerateReport_Valid(t *testing.T) {
 	env := setupTestEnvironment(t)
 
-	validReportContents := []ReportContentSection{
-		{ContentType: reports.Subjective, Content: reports.ContentData},
-		{ContentType: reports.Objective, Content: reports.Content},
-		{ContentType: reports.Assessment, Content: reports.Content},
-		{ContentType: reports.Planning, Content: reports.Content},
-		{ContentType: reports.Summary, Content: reports.Content},
-	}
-
 	updates := bson.D{
 		{Key: reports.Pronouns, Value: reports.HE},
 	}
@@ -251,7 +226,7 @@ func TestRegenerateReport_Valid(t *testing.T) {
 
 	env.reports.
 		On("UpdateReport", mock.Anything, reportID, bson.D{
-			{Key: "pronouns", Value: reports.HE},
+			{Key: reports.Pronouns, Value: reports.HE},
 			{Key: reports.FinishedGenerating, Value: false},
 		}).
 		Return(nil)
@@ -261,9 +236,11 @@ func TestRegenerateReport_Valid(t *testing.T) {
 			expectedBatchedUpdates := bson.D{
 				{Key: reports.Subjective, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.Objective, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.Assessment, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.Planning, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
+				{Key: reports.AssessmentAndPlan, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.Summary, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
+				{Key: reports.PatientInstructions, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
+				{Key: reports.CondensedSummary, Value: sampleContentData},
+				{Key: reports.SessionSummary, Value: sampleContentData},
 				{Key: reports.FinishedGenerating, Value: true},
 			}
 
@@ -275,7 +252,6 @@ func TestRegenerateReport_Valid(t *testing.T) {
 
 	reportRequest := &ReportRequest{
 		ID:                reportID,
-		ReportContents:    validReportContents,
 		Updates:           updates,
 		SubjectiveContent: "here is sample subjective content",
 	}
@@ -288,12 +264,14 @@ func TestRegenerateReport_Valid(t *testing.T) {
 	}
 
 	expected := map[string]interface{}{
-		reports.Subjective:         sampleContentData,
-		reports.Objective:          sampleContentData,
-		reports.Assessment:         sampleContentData,
-		reports.Planning:           sampleContentData,
-		reports.Summary:            sampleContentData,
-		reports.FinishedGenerating: true,
+		reports.Subjective:          sampleContentData,
+		reports.Objective:           sampleContentData,
+		reports.AssessmentAndPlan:   sampleContentData,
+		reports.Summary:             sampleContentData,
+		reports.CondensedSummary:    sampleContentData,
+		reports.SessionSummary:      sampleContentData,
+		reports.FinishedGenerating:  true,
+		reports.PatientInstructions: sampleContentData,
 	}
 	require.Equal(t, expected, received)
 
@@ -302,31 +280,10 @@ func TestRegenerateReport_Valid(t *testing.T) {
 }
 
 func TestRegenerateReport_InvalidInputs(t *testing.T) {
-	t.Run("should return error when report content type is invalid", func(t *testing.T) {
-		env := setupTestEnvironment(t)
-		invalidReportContents := []ReportContentSection{
-			{
-				ContentType: "InvalidContentType",
-				Content:     "invalid content",
-			},
-		}
-		reportRequest := &ReportRequest{
-			ID:             reportID,
-			ReportContents: invalidReportContents,
-			Updates:        bson.D{},
-		}
-		err := env.service.RegenerateReport(context.Background(), env.contentChan, reportRequest)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "is not a valid contentType")
-
-		env.reports.AssertNotCalled(t, "UpdateReport", mock.Anything, mock.Anything, mock.Anything)
-	})
-
 	t.Run("should return error when no updates are provided", func(t *testing.T) {
 		env := setupTestEnvironment(t)
 		reportRequest := &ReportRequest{
-			ID:             reportID,
-			ReportContents: []ReportContentSection{{ContentType: reports.Subjective, Content: reports.Content}},
+			ID: reportID,
 		}
 		err := env.service.RegenerateReport(context.Background(), env.contentChan, reportRequest)
 		require.Error(t, err)
@@ -346,17 +303,9 @@ func TestRegenerateReport_InvalidInputs(t *testing.T) {
 			On("UpdateReport", mock.Anything, reportID, bson.D{{Key: reports.FinishedGenerating, Value: false}}).
 			Return(nil).Once()
 
-		validReportContents := []ReportContentSection{
-			{ContentType: reports.Subjective, Content: reports.Content},
-			{ContentType: reports.Objective, Content: reports.Content},
-			{ContentType: reports.Assessment, Content: reports.Content},
-			{ContentType: reports.Planning, Content: reports.Content},
-			{ContentType: reports.Summary, Content: reports.Content},
-		}
 		reportRequest := &ReportRequest{
-			ID:             reportID,
-			ReportContents: validReportContents,
-			Updates:        bson.D{},
+			ID:      reportID,
+			Updates: bson.D{},
 		}
 
 		err := env.service.RegenerateReport(context.Background(), env.contentChan, reportRequest)
@@ -373,9 +322,8 @@ func TestRegenerateReport_InvalidInputs(t *testing.T) {
 			Return(errors.New("update error"))
 
 		reportRequest := &ReportRequest{
-			ID:             reportID,
-			ReportContents: []ReportContentSection{{ContentType: reports.Subjective, Content: reports.Content}},
-			Updates:        bson.D{},
+			ID:      reportID,
+			Updates: bson.D{},
 		}
 
 		err := env.service.RegenerateReport(context.Background(), env.contentChan, reportRequest)
@@ -399,9 +347,11 @@ func TestRegenerateReport_InvalidInputs(t *testing.T) {
 		expectedUpdate := primitive.D{
 			primitive.E{Key: "summary", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
 			primitive.E{Key: "subjective", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
-			primitive.E{Key: "assessment", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
+			primitive.E{Key: "assessmentAndPlan", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
 			primitive.E{Key: "objective", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
-			primitive.E{Key: "planning", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
+			primitive.E{Key: "patientInstructions", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
+			primitive.E{Key: reports.CondensedSummary, Value: sampleContentData},
+			primitive.E{Key: reports.SessionSummary, Value: sampleContentData},
 			primitive.E{Key: "finishedGenerating", Value: true},
 		}
 		env.reports.
@@ -410,9 +360,8 @@ func TestRegenerateReport_InvalidInputs(t *testing.T) {
 			})).Return(errors.New("update error")).Once()
 
 		reportRequest := &ReportRequest{
-			ID:             reportID,
-			ReportContents: []ReportContentSection{{ContentType: reports.Subjective, Content: reports.Content}},
-			Updates:        bson.D{},
+			ID:      reportID,
+			Updates: bson.D{},
 		}
 
 		err := env.service.RegenerateReport(context.Background(), env.contentChan, reportRequest)
@@ -428,7 +377,8 @@ func TestLearnStyle_Valid(t *testing.T) {
 	env := setupTestEnvironment(t)
 
 	contentSection := reports.Subjective
-	content := "some valid content"
+	previous := "some valid content"
+	current := "some valid content"
 	newStyle := "learned style"
 
 	env.inferenceStore.
@@ -438,7 +388,7 @@ func TestLearnStyle_Valid(t *testing.T) {
 	// userStore.UpdateStyle()
 	env.users.On("UpdateStyle", context.Background(), providerID, user.SubjectiveStyleField, newStyle).Return(nil)
 
-	err := env.service.LearnStyle(context.Background(), providerID, contentSection, content)
+	err := env.service.LearnStyle(context.Background(), providerID, contentSection, previous, current)
 	require.NoError(t, err)
 
 	env.inferenceStore.AssertExpectations(t)
@@ -447,13 +397,14 @@ func TestLearnStyle_Valid(t *testing.T) {
 }
 
 func TestLearnStyle_Invalid(t *testing.T) {
-	t.Run("should return error when report content type is invalid", func(t *testing.T) {
+	t.Run("should return error when report content section is invalid", func(t *testing.T) {
 		env := setupTestEnvironment(t)
 
 		contentSection := "invalid content type"
-		content := "some valid content"
+		previous := "some valid content"
+		current := "some valid content"
 
-		err := env.service.LearnStyle(context.Background(), providerID, contentSection, content)
+		err := env.service.LearnStyle(context.Background(), providerID, contentSection, previous, current)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid content section")
 
@@ -465,7 +416,7 @@ func TestLearnStyle_Invalid(t *testing.T) {
 	t.Run("should return error when content is empty", func(t *testing.T) {
 		env := setupTestEnvironment(t)
 
-		err := env.service.LearnStyle(context.Background(), providerID, "", "")
+		err := env.service.LearnStyle(context.Background(), providerID, user.AssessmentAndPlanStyleField, "previous content", "")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "cannot learn from empty content")
 
@@ -477,13 +428,14 @@ func TestLearnStyle_Invalid(t *testing.T) {
 		env := setupTestEnvironment(t)
 
 		contentSection := reports.Subjective
-		content := "some valid content"
+		previous := "some valid content"
+		current := "some valid content"
 
 		env.inferenceStore.
 			On("Query", mock.Anything, mock.Anything, 100).
 			Return("", errors.New("query error"))
 
-		err := env.service.LearnStyle(context.Background(), providerID, contentSection, content)
+		err := env.service.LearnStyle(context.Background(), providerID, contentSection, previous, current)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error querying for style")
 
@@ -497,7 +449,8 @@ func TestLearnStyle_Invalid(t *testing.T) {
 		env := setupTestEnvironment(t)
 
 		contentSection := reports.Subjective
-		content := "some valid content"
+		previous := "some valid content"
+		current := "some valid content"
 
 		newStyle := "learned style"
 
@@ -507,7 +460,7 @@ func TestLearnStyle_Invalid(t *testing.T) {
 
 		env.users.On("UpdateStyle", context.Background(), providerID, user.SubjectiveStyleField, newStyle).Return(errors.New("update error"))
 
-		err := env.service.LearnStyle(context.Background(), providerID, contentSection, content)
+		err := env.service.LearnStyle(context.Background(), providerID, contentSection, previous, current)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "error updating style")
 

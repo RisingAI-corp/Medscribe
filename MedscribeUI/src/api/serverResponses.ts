@@ -16,12 +16,13 @@ export const ReportSchema = z.object({
   patientOrClient: z.string(),
   subjective: ReportContentSchema,
   objective: ReportContentSchema,
-  assessment: ReportContentSchema,
-  planning: ReportContentSchema,
+  assessmentAndPlan: ReportContentSchema,
+  patientInstructions: ReportContentSchema,
   summary: ReportContentSchema,
-  oneLinerSummary: z.string(),
-  shortSummary: z.string(),
+  condensedSummary: z.string(),
+  sessionSummary: z.string(),
   finishedGenerating: z.boolean(),
+  transcript: z.string().default(''),
 });
 
 export const AuthResponse = z.object({
@@ -31,8 +32,8 @@ export const AuthResponse = z.object({
   reports: z.array(ReportSchema).nullable().default([]),
   subjectiveStyle: z.string(),
   objectiveStyle: z.string(),
-  assessmentStyle: z.string(),
-  planningStyle: z.string(),
+  assessmentAndPlanStyle: z.string(),
+  patientInstructionsStyle: z.string(),
   summaryStyle: z.string(),
 });
 

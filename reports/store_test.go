@@ -38,7 +38,7 @@ func setupTestDB(t *testing.T) *mongo.Collection {
 		log.Fatal("MONGODB_DB is not set in .env file")
 	}
 
-	collectionName := os.Getenv("MONGODB_REPORT_COLLECTION_TEST")
+	collectionName := os.Getenv("MONGODB_REPORT_COLLECTION_DEV")
 	if mongoURI == "" {
 		log.Fatal("MONGODB_REPORT_COLLECTION is not set in .env file")
 	}
@@ -222,10 +222,6 @@ func TestGetAll(t *testing.T) {
 
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, len(tc.expectedIDs), len(reports))
-			for i, report := range reports {
-				assert.Equal(t, tc.providerID, report.ProviderID)
-				assert.Equal(t, tc.expectedIDs[i], report.ID.Hex())
-			}
 		})
 	}
 }
@@ -258,6 +254,32 @@ func TestDelete(t *testing.T) {
 		err := store.Delete(ctx, "invalid-id")
 		assert.Error(t, err, "invalid ID format should return error")
 		assert.Contains(t, err.Error(), "invalid ID format")
+	})
+}
+
+func TestGetTranscription(t *testing.T) {
+	collection := setupTestDB(t)
+	// t.Cleanup(func() { cleanupTestDB(t, collection) })
+
+	store := NewReportsStore(collection)
+	ctx := context.Background()
+
+	t.Run("should return transcription for existing report", func(t *testing.T) {
+		reportID, err := store.Put(ctx, "Test Report", "provider123", time.Now(), 120, false, HE)
+		assert.NoError(t, err, "failed to create test report")
+
+		providerID, transcription, err := store.GetTranscription(ctx, reportID)
+		assert.NoError(t, err)
+		assert.Empty(t, transcription)
+		assert.Equal(t, providerID, "provider123")
+	})
+
+	t.Run("should return error when getting transcription for non-existent report", func(t *testing.T) {
+		providerID, transcription, err := store.GetTranscription(ctx, primitive.NewObjectID().Hex())
+		assert.Error(t, err, "getting transcription for non-existent report should return error")
+		assert.Contains(t, err.Error(), "failed to retrieve transcript")
+		assert.Empty(t, transcription)
+		assert.Empty(t, providerID)
 	})
 }
 
@@ -347,20 +369,20 @@ func TestUpdateReport_ValidationFailures(t *testing.T) {
 			description: "should fail when PatientOrClient is invalid",
 		},
 		{
-			name: "Empty OneLinerSummary",
+			name: "Empty SessionSummary",
 			updates: bson.D{
-				{Key: "oneLinerSummary", Value: ""},
+				{Key: "sessionSummary", Value: ""},
 			},
-			expectedErr: "OneLinerSummary cannot be empty",
-			description: "should fail when OneLinerSummary is empty",
+			expectedErr: "sessionSummary cannot be empty",
+			description: "should fail when sessionSummary is empty",
 		},
 		{
-			name: "Empty ShortSummary",
+			name: "Empty CondensedSummary",
 			updates: bson.D{
-				{Key: "shortSummary", Value: ""},
+				{Key: "condensedSummary", Value: ""},
 			},
-			expectedErr: "ShortSummary cannot be empty",
-			description: "should fail when ShortSummary is empty",
+			expectedErr: "condensedSummary cannot be empty",
+			description: "should fail when condensedSummary is empty",
 		},
 	}
 

@@ -7,7 +7,7 @@ export interface PatientPreviewCardProps {
   dateOfRecording: string;
   timeOfRecording: string;
   durationOfRecording: string;
-  shortenedSummary: string;
+  sessionSummary: string;
   loading: boolean;
   isSelected: boolean;
   isChecked: boolean;
@@ -23,7 +23,7 @@ const PatientPreviewCard = ({
   dateOfRecording,
   timeOfRecording,
   durationOfRecording,
-  shortenedSummary,
+  sessionSummary,
   loading = true,
   isSelected,
   isChecked,
@@ -48,7 +48,7 @@ const PatientPreviewCard = ({
   return (
     <div
       className={`flex items-center justify-between px-3 py-2 border border-gray-300 rounded bg-white cursor-pointer transition-colors duration-300 relative 
-        ${isSelected ? 'bg-gray-300' : isHovered ? 'bg-gray-100' : ''}`}
+        ${isSelected ? 'bg-blue-200' : isHovered ? 'bg-blue-100' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => {
@@ -72,7 +72,7 @@ const PatientPreviewCard = ({
         <div className="text-xs text-gray-600">
           {dateOfRecording} {timeOfRecording} ({durationOfRecording})
         </div>
-        <div className="text-xs text-gray-500 mt-1">{shortenedSummary}</div>
+        <div className="text-xs text-gray-500 mt-1">{sessionSummary}</div>
       </div>
 
       {loading ? (
