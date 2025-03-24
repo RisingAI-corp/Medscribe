@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 			panic(err)
 		}
 	}()
-	auth = NewAuthMiddleware(os.Getenv("JWT_SECRET"), logger)
+	auth = NewAuthMiddleware(os.Getenv("JWT_SECRET"), logger, "dev")
 	code := m.Run()
 	os.Exit(code)
 }

@@ -95,7 +95,7 @@ func SetupTestEnv() (*TestEnv, error) {
 		return nil, fmt.Errorf("JWT_SECRET not set in environment")
 	}
 
-	authMiddleWare := middleware.NewAuthMiddleware(jwtSecret, logger)
+	authMiddleWare := middleware.NewAuthMiddleware(jwtSecret, logger, "dev")
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleWare)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 

@@ -90,7 +90,7 @@ func main() {
 	)
 
 	fmt.Println("this is logger ", logger)
-	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger)
+	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
 
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)

@@ -28,18 +28,28 @@ type Claims struct {
 }
 
 type AuthMiddleware struct {
-	JWTSecret string
+	jwtSecret string
 	logger    *zap.Logger
+	env      string
+	secure   bool
+	sameSite http.SameSite
+
+
 }
 
-func NewAuthMiddleware(secret string, logger *zap.Logger) *AuthMiddleware {
-	return &AuthMiddleware{JWTSecret: secret, logger: logger}
+func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddleware {
+	am := &AuthMiddleware{jwtSecret: secret, logger: logger, env: env, sameSite: http.SameSiteStrictMode}
+	if env == "production" {
+		am.secure = true
+		am.sameSite = http.SameSiteStrictMode
+	}
+	return am
 }
 
 func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("this is jwt token here here in middleware", am.JWTSecret)
+		fmt.Println("this is jwt token here here in middleware", am.jwtSecret)
 		refreshCookie, err := r.Cookie(RefreshToken)
 		if err != nil {
 			am.logger.Error("Refresh token cookie missing", zap.Error(err), zap.String("method", r.Method), zap.String("url", r.URL.String()))
@@ -83,20 +93,20 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 			}
 		}
 
-		setCookies(w, accessToken, refreshCookie.Value)
+		am.setCookies(w, accessToken, refreshCookie.Value)
 		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (am *AuthMiddleware) verifyToken(tokenString string) (*Claims, error) {
-	am.logger.Debug("JWT Secret in middleware", zap.String("secret", am.JWTSecret))
+	am.logger.Debug("JWT Secret in middleware", zap.String("secret", am.jwtSecret))
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(am.JWTSecret), nil
+		return []byte(am.jwtSecret), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -119,7 +129,7 @@ func (am *AuthMiddleware) GenerateRefreshToken(userID string) (string, error) {
 }
 
 func (am *AuthMiddleware) AttachInitialTokens(w http.ResponseWriter, userID string) error {
-	am.logger.Debug("JWT Secret in middleware", zap.String("secret", am.JWTSecret))
+	am.logger.Debug("JWT Secret in middleware", zap.String("secret", am.jwtSecret))
 	accessToken, err := am.GenerateAccessToken(userID)
 	if err != nil {
 		am.logger.Error("Error generating initial access token", zap.Error(err))
@@ -130,7 +140,7 @@ func (am *AuthMiddleware) AttachInitialTokens(w http.ResponseWriter, userID stri
 		am.logger.Error("Error generating initial refresh token", zap.Error(err))
 		return err
 	}
-	setCookies(w, accessToken, refreshToken)
+	am.setCookies(w, accessToken, refreshToken)
 	return nil
 }
 
@@ -143,18 +153,18 @@ func (am *AuthMiddleware) generateToken(userID string, duration time.Duration) (
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(am.JWTSecret))
+	return token.SignedString([]byte(am.jwtSecret))
 }
 
-func setCookies(w http.ResponseWriter, accessToken, refreshToken string) {
+func (am *AuthMiddleware) setCookies(w http.ResponseWriter, accessToken, refreshToken string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     AccessToken,
 		Value:    accessToken,
 		Path:     "/",
 		MaxAge:   int(DefaultAccessTokenDuration.Seconds()),
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		Secure:   am.secure,
+		SameSite: am.sameSite,
 	})
 
 	http.SetCookie(w, &http.Cookie{
@@ -163,8 +173,8 @@ func setCookies(w http.ResponseWriter, accessToken, refreshToken string) {
 		Path:     "/",
 		MaxAge:   int(DefaultRefreshTokenDuration.Seconds()),
 		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
+		Secure:   am.secure,
+		SameSite: am.sameSite,
 	})
 }
 
