@@ -90,17 +90,19 @@ func SetupTestEnv() (*TestEnv, error) {
 	if err != nil {
 		panic(err)
 	}
-
-	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger)
-	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return nil, fmt.Errorf("JWT_SECRET not set in environment")
 	}
+
+	authMiddleWare := middleware.NewAuthMiddleware(jwtSecret, logger)
+	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleWare)
+	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
+
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,
 		ReportsHandler:   reportsHandler,
-		AuthMiddleware:   middleware.NewAuthMiddleware(jwtSecret).Middleware,
+		AuthMiddleware:   authMiddleWare.Middleware,
 		LoggerMiddleware: middleware.LoggingMiddleware,
 		Logger:           logger,
 	})

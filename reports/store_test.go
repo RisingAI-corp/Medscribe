@@ -283,7 +283,6 @@ func TestGetTranscription(t *testing.T) {
 	})
 }
 
-
 func TestUpdateReport_SuccessfulUpdates(t *testing.T) {
 	collection := setupTestDB(t)
 	t.Cleanup(func() { cleanupTestDB(t, collection) })

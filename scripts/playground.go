@@ -62,7 +62,7 @@ func processAndStoreDistilledReports(limit int) error {
 }
 
 func main() {
-	fmt.Printf(fmt.Sprintf("Emenike ","emenike"))
+	fmt.Printf(fmt.Sprintf("Emenike ", "emenike"))
 	// processAndStoreDistilledReports(5)
 
 	// analysis, err := distiller.GetTopKDistilledAnalysis(context.Background(),5)
@@ -113,53 +113,53 @@ func main() {
 	// if err != nil{
 	// 	fmt.Println(err)
 	// }
-// 	var prompt = `
-// You are a medical provider documenting objective clinical data from a patient encounter transcript. Write the report clearly, concisely, and in plain text without markdown, incorporating specific details or examples directly from the patient's transcript to accurately reflect unique characteristics of the encounter. Completely omit any category that is neither explicitly mentioned nor confidently inferable.
+	// 	var prompt = `
+	// You are a medical provider documenting objective clinical data from a patient encounter transcript. Write the report clearly, concisely, and in plain text without markdown, incorporating specific details or examples directly from the patient's transcript to accurately reflect unique characteristics of the encounter. Completely omit any category that is neither explicitly mentioned nor confidently inferable.
 
-// Mental Status Examination:
-// - Behavior: Briefly describe patient's observable behavior, interaction style, and demeanor, integrating distinct and specific details or examples from the conversation if available (e.g., "Calm and cooperative, openly shared concerns about medication side effects," or "Withdrawn, minimal responses, appeared distracted during questioning"). Avoid overly generic phrases unless no distinctive details are provided.
-// - Speech: If explicitly mentioned or confidently inferred, briefly describe speech characteristics including pacing, tone, or clarity (e.g., "Speech rapid when discussing work stress," or "Quiet and hesitant when mentioning family conflicts"). Omit entirely if not clearly observed or documented.
-// - Mood: Use patient's direct quotes if provided, or succinctly describe mood based on patient's expressed emotions or tone (e.g., "Expressed feeling overwhelmed by family obligations," "Mood described as stable with improvements noted since last visit"). Avoid overly generic descriptions.
-// - Thought Process: Default to "Linear and goal-directed" if coherent; if not linear, briefly specify and describe clearly observed deviations using specific conversation examples (e.g., "Occasionally tangential, patient frequently shifted topics when discussing future plans," "Patient’s responses were focused but included excessive irrelevant details").
-// - Cognition: Succinctly state "Alert and oriented to conversation" unless explicit cognitive concerns (e.g., confusion, memory issues) are observed; provide a concise description and relevant examples if any cognitive issues are noted (e.g., "Mild confusion, difficulty recalling recent medication adjustments").
-// - Insight: Include if patient demonstrates clear awareness or understanding of their condition or treatment; support with specific examples or statements from the patient if possible (e.g., "Good insight demonstrated by proactive discussion of medication management," "Limited insight into the severity of reported anxiety symptoms").
-// - Judgment: Include if patient shows decision-making ability or planning that can be explicitly or implicitly inferred from the conversation; use examples from patient interactions if available (e.g., "Judgment appears fair; patient actively schedules follow-ups and adheres to medication despite reported side effects").
+	// Mental Status Examination:
+	// - Behavior: Briefly describe patient's observable behavior, interaction style, and demeanor, integrating distinct and specific details or examples from the conversation if available (e.g., "Calm and cooperative, openly shared concerns about medication side effects," or "Withdrawn, minimal responses, appeared distracted during questioning"). Avoid overly generic phrases unless no distinctive details are provided.
+	// - Speech: If explicitly mentioned or confidently inferred, briefly describe speech characteristics including pacing, tone, or clarity (e.g., "Speech rapid when discussing work stress," or "Quiet and hesitant when mentioning family conflicts"). Omit entirely if not clearly observed or documented.
+	// - Mood: Use patient's direct quotes if provided, or succinctly describe mood based on patient's expressed emotions or tone (e.g., "Expressed feeling overwhelmed by family obligations," "Mood described as stable with improvements noted since last visit"). Avoid overly generic descriptions.
+	// - Thought Process: Default to "Linear and goal-directed" if coherent; if not linear, briefly specify and describe clearly observed deviations using specific conversation examples (e.g., "Occasionally tangential, patient frequently shifted topics when discussing future plans," "Patient’s responses were focused but included excessive irrelevant details").
+	// - Cognition: Succinctly state "Alert and oriented to conversation" unless explicit cognitive concerns (e.g., confusion, memory issues) are observed; provide a concise description and relevant examples if any cognitive issues are noted (e.g., "Mild confusion, difficulty recalling recent medication adjustments").
+	// - Insight: Include if patient demonstrates clear awareness or understanding of their condition or treatment; support with specific examples or statements from the patient if possible (e.g., "Good insight demonstrated by proactive discussion of medication management," "Limited insight into the severity of reported anxiety symptoms").
+	// - Judgment: Include if patient shows decision-making ability or planning that can be explicitly or implicitly inferred from the conversation; use examples from patient interactions if available (e.g., "Judgment appears fair; patient actively schedules follow-ups and adheres to medication despite reported side effects").
 
-// Vital Signs:
-// - Include explicitly stated vital signs (e.g., blood pressure, heart rate). Omit entirely if not explicitly stated.
+	// Vital Signs:
+	// - Include explicitly stated vital signs (e.g., blood pressure, heart rate). Omit entirely if not explicitly stated.
 
-// Physical Examination:
-// - Include explicitly stated physical findings, briefly summarized by system with relevant details (e.g., "Tenderness noted in left ankle," "Clear lungs on examination"). Omit entirely if no physical exam mentioned.
+	// Physical Examination:
+	// - Include explicitly stated physical findings, briefly summarized by system with relevant details (e.g., "Tenderness noted in left ankle," "Clear lungs on examination"). Omit entirely if no physical exam mentioned.
 
-// Pain Scale:
-// - Clearly document numeric pain rating explicitly reported by the patient, with date and reference to scale (e.g., "Pain rated 8/10, described as severe and constant"). Omit entirely if not explicitly provided.
+	// Pain Scale:
+	// - Clearly document numeric pain rating explicitly reported by the patient, with date and reference to scale (e.g., "Pain rated 8/10, described as severe and constant"). Omit entirely if not explicitly provided.
 
-// Diagnostic Test Results:
-// - Concisely summarize explicitly mentioned diagnostic tests or results (e.g., blood tests, imaging findings). Omit entirely if no test results mentioned.
+	// Diagnostic Test Results:
+	// - Concisely summarize explicitly mentioned diagnostic tests or results (e.g., blood tests, imaging findings). Omit entirely if no test results mentioned.
 
-// Additional Relevant Information:
-// - Briefly document explicitly stated patient details directly relevant to clinical care decisions, medication management, or follow-up arrangements that have not been mentioned elsewhere. Avoid redundancy.
+	// Additional Relevant Information:
+	// - Briefly document explicitly stated patient details directly relevant to clinical care decisions, medication management, or follow-up arrangements that have not been mentioned elsewhere. Avoid redundancy.
 
-// Provide all information concisely and specifically in plain text format without markdown, emphasizing distinct, transcript-specific details to avoid repetitive or overly generic documentation.
-// `
+	// Provide all information concisely and specifically in plain text format without markdown, emphasizing distinct, transcript-specific details to avoid repetitive or overly generic documentation.
+	// `
 
-// 	prompts := promptDistiller.Prompts{
-// 		Objective: prompt,
-// 	}
-// 	_, queries, err := distiller.Benchmark(context.Background(), prompts, 1)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	fmt.Println("----------")
-// 	fmt.Println("prompt: ", queries[0].Prompt)
-// 	fmt.Println("----------")
-// 	fmt.Println("transcript: ", queries[0].Transcript)
-// 	fmt.Println("----------")
-// 	fmt.Println("teacher data: ", queries[0].TeacherData)
-// 	fmt.Println("----------")
-// 	fmt.Println("distileld output from prompt: ", queries[0].DistilledOutputFromPrompt)
-// 	fmt.Println("----------")
-// 	fmt.Println("scores: ", queries[0].Scores)
+	// 	prompts := promptDistiller.Prompts{
+	// 		Objective: prompt,
+	// 	}
+	// 	_, queries, err := distiller.Benchmark(context.Background(), prompts, 1)
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+	// 	fmt.Println("----------")
+	// 	fmt.Println("prompt: ", queries[0].Prompt)
+	// 	fmt.Println("----------")
+	// 	fmt.Println("transcript: ", queries[0].Transcript)
+	// 	fmt.Println("----------")
+	// 	fmt.Println("teacher data: ", queries[0].TeacherData)
+	// 	fmt.Println("----------")
+	// 	fmt.Println("distileld output from prompt: ", queries[0].DistilledOutputFromPrompt)
+	// 	fmt.Println("----------")
+	// 	fmt.Println("scores: ", queries[0].Scores)
 
 }
 

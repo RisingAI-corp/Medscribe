@@ -9,21 +9,21 @@ import (
 )
 
 type Config struct {
-	Env                    string
-	MongoURI               string
-	MongoDBName            string
-	MongoUserCollection    string
-	MongoReportCollection  string
-	MongoFreedVisits       string
-	MongoDistillAnalysis   string
-	OpenAIChatURL          string
-	OpenAISpeechURL        string
-	OpenAIAPIKey           string
-	DeepgramAPIKey         string
-	DeepgramAPIURL         string
-	JWTSecret              string
-	FreedAuthToken         string
-	Port                   string
+	Env                   string
+	MongoURI              string
+	MongoDBName           string
+	MongoUserCollection   string
+	MongoReportCollection string
+	MongoFreedVisits      string
+	MongoDistillAnalysis  string
+	OpenAIChatURL         string
+	OpenAISpeechURL       string
+	OpenAIAPIKey          string
+	DeepgramAPIKey        string
+	DeepgramAPIURL        string
+	JWTSecret             string
+	FreedAuthToken        string
+	Port                  string
 }
 
 func LoadConfig() (*Config, error) {

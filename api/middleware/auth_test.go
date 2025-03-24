@@ -10,12 +10,22 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 var auth *AuthMiddleware
 
 func TestMain(m *testing.M) {
-	auth = NewAuthMiddleware("test-secret-key")
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			panic(err)
+		}
+	}()
+	auth = NewAuthMiddleware(os.Getenv("JWT_SECRET"), logger)
 	code := m.Run()
 	os.Exit(code)
 }
@@ -124,7 +134,6 @@ func getTokenFromCookies(t *testing.T, rr *httptest.ResponseRecorder, tokenType 
 }
 
 func TestAuthMiddleware_ValidAccessToken(t *testing.T) {
-	auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
 	handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := GetProviderIDFromContext(r.Context())
 		assert.True(t, ok)
@@ -141,7 +150,7 @@ func TestAuthMiddleware_ValidAccessToken(t *testing.T) {
 		assert.Nil(t, err)
 
 		handler.ServeHTTP(rr, env.req)
-		assert.Equal(t, http.StatusOK, rr.Code)
+ 		assert.Equal(t, http.StatusOK, rr.Code)
 
 		newAccessTokenCookie := getTokenFromCookies(t, rr, AccessToken)
 
@@ -177,7 +186,6 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 		})
 
 		rr := httptest.NewRecorder()
-		auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
 		handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t.Error("handler should not be called")
 		}))
@@ -206,7 +214,6 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 		env.setToken(RefreshToken, time.Now().Add(-time.Hour), "")
 
 		rr := httptest.NewRecorder()
-		auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
 		handler := auth.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			t.Error("handler should not be called")
 		}))
@@ -218,8 +225,7 @@ func TestAuthMiddleware_Failure(t *testing.T) {
 
 func TestGenerateInitialTokens_Success(t *testing.T) {
 	rr := httptest.NewRecorder()
-	auth := NewAuthMiddleware(os.Getenv("JWT_SECRET"))
-	err := auth.GenerateTokens(rr, "userID")
+	err := auth.AttachInitialTokens(rr, "userID")
 	assert.NoError(t, err)
 
 	cookie := getTokenFromCookies(t, rr, AccessToken)

@@ -199,7 +199,6 @@ func cleanupTestDB(t *testing.T, collection *mongo.Collection) {
 // 	})
 // }
 
-
 func TestUpdateStyle(t *testing.T) {
 	collection := setupTestDB(t)
 	t.Cleanup(func() {

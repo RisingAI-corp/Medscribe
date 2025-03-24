@@ -80,13 +80,13 @@ type ReportRequest struct {
 	AssessmentAndPlanContent  string `json:"assessmentAndPlanContent"`
 	PatientInstructionContent string
 	SummaryContent            string
-	SubjectiveStyle          string `bson:"subjectiveStyle"`
-	ObjectiveStyle           string `bson:"objectiveStyle"`
-	AssessmentAndPlanStyle   string `bson:"assessmentStyle"`
-	SummaryStyle             string `bson:"summaryStyle"`
-	SessionSummary           string
-	CondensedSummary  string
-	PatientInstructionsStyle string `bson:"patientInstructionsStyle"`
+	SubjectiveStyle           string `bson:"subjectiveStyle"`
+	ObjectiveStyle            string `bson:"objectiveStyle"`
+	AssessmentAndPlanStyle    string `bson:"assessmentStyle"`
+	SummaryStyle              string `bson:"summaryStyle"`
+	SessionSummary            string
+	CondensedSummary          string
+	PatientInstructionsStyle  string `bson:"patientInstructionsStyle"`
 }
 
 // GenerateReportPipeline is a pipeline that generates a report based on the given audio bytes and report configuration.
@@ -114,7 +114,6 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	}
 	report.TranscribedAudio = transcribedAudio
 
-	
 	//generate the report sections (subjective, objective, assessment, planning, summary)
 	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, bson.D{})
 	if err != nil {
@@ -124,7 +123,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
 
 	// batch update the report with the generated content
-	combinedUpdates = append(combinedUpdates, bson.E{Key: reports.FinishedGenerating, Value: true},bson.E{Key: reports.Transcript, Value: transcribedAudio})
+	combinedUpdates = append(combinedUpdates, bson.E{Key: reports.FinishedGenerating, Value: true}, bson.E{Key: reports.Transcript, Value: transcribedAudio})
 	if err := s.reportsStore.UpdateReport(ctx, reportID, combinedUpdates); err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error updating report: %w", err)
 	}
@@ -188,7 +187,6 @@ func (s *inferenceService) LearnStyle(ctx context.Context, providerID, contentSe
 	if err != nil {
 		return fmt.Errorf("LearnStyle: invalid content section%w", err)
 	}
-	
 
 	learnStylePrompt := GenerateLearnStylePrompt(contentSection, previous, current)
 	response, err := s.chat.Query(ctx, learnStylePrompt, 100)
@@ -211,13 +209,12 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 	combinedUpdates := bson.D{}
 
 	var m sync.Mutex
-	aggregateUpdates := func(update... bson.E) {
+	aggregateUpdates := func(update ...bson.E) {
 		m.Lock()
 		combinedUpdates = append(combinedUpdates, update...)
 		m.Unlock()
 	}
 
-	
 	for _, section := range contentSections {
 		g.Go(func() error {
 			style, err := report.styleFromContentSection(section)
@@ -235,12 +232,12 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 			} else {
 				contentPrompt = RegenerateReportContentPrompt(content, section, style, report.Updates)
 			}
-			
+
 			text, err := s.generateReportSection(ctx, contentPrompt, section, contentChan)
 			if err != nil {
 				return fmt.Errorf("error generating report section: %w", err)
 			}
-			if section == reports.Summary{
+			if section == reports.Summary {
 				summaries, err := s.generateSummaries(text, contentChan)
 				if err != nil {
 					return fmt.Errorf("GenerateReport: error generating report sections while regenerating report: %w", err)
@@ -248,11 +245,10 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 				aggregateUpdates(summaries...)
 			}
 			aggregateUpdates(bson.E{Key: section, Value: bson.D{{Key: reports.ContentData, Value: text}, {Key: reports.Loading, Value: false}}})
-			return nil 
+			return nil
 		})
 	}
-	
-	
+
 	if err := g.Wait(); err != nil {
 		return bson.D{}, fmt.Errorf("failed to generate report sections: %w", err)
 	}
@@ -261,37 +257,35 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 
 	return combinedUpdates, nil
 }
+
 // generateReportSection generates a single section of the report.
-func (s *inferenceService) generateReportSection(ctx context.Context, queryMessage string, field string, contentChan chan ContentChanPayload) (string,error) {
+func (s *inferenceService) generateReportSection(ctx context.Context, queryMessage string, field string, contentChan chan ContentChanPayload) (string, error) {
 	response, err := s.chat.Query(ctx, queryMessage, Chat.MaxTokens)
 	if err != nil {
 		return "", fmt.Errorf("error generating report section: %w", err)
 	}
-	
+
 	contentChan <- ContentChanPayload{Key: field, Value: response}
 
 	// Send the update to the updates channel.
 	return response, nil
 }
 
-
 func (s *inferenceService) generateSummaries(summary string, contentChan chan ContentChanPayload) (bson.D, error) {
-    condensed, err := s.chat.Query(context.Background(), fmt.Sprintf(condensedSummary, summary), Chat.MaxTokens)
-    if err != nil {
-        return bson.D{}, fmt.Errorf("error generating condensed summary: %w", err)
-    }
+	condensed, err := s.chat.Query(context.Background(), fmt.Sprintf(condensedSummary, summary), Chat.MaxTokens)
+	if err != nil {
+		return bson.D{}, fmt.Errorf("error generating condensed summary: %w", err)
+	}
 
-    session, err := s.chat.Query(context.Background(), fmt.Sprintf(sessionSummary, summary), Chat.MaxTokens)
-    if err != nil {
-        return bson.D{}, fmt.Errorf("error generating session summary: %w", err)
-    }
+	session, err := s.chat.Query(context.Background(), fmt.Sprintf(sessionSummary, summary), Chat.MaxTokens)
+	if err != nil {
+		return bson.D{}, fmt.Errorf("error generating session summary: %w", err)
+	}
 
-    contentChan <- ContentChanPayload{Key: reports.CondensedSummary, Value: condensed}
+	contentChan <- ContentChanPayload{Key: reports.CondensedSummary, Value: condensed}
 	contentChan <- ContentChanPayload{Key: reports.SessionSummary, Value: session}
-    return bson.D{{Key: reports.CondensedSummary, Value: condensed},{Key: reports.SessionSummary, Value: session}},nil
+	return bson.D{{Key: reports.CondensedSummary, Value: condensed}, {Key: reports.SessionSummary, Value: session}}, nil
 }
-
-
 
 // styleFromContentSection returns the style for the given content section.
 func (r *ReportRequest) styleFromContentSection(contentSection string) (string, error) {
@@ -346,4 +340,3 @@ func (r *ReportRequest) contentFromContentSection(contentSection string) (string
 		return "", fmt.Errorf("invalid content section: %s", contentSection)
 	}
 }
-

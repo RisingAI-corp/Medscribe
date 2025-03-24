@@ -27,22 +27,29 @@ func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string,
 }
 
 func main() {
-	logger, err := zap.NewDevelopment()
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		fmt.Println("Failed to initialize Zap logger:", err)
-		return
+		panic(fmt.Sprintf("Critical error loading config: %v", err))
 	}
+	var logger *zap.Logger
+	if cfg.Env == "development" {
+		logger, err = zap.NewDevelopment()
+		fmt.Println("this is logger here ",logger )
+		if err != nil {
+			panic(fmt.Errorf("failed to initialize Zap logger: %w", err))
+		}
+	} else {
+		logger, err = zap.NewProduction()
+		if err != nil {
+			panic(fmt.Errorf("failed to initialize Zap logger: %w", err))			
+		}
+	}
+
 	defer func() {
 		if err := logger.Sync(); err != nil {
 			fmt.Printf("Error syncing logger: %v\n", err)
 		}
 	}()
-
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		logger.Error("Error loading config", zap.Error(err))
-		return
-	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -82,10 +89,13 @@ func main() {
 		userStore,
 	)
 
-	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger)
+	fmt.Println("this is logger ", logger)
+	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger)
+
+	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
-	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
+
 
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,

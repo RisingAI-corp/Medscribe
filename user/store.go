@@ -24,15 +24,15 @@ const (
 const EmailField = "email"
 
 type User struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Name         string             `bson:"name"`
-	Email        string             `bson:"email"`
-	PasswordHash string             `bson:"passwordHash"`
-	SubjectiveStyle          string `bson:"subjectiveStyle"`
-	ObjectiveStyle           string `bson:"objectiveStyle"`
-	AssessmentAndPlanStyle   string `bson:"assessmentStyle"`
-	SummaryStyle             string `bson:"summaryStyle"`
-	PatientInstructionsStyle string `bson:"patientInstructionsStyle"`
+	ID                       primitive.ObjectID `bson:"_id,omitempty"`
+	Name                     string             `bson:"name"`
+	Email                    string             `bson:"email"`
+	PasswordHash             string             `bson:"passwordHash"`
+	SubjectiveStyle          string             `bson:"subjectiveStyle"`
+	ObjectiveStyle           string             `bson:"objectiveStyle"`
+	AssessmentAndPlanStyle   string             `bson:"assessmentStyle"`
+	SummaryStyle             string             `bson:"summaryStyle"`
+	PatientInstructionsStyle string             `bson:"patientInstructionsStyle"`
 }
 
 type UserStore interface {
@@ -149,7 +149,7 @@ func (s *store) GetStyleField(ctx context.Context, userID, styleField string) (s
 	opts := options.FindOne().SetProjection(projection)
 
 	var result bson.M
-	err = s.client.FindOne(ctx, filter,opts).Decode(&result)
+	err = s.client.FindOne(ctx, filter, opts).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return "", errors.New("user not found")
@@ -157,11 +157,11 @@ func (s *store) GetStyleField(ctx context.Context, userID, styleField string) (s
 		return "", fmt.Errorf("failed to fetch user: %v", err)
 	}
 
-	stringValue, ok := result[styleField].(string) 
+	stringValue, ok := result[styleField].(string)
 	if ok {
-			return stringValue, nil
+		return stringValue, nil
 	} else {
-			return "", fmt.Errorf("error: field '%s' not found or not a string",stringValue)
+		return "", fmt.Errorf("error: field '%s' not found or not a string", stringValue)
 	}
 }
 

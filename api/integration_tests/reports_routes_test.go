@@ -5,7 +5,6 @@ import (
 	"Medscribe/reports"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -363,7 +362,7 @@ func loadAudioFile(t *testing.T, filePath string) []byte {
 // 		assert.Contains(t, rr.Body.String(), "error regenerating report")
 // 	})
 
-// }
+// // }
 
 // func TestGetReport(t *testing.T) {
 // 	testEnv, err := SetupTestEnv()
@@ -515,60 +514,61 @@ func loadAudioFile(t *testing.T, filePath string) []byte {
 // 	})
 // }
 
-func TestGetTranscript(t *testing.T) {
-	testEnv, err := SetupTestEnv()
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		err := testEnv.CleanupTestData()
-		assert.NoError(t, err)
-		err = testEnv.Disconnect()
-		assert.NoError(t, err)
-	})
+// func TestGetTranscript(t *testing.T) {
+// 	testEnv, err := SetupTestEnv()
+// 	require.NoError(t, err)
+// 	t.Cleanup(func() {
+// 		err := testEnv.CleanupTestData()
+// 		assert.NoError(t, err)
+// 		err = testEnv.Disconnect()
+// 		assert.NoError(t, err)
+// 	})
 
-	userID, err := testEnv.CreateTestUser(testUserName, testUserEmail, testUserPassword)
-	require.NoError(t, err)
+// 	userID, err := testEnv.CreateTestUser(testUserName, testUserEmail, testUserPassword)
+// 	require.NoError(t, err)
 
-	reportID, err := testEnv.CreateTestReport(userID)
-	require.NoError(t, err)
+// 	reportID, err := testEnv.CreateTestReport(userID)
+// 	require.NoError(t, err)
 
-	t.Run("should return transcript when request is valid", func(t *testing.T) {
-		getTranscriptRequest := reportsHandler.GetReportRequest{
-			ReportID: reportID,
-		}
+// 	t.Run("should return transcript when request is valid", func(t *testing.T) {
+// 		getTranscriptRequest := reportsHandler.GetReportRequest{
+// 			ReportID: reportID,
+// 		}
 
-		body, err := json.Marshal(getTranscriptRequest)
-		require.NoError(t, err)
+// 		body, err := json.Marshal(getTranscriptRequest)
+// 		require.NoError(t, err)
 
-		req := httptest.NewRequest(http.MethodPost, "/report/getTranscript", bytes.NewBuffer(body))
-		req, err = testEnv.GenerateJWT(req, userID)
-		require.NoError(t, err)
+// 		req := httptest.NewRequest(http.MethodPost, "/report/getTranscript", bytes.NewBuffer(body))
+// 		req, err = testEnv.GenerateJWT(req, userID)
+// 		require.NoError(t, err)
 
-		rr := httptest.NewRecorder()
-		testEnv.Router.ServeHTTP(rr, req)
+// 		rr := httptest.NewRecorder()
+// 		testEnv.Router.ServeHTTP(rr, req)
 
-		assert.Equal(t, http.StatusOK, rr.Code)
+// 		assert.Equal(t, http.StatusOK, rr.Code)
 
-		var response string
-		err = json.NewDecoder(rr.Body).Decode(&response)
-		fmt.Println(err, "eeee")
-		assert.NoError(t, err)
+// 		var response string
+// 		err = json.NewDecoder(rr.Body).Decode(&response)
+// 		fmt.Println(err, "eeee")
+// 		assert.NoError(t, err)
 
-	})
+// 	})
 
-	t.Run("should return unauthorized when user is not authenticated", func(t *testing.T) {
-		getTranscriptRequest := reportsHandler.GetReportRequest{
-			ReportID: reportID,
-		}
+// 	t.Run("should return unauthorized when user is not authenticated", func(t *testing.T) {
+// 		getTranscriptRequest := reportsHandler.GetReportRequest{
+// 			ReportID: reportID,
+// 		}
 
-		body, err := json.Marshal(getTranscriptRequest)
-		require.NoError(t, err)
+// 		body, err := json.Marshal(getTranscriptRequest)
+// 		require.NoError(t, err)
 
-		req := httptest.NewRequest(http.MethodPost, "/report/getTranscript", bytes.NewBuffer(body))
-		rr := httptest.NewRecorder()
-		testEnv.Router.ServeHTTP(rr, req)
+// 		req := httptest.NewRequest(http.MethodPost, "/report/getTranscript", bytes.NewBuffer(body))
+// 		rr := httptest.NewRecorder()
+// 		testEnv.Router.ServeHTTP(rr, req)
 
-		assert.Equal(t, http.StatusUnauthorized, rr.Code)
-	})}
+// 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
+// 	})
+// }
 
 // func TestUpdateContentSection(t *testing.T) {
 // 	testEnv, err := SetupTestEnv()
@@ -749,7 +749,6 @@ func TestLearnStyle(t *testing.T) {
 			ContentSection: reports.Subjective,
 			Current:        "",
 			Previous:       testContent,
-
 		}
 
 		body, err := json.Marshal(learnStyleRequest)

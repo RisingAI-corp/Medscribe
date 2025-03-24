@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 )
 
-type contextKey string
 
 const (
-	UserIDKey     contextKey = "userID"
-	AccessToken              = "access_token"
-	RefreshToken             = "refresh_token"
+	UserIDKey    		 = "userID"
+	AccessToken             = "access_token"
+	RefreshToken            = "refresh_token"
 )
 
 const (
@@ -29,23 +29,34 @@ type Claims struct {
 
 type AuthMiddleware struct {
 	JWTSecret string
+	logger    *zap.Logger
 }
 
-func NewAuthMiddleware(secret string) *AuthMiddleware {
-	return &AuthMiddleware{JWTSecret: secret}
+func NewAuthMiddleware(secret string, logger *zap.Logger) *AuthMiddleware {
+	return &AuthMiddleware{JWTSecret: secret, logger: logger}
 }
 
 func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
+	
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("this is jwt token here here in middleware", am.JWTSecret)
 		refreshCookie, err := r.Cookie(RefreshToken)
 		if err != nil {
-			fmt.Println("what is it",refreshCookie)
+			am.logger.Error("Refresh token cookie missing", zap.Error(err), zap.String("method", r.Method), zap.String("url", r.URL.String()))
 			http.Error(w, "unauthorized refresh token", http.StatusUnauthorized)
 			return
 		}
 
 		claims, err := am.verifyToken(refreshCookie.Value)
+		fmt.Println("this is refresh cookie ",refreshCookie.Value)
 		if err != nil {
+			am.logger.Error("Invalid refresh token",
+			zap.Error(err),
+			zap.String("method", r.Method),
+			zap.String("url", r.URL.Path),
+			zap.String("authHeader", r.Header.Get("Authorization")),
+			zap.String("cookie", r.Header.Get("Cookie")), // optional, just for debug
+			)
 			http.Error(w, "unauthorized access token", http.StatusUnauthorized)
 			return
 		}
@@ -66,6 +77,7 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		if regenerateAccessToken {
 			accessToken, err = am.GenerateAccessToken(claims.UserID)
 			if err != nil {
+				am.logger.Error("Error generating access token", zap.Error(err), zap.String("method", r.Method), zap.String("url", r.URL.String()))
 				http.Error(w, "error generating access token", http.StatusInternalServerError)
 				return
 			}
@@ -78,8 +90,12 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 }
 
 func (am *AuthMiddleware) verifyToken(tokenString string) (*Claims, error) {
+	am.logger.Debug("JWT Secret in middleware", zap.String("secret", am.JWTSecret))
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return []byte(am.JWTSecret), nil
 	})
 
@@ -103,28 +119,17 @@ func (am *AuthMiddleware) GenerateRefreshToken(userID string) (string, error) {
 }
 
 func (am *AuthMiddleware) AttachInitialTokens(w http.ResponseWriter, userID string) error {
+	am.logger.Debug("JWT Secret in middleware", zap.String("secret", am.JWTSecret))
 	accessToken, err := am.GenerateAccessToken(userID)
 	if err != nil {
+		am.logger.Error("Error generating initial access token", zap.Error(err))
 		return err
 	}
 	refreshToken, err := am.GenerateRefreshToken(userID)
 	if err != nil {
+		am.logger.Error("Error generating initial refresh token", zap.Error(err))
 		return err
 	}
-	setCookies(w, accessToken, refreshToken)
-	return nil
-}
-
-func (am *AuthMiddleware) GenerateTokens(w http.ResponseWriter, userID string) error {
-	accessToken, err := am.GenerateAccessToken(userID)
-	if err != nil {
-		return err
-	}
-	refreshToken, err := am.GenerateRefreshToken(userID)
-	if err != nil {
-		return err
-	}
-
 	setCookies(w, accessToken, refreshToken)
 	return nil
 }

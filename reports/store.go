@@ -63,7 +63,7 @@ const (
 	TimeStamp = "timestamp"
 
 	CondensedSummary = "condensedSummary"
-	SessionSummary          = "sessionSummary"
+	SessionSummary   = "sessionSummary"
 
 	Transcript = "transcript"
 )
@@ -87,10 +87,10 @@ type Report struct {
 	AssessmentAndPlan   ReportContent      `json:"assessmentAndPlan"`
 	Summary             ReportContent      `json:"summary"`
 	PatientInstructions ReportContent      `json:"patientInstructions"`
-	CondensedSummary string                `json:"condensedSummary"`
-	SessionSummary          string         `json:"sessionSummary"`
+	CondensedSummary    string             `json:"condensedSummary"`
+	SessionSummary      string             `json:"sessionSummary"`
 	FinishedGenerating  bool               `json:"finishedGenerating"`
-	Transcript string             		   `json:"transcript"`
+	Transcript          string             `json:"transcript"`
 }
 
 type Reports interface {
@@ -185,18 +185,17 @@ func (r *reportsStore) GetTranscription(ctx context.Context, reportId string) (s
 	}
 
 	filter := bson.M{ID: objectID}
-	projection := bson.M{Transcript: 1, ProviderID:1, ID: 0} // Include only transcript and providerID fields
+	projection := bson.M{Transcript: 1, ProviderID: 1, ID: 0} // Include only transcript and providerID fields
 	opts := options.FindOne().SetProjection(projection)
 
 	var retrievedReport struct {
 		Transcript string `json:"transcript"`
 		ProviderID string `json:"providerid"`
-
 	}
 
 	err = r.client.FindOne(ctx, filter, opts).Decode(&retrievedReport)
 	if err != nil {
-		return "", "",fmt.Errorf("failed to retrieve transcript: %v", err)
+		return "", "", fmt.Errorf("failed to retrieve transcript: %v", err)
 	}
 
 	return retrievedReport.ProviderID, retrievedReport.Transcript, nil
@@ -377,8 +376,8 @@ func (r *reportsStore) UpdateReport(ctx context.Context, reportId string, update
 			Data:    "for validation purposes",
 			Loading: false,
 		},
-		SessionSummary:    "for validation purposes",
-		CondensedSummary:       "for validation purposes",
+		SessionSummary:     "for validation purposes",
+		CondensedSummary:   "for validation purposes",
 		FinishedGenerating: true,
 	}
 

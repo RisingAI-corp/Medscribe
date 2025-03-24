@@ -107,8 +107,8 @@ func TestSuccessfulReportGeneration(t *testing.T) {
 				{Key: reports.Summary, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.PatientInstructions, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.FinishedGenerating, Value: true},
-				{Key:reports.CondensedSummary, Value: sampleContentData},
-				{Key:reports.SessionSummary, Value: sampleContentData},
+				{Key: reports.CondensedSummary, Value: sampleContentData},
+				{Key: reports.SessionSummary, Value: sampleContentData},
 			}
 			sortedBatchUpdates := sortedBsonD(batchedUpdates)
 			sortedExpectedBatchedUpdates := sortedBsonD(expectedBatchedUpdates)
@@ -239,8 +239,8 @@ func TestRegenerateReport_Valid(t *testing.T) {
 				{Key: reports.AssessmentAndPlan, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.Summary, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
 				{Key: reports.PatientInstructions, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key:reports.CondensedSummary, Value: sampleContentData},
-				{Key:reports.SessionSummary, Value: sampleContentData},
+				{Key: reports.CondensedSummary, Value: sampleContentData},
+				{Key: reports.SessionSummary, Value: sampleContentData},
 				{Key: reports.FinishedGenerating, Value: true},
 			}
 
@@ -350,8 +350,8 @@ func TestRegenerateReport_InvalidInputs(t *testing.T) {
 			primitive.E{Key: "assessmentAndPlan", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
 			primitive.E{Key: "objective", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
 			primitive.E{Key: "patientInstructions", Value: primitive.D{primitive.E{Key: "data", Value: "test query response data"}, primitive.E{Key: "loading", Value: false}}},
-			primitive.E{Key:reports.CondensedSummary, Value: sampleContentData},
-			primitive.E{Key:reports.SessionSummary, Value: sampleContentData},
+			primitive.E{Key: reports.CondensedSummary, Value: sampleContentData},
+			primitive.E{Key: reports.SessionSummary, Value: sampleContentData},
 			primitive.E{Key: "finishedGenerating", Value: true},
 		}
 		env.reports.
@@ -430,7 +430,6 @@ func TestLearnStyle_Invalid(t *testing.T) {
 		contentSection := reports.Subjective
 		previous := "some valid content"
 		current := "some valid content"
-
 
 		env.inferenceStore.
 			On("Query", mock.Anything, mock.Anything, 100).

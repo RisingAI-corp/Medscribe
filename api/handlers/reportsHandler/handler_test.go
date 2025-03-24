@@ -603,8 +603,8 @@ func TestLearnStyle(t *testing.T) {
 		req := LearnStyleRequest{
 			ReportID:       testReportID,
 			ContentSection: reports.Subjective,
-			Previous:        testContent,
-			Current: testContent,
+			Previous:       testContent,
+			Current:        testContent,
 		}
 
 		body, err := json.Marshal(req)
@@ -741,8 +741,8 @@ func TestLearnStyle(t *testing.T) {
 		req := LearnStyleRequest{
 			ReportID:       testReportID,
 			ContentSection: reports.Subjective,
-			Previous:        testContent,
-			Current: testContent,
+			Previous:       testContent,
+			Current:        testContent,
 		}
 
 		body, err := json.Marshal(req)
@@ -807,7 +807,6 @@ func TestGetTranscript(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, expectedTranscript, response)
-		
 
 		MockReportsStore.AssertExpectations(t)
 	})

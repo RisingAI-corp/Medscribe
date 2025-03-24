@@ -24,7 +24,7 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 	reportsSubRoutes := ReportRoutes(config.ReportsHandler)
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080","medscribe.pro","www.medscribe.pro"}, // dev server, storybook, backend server
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro"}, // dev server, storybook, backend server
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true, // Allows cookies & authentication headers

@@ -36,7 +36,6 @@ const (
 	Missing Information Handling:
 	- If specific details such as the patient's name, gender, adherence details, or medical history are not explicitly mentioned in the transcript, **do not request additional context. Simply omit those details and proceed with the available information.**
 	`
-	
 
 	objectiveTaskDescription = `
 You are a medical provider documenting objective clinical data from a patient encounter transcript. Write the report clearly, concisely, and in plain text without markdown, incorporating specific details or examples directly from the patient's transcript to accurately reflect unique characteristics of the encounter. Completely omit any category that is neither explicitly mentioned nor confidently inferable.
@@ -169,7 +168,7 @@ Provide all information concisely and specifically in plain text format without 
 	Best regards,
 	
 	%s
-	  `;
+	  `
 
 	//Default Return format
 	defaultReturnFormat = "Return Format (Always Adhere to These Rules):" +
@@ -184,7 +183,6 @@ Provide all information concisely and specifically in plain text format without 
 		" Always rely exclusively on the provided transcript without assumptions or inference beyond clearly available context." +
 		"if the transcript is inconclusive meaning no relevant dat is enough to even generate the report then just reply back with N/A"
 )
-
 
 const condensedSummary = `
 You are an AI medical assistant tasked with generating a concise medical history based on the patient's report. 
@@ -201,7 +199,7 @@ Example format: "Past medical history of [condition], currently managed with [me
 
 `
 
-const sessionSummary  = `
+const sessionSummary = `
 You are an AI medical assistant tasked with generating a short description of the main topic or focus of a clinical session. The description should be concise and capture the key focus of the session in **a few words** (e.g., "Anxiety and medication discussion", "Follow-up on treatment plan").
 
 The summary should:
@@ -342,4 +340,3 @@ Extract a set of **style recommendations** that will guide future content genera
 func GenerateLearnStylePrompt(contentSection string, previousContent string, currentContent string) string {
 	return fmt.Sprintf(LearnStylePromptTemplate, contentSection, previousContent, currentContent)
 }
-

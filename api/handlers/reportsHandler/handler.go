@@ -37,8 +37,8 @@ type DeleteReportRequest struct {
 type LearnStyleRequest struct {
 	ReportID       string `json:"reportID"`
 	ContentSection string `json:"contentSection"`
-	Previous        string `json:"previous"`
-	Current string `json:"current"`
+	Previous       string `json:"previous"`
+	Current        string `json:"current"`
 }
 
 type ChangeNameRequest struct {
