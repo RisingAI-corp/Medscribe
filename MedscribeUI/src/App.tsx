@@ -11,7 +11,9 @@ import { useAtom } from 'jotai';
 import { checkAuth } from './api/checkAuth';
 import AuthScreen from './pages/Auth/authScreen';
 import FallbackScreen from './pages/Fallback/fallbackScreen';
+import LandingScreen from './pages/Landing/landingScreen';
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
   const [timerActive, setTimerActive] = useState(true);
@@ -70,13 +72,24 @@ function App() {
 
   const { isPending, isSuccess, isIdle } = checkAuthMutation;
 
-  if (isPending || isIdle || timerActive) {
-    return <FallbackScreen />;
-  } else if (isSuccess || isAuthenticated) {
-    return <HomeScreen />;
-  } else {
-    return <AuthScreen />;
-  }
+  const renderAuthComponent = () => {
+    if (isPending || isIdle || timerActive) {
+      return <FallbackScreen />;
+    } else if (isSuccess || isAuthenticated) {
+      return <HomeScreen />;
+    } else {
+      return <AuthScreen />;
+    }
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/landing" element={<LandingScreen />} />
+        <Route path="/" element={renderAuthComponent()} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
