@@ -10,7 +10,6 @@ import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 import { removePatientsByIdsAtom, PatientRegistryAtom } from './derivedAtoms';
 import { useMutation } from '@tanstack/react-query';
 import { deleteReport } from '../../api/deleteReport';
-import { useDebouncedNameChange } from '../../hooks/useDebounceNameChange';
 
 export interface PatientPreviewRecord {
   id: string;

@@ -13,7 +13,6 @@ interface ControlButtonsProps {
 
 const ControlButtons: React.FC<ControlButtonsProps> = ({
   isRecording,
-  mediaRecorder,
   onEndVisit,
   onPause,
   onResume,
