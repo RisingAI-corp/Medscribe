@@ -190,18 +190,22 @@ The patient's detailed summary is as follows:
 
 %s
 
-Please summarize the patient's past medical history, including major conditions, and list relevant medications with dosages. 
-Keep the summary brief and to the point, focusing on the key medical history and current medications.
+If the summary is "N/A" or contains no meaningful medical information, respond only with: N/A
 
-Make sure it its short. No more than 15 words please
+Otherwise, summarize the patient's past medical history, including major conditions, and list relevant medications with dosages. 
+Keep the summary brief and to the point, no more than 15 words.
 
 Example format: "Past medical history of [condition], currently managed with [medication1], [medication2], [medication3]."
-
 `
 
-const sessionSummary = `
-You are an AI medical assistant tasked with generating a short description of the main topic or focus of a clinical session. The description should be concise and capture the key focus of the session in **a few words** (e.g., "Anxiety and medication discussion", "Follow-up on treatment plan").
 
+const sessionSummary = `
+You are an AI medical assistant tasked with generating a short description of the main topic or focus of a clinical session. 
+The description should be concise and capture the key focus of the session in **a few words** (e.g., "Anxiety and medication discussion", "Follow-up on treatment plan").
+
+If the input is "N/A" or provides no meaningful information, respond only with: N/A
+
+otherwise proceed with the following:
 The summary should:
 - Be no more than **a few words**.
 - Focus on the **primary subject of the session** (e.g., a condition, treatment, or discussion).
@@ -212,8 +216,10 @@ The patient discussed her ongoing issues with anxiety, the impact of recent medi
 
 Example output:  
 Anxiety and medication discussion
+
 %s
 `
+
 
 // TODO: we don't need the section style
 func GenerateReportContentPrompt(transcribedAudio, soapSection, style, providerName, patientName string) string {
