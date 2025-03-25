@@ -61,4 +61,6 @@ RUN chmod +x /app/app
 
 EXPOSE 8080
 
+ENV ENVIRONMENT="production"
+
 CMD ["/app/app"]
