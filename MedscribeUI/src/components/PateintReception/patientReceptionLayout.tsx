@@ -142,7 +142,6 @@ const PatientReception = () => {
       {mediaRecorder && (
         <ControlButtons
           isRecording={isRecording}
-          mediaRecorder={mediaRecorder}
           onEndVisit={handleEndVisit}
           onPause={handlePauseRecording}
           onReset={handleResetMediaRecorder}
