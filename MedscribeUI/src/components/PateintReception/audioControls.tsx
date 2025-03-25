@@ -4,7 +4,6 @@ import { IconPlayerPause, IconPlayerPlay } from '@tabler/icons-react';
 
 interface ControlButtonsProps {
   isRecording: boolean;
-  mediaRecorder: MediaRecorder | null;
   onEndVisit: () => void | Promise<void>;
   onPause: () => void;
   onResume: () => void;
