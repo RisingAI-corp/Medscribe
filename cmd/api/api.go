@@ -86,9 +86,11 @@ func main() {
 	)
 
 	transcriber := azure.NewAzureTranscriber(
-		cfg.OpenAIChatURL,
+		cfg.OpenAISpeechURL,
 		cfg.OpenAIAPIKey,
 	)
+	fmt.Println(cfg.OpenAIChatURL,"checking")
+
 
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
