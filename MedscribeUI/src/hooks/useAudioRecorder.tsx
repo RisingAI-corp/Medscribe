@@ -56,6 +56,9 @@ const useAudioRecorder = () => {
           type: MIME_TYPE,
         });
         setIsRecording(false);
+        mediaRecorder.stream.getTracks().forEach(track => {
+          track.stop();
+        });
         resolve();
       };
       mediaRecorder.stop();

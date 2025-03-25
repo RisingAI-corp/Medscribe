@@ -65,9 +65,6 @@ Pain Scale:
 Diagnostic Test Results:
 - Concisely summarize explicitly mentioned diagnostic tests or results (e.g., blood tests, imaging findings). Omit entirely if no test results mentioned.
 
-Additional Relevant Information:
-- Briefly document explicitly stated patient details directly relevant to clinical care decisions, medication management, or follow-up arrangements that have not been mentioned elsewhere. Avoid redundancy.
-
 Provide all information concisely and specifically in plain text format without markdown, emphasizing distinct, transcript-specific details to avoid repetitive or overly generic documentation.
 `
 
@@ -85,15 +82,11 @@ Provide all information concisely and specifically in plain text format without 
 	- Briefly summarize current patient status, including symptoms, medication efficacy, adherence, side effects, or explicitly stated patient concerns. Use specific examples or context from the transcript when relevant. Clearly distinguish subjective patient reports from objective clinical observations.
 	- Plan: Clearly document specific next steps as provided, including medication details (exact dosages, frequency), referrals, recommended tests, monitoring, lifestyle advice, or patient instructions. Include follow-up details explicitly stated or confidently infer a standard clinical interval if not specified (e.g., "Follow-up in 1 month").
 	
+	(make sure to title this section F/U)
 	Follow-Up Appointments:
 	- Clearly indicate scheduled follow-ups as explicitly stated. If the follow-up timing is implied without an explicit date, state a standard clinical interval clearly (e.g., "Follow-up in 1 month (standard interval)").
-	
-	Additional Information:
-	- Briefly include explicitly stated details not captured elsewhere that directly affect patient care (pending diagnostic tests, significant life events, upcoming travel, or environmental factors impacting health or treatment).
-	
-	Summary:
-	- Briefly reiterate the key clinical priorities and immediate actionable steps explicitly discussed to ensure clarity and patient understanding.
-	
+	- If follow up is mentioned extract all information relevant to it and integrate it into a simple sentence of say ex: follow up scheduled in 1 week for medication management
+
 	Provide the response in plain text without markdown formatting.
 	`
 
@@ -190,7 +183,7 @@ The patient's detailed summary is as follows:
 
 %s
 
-If the summary is "N/A" or contains no meaningful medical information, respond only with: N/A
+If the input is "N/A" or provides no meaningful information or more information is required, respond only with: N/A. We don't want to give any indication that we need more information just put N/A
 
 Otherwise, summarize the patient's past medical history, including major conditions, and list relevant medications with dosages. 
 Keep the summary brief and to the point, no more than 15 words.
@@ -203,7 +196,7 @@ const sessionSummary = `
 You are an AI medical assistant tasked with generating a short description of the main topic or focus of a clinical session. 
 The description should be concise and capture the key focus of the session in **a few words** (e.g., "Anxiety and medication discussion", "Follow-up on treatment plan").
 
-If the input is "N/A" or provides no meaningful information, respond only with: N/A
+If the input is "N/A" or provides no meaningful information or more information is required, respond only with: N/A. We don't want to give any indication that we need more information just put N/A
 
 otherwise proceed with the following:
 The summary should:
@@ -241,16 +234,14 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style, providerN
 	}
 
 	prompt := "You are an AI medical assistant acting as the provider, documenting the visit report after reviewing the transcript of the encounter. " +
-		"Your task is to generate precise and accurate clinical notes that reflect exactly what was stated in the transcript, as if you were the provider writing them up. " +
-		"Strict adherence to the transcript is required—do not add, infer, or assume any information beyond what is explicitly stated. " +
-		"If critical details are missing, clearly indicate that additional context is necessary and explain why it is needed.\n\n" +
-
-		"Current Task (" + soapSection + "): " + taskDescription + "\n\n" +
-
-		"Patient Name: " + patientName + "\n" +
-		"Provider Name: " + providerName + "\n\n" +
-
-		"Transcript:\n" + transcribedAudio + "\n\n"
+	"Your task is to generate precise and accurate clinical notes that reflect exactly what was stated in the transcript, as if you were the provider writing them up. " +
+	"Strict adherence to the transcript is required—do not add, infer, or assume any information beyond what is explicitly stated. " +
+	"If critical details are missing, clearly indicate that additional context is necessary and explain why it is needed.\n\n" +
+	"Patient Name: " + patientName + "\n" +
+	"Provider Name: " + providerName + "\n\n" +
+	"The following transcript is from a clinical session between the provider and the patient:\n\n" +
+	"Current Task (" + soapSection + "): " + taskDescription + "\n\n" +
+	"Transcript:\n" + transcribedAudio + "\n\n"
 
 	if style != "" {
 		prompt += "Integrate the style with the task description:\n" + style + "\n\n"
@@ -259,6 +250,7 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style, providerN
 	prompt += defaultReturnFormat + "\n\n" + defaultWarnings
 
 	return prompt
+
 }
 
 func RegenerateReportContentPrompt(previousContent string, soapSection, exampleStyle string, updates bson.D) string {
