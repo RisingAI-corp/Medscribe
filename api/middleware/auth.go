@@ -39,6 +39,7 @@ type AuthMiddleware struct {
 func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddleware {
 	am := &AuthMiddleware{jwtSecret: secret, logger: logger, env: env}
 	am.secure = env == "production"
+	am.logger.Debug("Setting up auth middleware", zap.String("env", am.env), zap.Bool("secure", am.secure))
 	return am
 }
 
