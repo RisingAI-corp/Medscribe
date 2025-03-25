@@ -12,7 +12,9 @@ import (
 	"Medscribe/user"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -27,45 +29,46 @@ func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string,
 }
 
 func main() {
+	log.Println("🚀 App is starting...")
+	log.Println("⚡ ENV BEFORE .env load: PORT =", os.Getenv("PORT"))
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		panic(fmt.Sprintf("Critical error loading config: %v", err))
+		log.Fatalf("❌ Critical error loading config: %v", err)
 	}
+
 	var logger *zap.Logger
 	if cfg.Env == "development" {
 		logger, err = zap.NewDevelopment()
-		if err != nil {
-			panic(fmt.Errorf("failed to initialize Zap logger: %w", err))
-		}
 	} else {
 		logger, err = zap.NewProduction()
-		if err != nil {
-			panic(fmt.Errorf("failed to initialize Zap logger: %w", err))			
-		}
 	}
-
+	if err != nil {
+		log.Fatalf("❌ Failed to initialize zap logger: %v", err)
+	}
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			fmt.Printf("Error syncing logger: %v\n", err)
+			fmt.Printf("⚠️ Error syncing logger: %v\n", err)
 		}
 	}()
+
+	logger.Info("✅ Configuration loaded", zap.String("env", cfg.Env))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	logger.Info("🌐 Connecting to MongoDB", zap.String("uri", cfg.MongoURI))
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
-		logger.Error("Failed to connect to MongoDB", zap.Error(err))
-		return
+		logger.Fatal("❌ Failed to connect to MongoDB", zap.Error(err))
 	}
-
 	if err = client.Ping(ctx, nil); err != nil {
-		logger.Error("Failed to ping MongoDB", zap.Error(err))
-		return
+		logger.Fatal("❌ Failed to ping MongoDB", zap.Error(err))
 	}
+	logger.Info("✅ Connected to MongoDB")
+
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
-			panic(fmt.Sprintf("Critical error disconnecting client: %v", err))
+			logger.Error("⚠️ Error disconnecting MongoDB client", zap.Error(err))
 		}
 	}()
 
@@ -93,8 +96,6 @@ func main() {
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
-
-
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,
 		ReportsHandler:   reportsHandler,
@@ -103,17 +104,21 @@ func main() {
 		Logger:           logger,
 	})
 
+	// Ensure we're reading the PORT env var properly
 	port := cfg.Port
 	if port == "" {
-		port = "8080"
-		logger.Info("PORT environment variable not set. Using default port", zap.String("port", port))
+		port = os.Getenv("PORT")
 	}
-	port = ":" + port
+	if port == "" {
+		port = "8080"
+		logger.Warn("PORT not set; defaulting to 8080")
+	}
+	logger.Info("✅ Ready to start HTTP server", zap.String("port", port))
 
-	logger.Info("Server listening on port", zap.String("port", port))
-	err = http.ListenAndServe(port, router)
+	fullAddr := ":" + port
+	log.Printf("🌍 Binding to %s", fullAddr)
+	err = http.ListenAndServe(fullAddr, router)
 	if err != nil {
-		logger.Error("Error starting server", zap.Error(err))
-		return
+		logger.Fatal("❌ Error starting HTTP server", zap.Error(err))
 	}
 }
