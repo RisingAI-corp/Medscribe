@@ -34,7 +34,6 @@ func main() {
 	var logger *zap.Logger
 	if cfg.Env == "development" {
 		logger, err = zap.NewDevelopment()
-		fmt.Println("this is logger here ",logger )
 		if err != nil {
 			panic(fmt.Errorf("failed to initialize Zap logger: %w", err))
 		}
@@ -89,7 +88,6 @@ func main() {
 		userStore,
 	)
 
-	fmt.Println("this is logger ", logger)
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
 
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleware)

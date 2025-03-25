@@ -348,7 +348,6 @@ func (h *reportsHandler) GetTranscript(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
-	fmt.Println(transcript)
 	if err := json.NewEncoder(w).Encode(transcript); err != nil {
 		h.logger.Error("error encoding transcript", zap.Error(err))
 		http.Error(w, "error encoding transcript", http.StatusInternalServerError)

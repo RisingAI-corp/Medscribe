@@ -226,7 +226,6 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 				return fmt.Errorf("invalid content Section: %w", err)
 			}
 			contentPrompt := ""
-			fmt.Println("ffff", report.ProviderName)
 			if report.TranscribedAudio != "" { // if there is no transcript then we are regenerating report
 				contentPrompt = GenerateReportContentPrompt(report.TranscribedAudio, section, style, report.ProviderName, report.PatientName)
 			} else {
@@ -253,7 +252,6 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 		return bson.D{}, fmt.Errorf("failed to generate report sections: %w", err)
 	}
 	close(updatesChan)
-	fmt.Println("yo")
 
 	return combinedUpdates, nil
 }

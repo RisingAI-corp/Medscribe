@@ -60,7 +60,6 @@ func NewUserHandler(userStore user.UserStore, reports reports.Reports, logger *z
 }
 
 func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("inside")
 	var req SignUpRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Error("Error decoding signup request", zap.Error(err))

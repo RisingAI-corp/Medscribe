@@ -39,19 +39,12 @@ type AuthMiddleware struct {
 func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddleware {
 	am := &AuthMiddleware{jwtSecret: secret, logger: logger, env: env}
 	am.secure = env == "production"
-
-	if env == "production" {
-		fmt.Println("this is secure", am.secure )
-	}else{
-		fmt.Println("this is secure", am.secure )
-	}
 	return am
 }
 
 func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("this is jwt token here here in middleware", am.jwtSecret)
 		refreshCookie, err := r.Cookie(RefreshToken)
 		if err != nil {
 			am.logger.Error("Refresh token cookie missing", zap.Error(err), zap.String("method", r.Method), zap.String("url", r.URL.String()))
@@ -60,7 +53,6 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		}
 
 		claims, err := am.verifyToken(refreshCookie.Value)
-		fmt.Println("this is refresh cookie ",refreshCookie.Value)
 		if err != nil {
 			am.logger.Error("Invalid refresh token",
 			zap.Error(err),
