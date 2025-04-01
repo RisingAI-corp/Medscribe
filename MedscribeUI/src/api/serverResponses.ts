@@ -36,6 +36,7 @@ export const ReportSchema = z.object({
   sessionSummary: z.string(),
   finishedGenerating: z.boolean(),
   transcript: z.string().default(''),
+  readStatus: z.boolean(),
 });
 
 export const AuthResponse = z.object({

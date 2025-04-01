@@ -26,6 +26,8 @@ type ReportsHandler interface {
 	GetReport(w http.ResponseWriter, r *http.Request)
 	DeleteReport(w http.ResponseWriter, r *http.Request)
 	GetTranscript(w http.ResponseWriter, r *http.Request)
+	MarkRead(w http.ResponseWriter, r *http.Request)
+	MarkUnread(w http.ResponseWriter, r *http.Request)
 }
 type GetReportRequest struct {
 	ReportID string `json:"reportID"`
@@ -57,6 +59,11 @@ type reportsHandler struct {
 	inferenceService inferenceService.InferenceService
 	userStore        user.UserStore
 	logger           *zap.Logger
+}
+
+type ReadStatusRequest struct {
+	ReportID string `json:"reportID"`
+	Opened   bool   `json:"opened"`
 }
 
 func NewReportsHandler(reportsService reports.Reports, inferenceService inferenceService.InferenceService, userStore user.UserStore, logger *zap.Logger) ReportsHandler {
@@ -316,6 +323,85 @@ func (h *reportsHandler) ChangeReportName(w http.ResponseWriter, r *http.Request
 	}
 
 	h.logger.Info("report name changed successfully", zap.String("reportID", req.ReportID), zap.String("newName", req.NewName))
+}
+
+func (h *reportsHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetProviderIDFromContext(r.Context())
+	if !ok {
+		h.logger.Warn("unauthorized access attempt")
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req ReadStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("invalid request body", zap.Error(err))
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	h.logger.Info("attempting to mark report as read", zap.String("userID", userID), zap.String("reportID", req.ReportID))
+
+	report, err := h.reportsService.Get(r.Context(), req.ReportID)
+	if err != nil {
+		h.logger.Error("error fetching report", zap.Error(err))
+		http.Error(w, "error marking report as read", http.StatusInternalServerError)
+		return
+	}
+
+	if report.ProviderID != userID {
+		h.logger.Error("unauthorized access to report", zap.Error(err))
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	fmt.Println(req, "'testing")
+	err = h.reportsService.MarkRead(r.Context(), req.ReportID)
+	if err != nil {
+		h.logger.Error("error marking report as read", zap.Error(err))
+		http.Error(w, "error marking report as read", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *reportsHandler) MarkUnread(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetProviderIDFromContext(r.Context())
+	if !ok {
+		h.logger.Warn("unauthorized access attempt")
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req ReadStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("invalid request body", zap.Error(err))
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	h.logger.Info("attempting to mark report as unread", zap.String("userID", userID), zap.String("reportID", req.ReportID))
+
+	report, err := h.reportsService.Get(r.Context(), req.ReportID)
+	if err != nil {
+		h.logger.Error("error fetching report", zap.Error(err))
+		http.Error(w, "error marking report as unread", http.StatusInternalServerError)
+		return
+	}
+
+	if report.ProviderID != userID {
+		h.logger.Error("unauthorized access to report", zap.Error(err))
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err = h.reportsService.MarkUnread(r.Context(), req.ReportID)
+	if err != nil {
+		h.logger.Error("error marking report as unread", zap.Error(err))
+		http.Error(w, "error marking report as unread", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *reportsHandler) GetTranscript(w http.ResponseWriter, r *http.Request) {

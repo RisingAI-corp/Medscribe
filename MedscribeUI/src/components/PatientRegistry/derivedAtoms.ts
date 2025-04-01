@@ -21,6 +21,7 @@ export const PatientRegistryAtom = atom(get =>
       sessionSummary: patient.sessionSummary,
       finishedGenerating: patient.finishedGenerating,
       loading: !patient.finishedGenerating,
+      readStatus: patient.readStatus,
     };
   }),
 );
@@ -44,5 +45,28 @@ export const removePatientsByIdsAtom = atom(
     if (patientIdsToRemove.includes(currentlySelectedPatient)) {
       set(currentlySelectedPatientAtom, '');
     }
+  },
+);
+
+export const setReadStatusAtom = atom(
+  null,
+  (
+    get,
+    set,
+    { reportId, readStatus }: { reportId: string; readStatus: boolean },
+  ) => {
+    console.log('running');
+    const patients = get(patientsAtom);
+    const updatedPatients = patients.map(patient => {
+      if (patient.id === reportId) {
+        return {
+          ...patient,
+          readStatus: readStatus,
+        };
+      }
+      return patient;
+    });
+
+    set(patientsAtom, updatedPatients);
   },
 );

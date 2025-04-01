@@ -15,6 +15,7 @@ export async function checkAuth() {
     throw new Error(`'Error authenticated user' + ${String(response.status)}`);
   }
 
+  console.log(response.data);
   const { success, data, error } = AuthResponse.safeParse(response.data);
   if (!success) {
     throw new Error('Error parsing Api request: ' + error.toString());

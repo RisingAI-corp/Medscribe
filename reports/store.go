@@ -66,6 +66,8 @@ const (
 	SessionSummary   = "sessionSummary"
 
 	Transcript = "transcript"
+
+	readStatus = "readstatus"
 )
 
 type ReportContent struct {
@@ -91,6 +93,7 @@ type Report struct {
 	SessionSummary      string             `json:"sessionSummary"`
 	FinishedGenerating  bool               `json:"finishedGenerating"`
 	Transcript          string             `json:"transcript"`
+	ReadStatus              bool               `json:"readStatus"`
 }
 
 type Reports interface {
@@ -101,6 +104,8 @@ type Reports interface {
 	Validate(report *Report) error
 	Delete(ctx context.Context, reportId string) error
 	GetTranscription(ctx context.Context, reportId string) (string, string, error)
+	MarkRead(ctx context.Context, reportId string) error
+	MarkUnread(ctx context.Context, reportId string) error
 }
 
 type reportsStore struct {
@@ -239,6 +244,43 @@ func (r *reportsStore) Delete(ctx context.Context, reportId string) error {
 	}
 
 	if result.DeletedCount == 0 {
+		return fmt.Errorf("report not found")
+	}
+
+	return nil
+}
+func (r *reportsStore) MarkRead(ctx context.Context, reportId string) error {
+	objectID, err := primitive.ObjectIDFromHex(reportId)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{ID: objectID}
+	update := bson.M{"$set": bson.M{readStatus: true}}
+
+	result, err := r.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to mark report as read: %v", err)
+	}
+	fmt.Println(result.ModifiedCount, "modified count")
+	return nil
+}
+
+func (r *reportsStore) MarkUnread(ctx context.Context, reportId string) error {
+	objectID, err := primitive.ObjectIDFromHex(reportId)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{ID: objectID}
+	update := bson.M{"$set": bson.M{readStatus: false}}
+
+	result, err := r.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to mark report as unread: %v", err)
+	}
+
+	if result.ModifiedCount == 0 {
 		return fmt.Errorf("report not found")
 	}
 

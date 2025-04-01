@@ -37,6 +37,16 @@ func (m *MockReportsStore) Delete(ctx context.Context, reportId string) error {
 	return args.Error(0)
 }
 
+func (m *MockReportsStore) MarkRead(ctx context.Context, reportId string) error {
+	args := m.Called(ctx, reportId)
+	return args.Error(0)
+}
+
+func (m *MockReportsStore) MarkUnread(ctx context.Context, reportId string) error {
+	args := m.Called(ctx, reportId)
+	return args.Error(0)
+}
+
 func (m *MockReportsStore) UpdateReport(ctx context.Context, reportId string, batchedUpdates bson.D) error {
 	args := m.Called(ctx, reportId, batchedUpdates)
 	return args.Error(0)

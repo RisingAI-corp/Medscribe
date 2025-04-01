@@ -1015,6 +1015,78 @@ func TestChangeReportName(t *testing.T) {
 		MockReportsStore.AssertExpectations(t)
 	})
 }
+func TestMarkReadAndUnread(t *testing.T) {
+	logger, err := zap.NewDevelopment()
+	assert.Nil(t, err)
+
+	t.Run("should mark report as read when request is valid", func(t *testing.T) {
+		MockReportsStore := new(reports.MockReportsStore)
+		mockInference := new(inferenceService.MockInferenceService)
+		mockUser := new(user.MockUserStore)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
+
+		existingReport := reports.Report{
+			ProviderID: testUserID,
+			ReadStatus:     false,
+		}
+
+		req := ReadStatusRequest{
+			ReportID: testReportID,
+		}
+		body, err := json.Marshal(req)
+		require.NoError(t, err)
+
+		httpReq := httptest.NewRequest(http.MethodPost, "/reports/markRead", bytes.NewBuffer(body))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		rr := httptest.NewRecorder()
+
+		MockReportsStore.On("Get", mock.Anything, testReportID).
+			Return(existingReport, nil).Once()
+
+		MockReportsStore.On("MarkRead", mock.Anything, testReportID).
+			Return(nil).Once()
+
+		handler.MarkRead(rr, httpReq)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+
+		MockReportsStore.AssertExpectations(t)
+	})
+
+	t.Run("should mark report as unread when request is valid", func(t *testing.T) {
+		MockReportsStore := new(reports.MockReportsStore)
+		mockInference := new(inferenceService.MockInferenceService)
+		mockUser := new(user.MockUserStore)
+		handler := NewReportsHandler(MockReportsStore, mockInference, mockUser, logger)
+
+		existingReport := reports.Report{
+			ProviderID: testUserID,
+			ReadStatus:     true,
+		}
+
+		req := ReadStatusRequest{
+			ReportID: testReportID,
+		}
+		body, err := json.Marshal(req)
+		require.NoError(t, err)
+
+		httpReq := httptest.NewRequest(http.MethodPost, "/reports/markUnread", bytes.NewBuffer(body))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		rr := httptest.NewRecorder()
+
+		MockReportsStore.On("Get", mock.Anything, testReportID).
+			Return(existingReport, nil).Once()
+
+		MockReportsStore.On("MarkUnread", mock.Anything, testReportID).
+			Return(nil).Once()
+
+		handler.MarkUnread(rr, httpReq)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+
+		MockReportsStore.AssertExpectations(t)
+	})
+}
 
 func TestUpdateContentData(t *testing.T) {
 	logger, err := zap.NewDevelopment()

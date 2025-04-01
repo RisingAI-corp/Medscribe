@@ -1,4 +1,3 @@
-
 function LandingFooter() {
   const currentYear = new Date().getFullYear();
   return (
@@ -7,7 +6,6 @@ function LandingFooter() {
         <div className="mb-2 md:mb-0 md:ml-auto">
           <p>Copyright © {currentYear} RisingAI</p>
         </div>
-        
       </div>
     </footer>
   );

@@ -7,9 +7,14 @@ import PatientPreviewCard from './PatientPreviewCard/patientPreviewCard';
 import DeleteAllNotesModalContent from './deleteAllNotes';
 import useSearch from '../../hooks/useSearch';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
-import { removePatientsByIdsAtom, PatientRegistryAtom } from './derivedAtoms';
+import {
+  removePatientsByIdsAtom,
+  PatientRegistryAtom,
+  setReadStatusAtom,
+} from './derivedAtoms';
 import { useMutation } from '@tanstack/react-query';
 import { deleteReport } from '../../api/deleteReport';
+import { markRead, markUnRead } from '../../api/toggleReportReadStatus';
 
 export interface PatientPreviewRecord {
   id: string;
@@ -20,6 +25,7 @@ export interface PatientPreviewRecord {
   sessionSummary: string;
   finishedGenerating: boolean;
   loading: boolean;
+  readStatus: boolean;
 }
 
 const PatientRegistryLayout = () => {
@@ -34,6 +40,7 @@ const PatientRegistryLayout = () => {
 
   const [registryList] = useAtom(PatientRegistryAtom);
   const removePatientById = useAtom(removePatientsByIdsAtom);
+  const [, setReadStatus] = useAtom(setReadStatusAtom);
 
   const [filteredResults, query, setQuery] = useSearch(
     registryList,
@@ -44,6 +51,20 @@ const PatientRegistryLayout = () => {
     mutationFn: deleteReport,
     onError: error => {
       console.error('Error deleting reports:', error);
+    },
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: markRead,
+    onError: error => {
+      console.error('Error marking read:', error);
+    },
+  });
+
+  const markUnReadMutation = useMutation({
+    mutationFn: markUnRead,
+    onError: error => {
+      console.error('Error marking unread:', error);
     },
   });
 
@@ -91,6 +112,16 @@ const PatientRegistryLayout = () => {
     removePatientById[1]([id]);
   };
 
+  const handleMarkRead = (id: string) => {
+    setReadStatus({ reportId: id, readStatus: true });
+    markReadMutation.mutate({ ReportID: id, Opened: true });
+  };
+
+  const handleUnMarkRead = (id: string) => {
+    setReadStatus({ reportId: id, readStatus: false });
+    markUnReadMutation.mutate({ ReportID: id, Opened: false });
+  };
+
   return (
     <div className="flex flex-col gap-4 h-screen relative">
       <SearchBox value={query} onChange={setQuery} />
@@ -131,6 +162,9 @@ const PatientRegistryLayout = () => {
                 handleToggleCheckbox={handleToggleCheckbox}
                 onClick={handlePatientClick}
                 handleRemovePatient={handleRemovePatient}
+                handleMarkRead={handleMarkRead}
+                handleUnMarkRead={handleUnMarkRead}
+                readStatus={patient.readStatus}
               />
             </div>
           ))}

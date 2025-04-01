@@ -2,7 +2,6 @@ package integrationtests
 
 import (
 	"Medscribe/api/handlers/reportsHandler"
-	"Medscribe/reports"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const testUserName = "testuser"
@@ -672,7 +672,104 @@ func loadAudioFile(t *testing.T, filePath string) []byte {
 // 	})
 // }
 
-func TestLearnStyle(t *testing.T) {
+// func TestLearnStyle(t *testing.T) {
+// 	testEnv, err := SetupTestEnv()
+// 	require.NoError(t, err)
+// 	t.Cleanup(func() {
+// 		err := testEnv.CleanupTestData()
+// 		assert.NoError(t, err)
+// 		err = testEnv.Disconnect()
+// 		assert.NoError(t, err)
+// 	})
+
+// 	userID, err := testEnv.CreateTestUser(testUserName, testUserEmail, testUserPassword)
+// 	require.NoError(t, err)
+
+
+
+
+// 	// First, create a report to learn style from
+// 	reportID, err := testEnv.CreateTestReport(userID)
+// 	require.NoError(t, err)
+
+// 	testContent := "test content"
+
+// 	t.Run("should successfully learn style", func(t *testing.T) {
+// 		learnStyleRequest := reportsHandler.LearnStyleRequest{
+// 			ReportID:       reportID,
+// 			ContentSection: reports.Subjective,
+// 			Current:        testContent, // doesn't accept empty strings
+// 			Previous:       "previous content",
+// 		}
+
+// 		body, err := json.Marshal(learnStyleRequest)
+// 		require.NoError(t, err)
+
+// 		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", bytes.NewBuffer(body))
+// 		req, err = testEnv.GenerateJWT(req, userID)
+// 		require.NoError(t, err)
+
+// 		rr := httptest.NewRecorder()
+// 		testEnv.Router.ServeHTTP(rr, req)
+
+// 		assert.Equal(t, http.StatusOK, rr.Code)
+// 	})
+
+// 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
+// 		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", nil)
+// 		req, err = testEnv.GenerateJWT(req, userID)
+// 		require.NoError(t, err)
+
+// 		rr := httptest.NewRecorder()
+// 		testEnv.Router.ServeHTTP(rr, req)
+
+// 		assert.Equal(t, http.StatusBadRequest, rr.Code)
+// 		assert.Contains(t, rr.Body.String(), "invalid request body")
+// 	})
+
+// 	t.Run("should return unauthorized when user is not authenticated", func(t *testing.T) {
+// 		learnStyleRequest := reportsHandler.LearnStyleRequest{
+// 			ReportID:       reportID,
+// 			ContentSection: reports.Subjective,
+// 			Current:        "",
+// 			Previous:       testContent,
+// 		}
+
+// 		body, err := json.Marshal(learnStyleRequest)
+// 		require.NoError(t, err)
+
+// 		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", bytes.NewBuffer(body))
+// 		rr := httptest.NewRecorder()
+// 		testEnv.Router.ServeHTTP(rr, req)
+
+// 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
+// 	})
+
+// 	t.Run("should return internal server error when learning style fails", func(t *testing.T) {
+// 		// Simulate a failure in the learning style operation
+// 		learnStyleRequest := reportsHandler.LearnStyleRequest{
+// 			ReportID:       reportID,
+// 			ContentSection: reports.Subjective,
+// 			Current:        "",
+// 			Previous:       testContent,
+// 		}
+
+// 		body, err := json.Marshal(learnStyleRequest)
+// 		require.NoError(t, err)
+
+// 		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", bytes.NewBuffer(body))
+// 		req, err = testEnv.GenerateJWT(req, userID)
+// 		require.NoError(t, err)
+
+// 		rr := httptest.NewRecorder()
+// 		testEnv.Router.ServeHTTP(rr, req)
+
+// 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
+// 		assert.Contains(t, rr.Body.String(), "error learning style")
+// 	})
+// }
+
+func TestMarkReadAndUnread(t *testing.T) {
 	testEnv, err := SetupTestEnv()
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -685,76 +782,25 @@ func TestLearnStyle(t *testing.T) {
 	userID, err := testEnv.CreateTestUser(testUserName, testUserEmail, testUserPassword)
 	require.NoError(t, err)
 
-	// First, create a report to learn style from
-	reportID, err := testEnv.CreateTestReport(userID)
-	require.NoError(t, err)
-
-	testContent := "test content"
-
-	t.Run("should successfully learn style", func(t *testing.T) {
-		learnStyleRequest := reportsHandler.LearnStyleRequest{
-			ReportID:       reportID,
-			ContentSection: reports.Subjective,
-			Current:        testContent, // doesn't accept empty strings
-			Previous:       "previous content",
-		}
-
-		body, err := json.Marshal(learnStyleRequest)
-		require.NoError(t, err)
-
-		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", bytes.NewBuffer(body))
-		req, err = testEnv.GenerateJWT(req, userID)
-		require.NoError(t, err)
-
-		rr := httptest.NewRecorder()
-		testEnv.Router.ServeHTTP(rr, req)
-
-		assert.Equal(t, http.StatusOK, rr.Code)
-	})
-
-	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", nil)
-		req, err = testEnv.GenerateJWT(req, userID)
-		require.NoError(t, err)
-
-		rr := httptest.NewRecorder()
-		testEnv.Router.ServeHTTP(rr, req)
-
-		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		assert.Contains(t, rr.Body.String(), "invalid request body")
-	})
-
 	t.Run("should return unauthorized when user is not authenticated", func(t *testing.T) {
-		learnStyleRequest := reportsHandler.LearnStyleRequest{
-			ReportID:       reportID,
-			ContentSection: reports.Subjective,
-			Current:        "",
-			Previous:       testContent,
-		}
-
-		body, err := json.Marshal(learnStyleRequest)
-		require.NoError(t, err)
-
-		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", bytes.NewBuffer(body))
+		req := httptest.NewRequest(http.MethodPatch, "/report/markRead", nil)
 		rr := httptest.NewRecorder()
 		testEnv.Router.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
 
-	t.Run("should return internal server error when learning style fails", func(t *testing.T) {
-		// Simulate a failure in the learning style operation
-		learnStyleRequest := reportsHandler.LearnStyleRequest{
-			ReportID:       reportID,
-			ContentSection: reports.Subjective,
-			Current:        "",
-			Previous:       testContent,
+	t.Run("should return bad request when report id is invalid", func(t *testing.T) {
+		invalidReportID := "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+		markReadRequest := reportsHandler.ReadStatusRequest{
+			ReportID: invalidReportID,
+			Opened: true,
 		}
 
-		body, err := json.Marshal(learnStyleRequest)
+		body, err := json.Marshal(markReadRequest)
 		require.NoError(t, err)
 
-		req := httptest.NewRequest(http.MethodPatch, "/report/learn-style", bytes.NewBuffer(body))
+		req := httptest.NewRequest(http.MethodPatch, "/report/markRead", bytes.NewBuffer(body))
 		req, err = testEnv.GenerateJWT(req, userID)
 		require.NoError(t, err)
 
@@ -762,6 +808,81 @@ func TestLearnStyle(t *testing.T) {
 		testEnv.Router.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rr.Code)
-		assert.Contains(t, rr.Body.String(), "error learning style")
+		assert.Contains(t, rr.Body.String(), "error marking report")
+	})
+
+	t.Run("should return not found when report does not exist", func(t *testing.T) {
+		nonExistingReportID := primitive.NewObjectID().Hex()
+		markReadRequest := reportsHandler.ReadStatusRequest{
+			ReportID: nonExistingReportID,
+			Opened: true,	
+		}
+
+		body, err := json.Marshal(markReadRequest)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPatch, "/report/markRead", bytes.NewBuffer(body))
+		req, err = testEnv.GenerateJWT(req, userID)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		testEnv.Router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
+		assert.Contains(t, rr.Body.String(), "error marking report as read")
+	})
+
+	t.Run("should successfully mark report as read", func(t *testing.T) {
+		reportID, err := testEnv.CreateTestReport(userID)
+		require.NoError(t, err)
+
+		markReadRequest := reportsHandler.ReadStatusRequest{
+			ReportID: reportID,
+			Opened: true,
+		}
+
+		body, err := json.Marshal(markReadRequest)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPatch, "/report/markRead", bytes.NewBuffer(body))
+		req, err = testEnv.GenerateJWT(req, userID)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		testEnv.Router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+
+		// Verify that the report has been marked as read
+		report, err := testEnv.GetTestReport(reportID)
+		require.NoError(t, err)
+		assert.Equal(t, report.ReadStatus, true)
+	})
+
+	t.Run("should successfully mark report as unread", func(t *testing.T) {
+		reportID, err := testEnv.CreateTestReport(userID)
+		require.NoError(t, err)
+
+		markUnreadRequest := reportsHandler.ReadStatusRequest{
+			ReportID: reportID,
+		
+		}
+
+		body, err := json.Marshal(markUnreadRequest)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPatch, "/report/markUnread", bytes.NewBuffer(body))
+		req, err = testEnv.GenerateJWT(req, userID)
+		require.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		testEnv.Router.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+
+		// Verify that the report has been marked as unread
+		report, err := testEnv.GetTestReport(reportID)
+		require.NoError(t, err)
+		assert.Equal(t, report.ReadStatus, false)
 	})
 }

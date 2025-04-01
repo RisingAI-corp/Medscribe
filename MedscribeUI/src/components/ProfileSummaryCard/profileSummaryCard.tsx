@@ -50,7 +50,6 @@ function ProfileSummaryCard({
           </Tooltip>
         </div>
       </div>
-      <div className="text-sm text-gray-600">One Liner</div>
       <div className="text-sm text-gray-600 mb-5">{description}</div>
     </div>
   );

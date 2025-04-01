@@ -109,6 +109,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 
 	// transcribe audio
 	transcribedAudio, err := s.transcriptionService.Transcribe(ctx, report.AudioBytes)
+	fmt.Println(transcribedAudio, "check check check")
 
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error transcribing audio: %w", err)

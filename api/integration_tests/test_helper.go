@@ -52,7 +52,7 @@ func SetupTestEnv() (*TestEnv, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	mongoURI := os.Getenv("MONGODB_URI")
+	mongoURI := os.Getenv("MONGODB_URI_DEV")
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %v", err)

@@ -23,10 +23,10 @@ function LandingNav() {
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={() => void navigate('/Auth')}>
+        <Button variant="outline" onClick={() => void navigate('/SignUp')}>
           Sign Up
         </Button>
-        <Button variant="filled" onClick={() => void navigate('/Auth')}>
+        <Button variant="filled" onClick={() => void navigate('/SignIn')}>
           Sign In
         </Button>
       </div>

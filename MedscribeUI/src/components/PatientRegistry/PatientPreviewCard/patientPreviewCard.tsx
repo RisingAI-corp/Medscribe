@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Checkbox, Loader } from '@mantine/core';
+import { IoMdMail, IoMdMailOpen, IoMdMailUnread } from 'react-icons/io';
 
 export interface PatientPreviewCardProps {
   id: string;
@@ -12,9 +13,12 @@ export interface PatientPreviewCardProps {
   isSelected: boolean;
   isChecked: boolean;
   selectAllToggle: boolean;
+  readStatus: boolean;
   onClick: (id: string) => void;
   handleRemovePatient: (id: string) => void;
   handleToggleCheckbox: (id: string, checked: boolean) => void;
+  handleMarkRead: (id: string) => void;
+  handleUnMarkRead: (id: string) => void;
 }
 
 const PatientPreviewCard = ({
@@ -31,12 +35,16 @@ const PatientPreviewCard = ({
   onClick,
   handleRemovePatient,
   handleToggleCheckbox,
+  handleMarkRead,
+  handleUnMarkRead,
+  readStatus,
 }: PatientPreviewCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
   };
+
   const handleMouseLeave = () => {
     setIsHovered(false);
   };
@@ -45,6 +53,8 @@ const PatientPreviewCard = ({
     handleToggleCheckbox(id, checked);
   };
 
+  console.log('new read status ', readStatus);
+
   return (
     <div
       className={`flex items-center justify-between px-3 py-2 border border-gray-300 rounded bg-white cursor-pointer transition-colors duration-300 relative 
@@ -52,6 +62,9 @@ const PatientPreviewCard = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => {
+        if (!readStatus && !loading) {
+          handleMarkRead(id);
+        }
         onClick(id);
       }}
     >
@@ -66,7 +79,12 @@ const PatientPreviewCard = ({
       )}
 
       <div className="ml-3 flex-grow">
-        <div className="font-bold text-sm text-gray-800 mb-1">
+        <div
+          className={` ${
+            readStatus ? 'font-normal' : 'font-bold'
+          } font-bold text-sm text-gray-800 mb-1 
+          }`}
+        >
           {patientName}
         </div>
         <div className="text-xs text-gray-600">
@@ -78,18 +96,52 @@ const PatientPreviewCard = ({
       {loading ? (
         <Loader size="sm" color="blue" />
       ) : (
-        <span
-          onClick={event => {
-            event.stopPropagation();
-            handleRemovePatient(id);
-          }}
-          className={`cursor-pointer ${isHovered ? 'block' : 'hidden'}`}
-          title="Delete"
-          role="button"
-          aria-label="delete"
-        >
-          🗑️
-        </span>
+        <div className="flex items-center">
+          {/* Conditional Mail Log Icon (Open or Unread) */}
+          {readStatus ? (
+            <span
+              onClick={event => {
+                event.stopPropagation();
+                handleUnMarkRead(id); // Handle the mark as unread action
+              }}
+              className={`cursor-pointer ml-4 ${isHovered ? 'block' : 'hidden'}`} // Increased margin and space
+              title="Open Mail Log"
+              role="button"
+              aria-label="open-mail-log"
+            >
+              <IoMdMailOpen className="text-gray-500" size={18} />{' '}
+              {/* Grey color for open mail */}
+            </span>
+          ) : (
+            <span
+              onClick={event => {
+                event.stopPropagation();
+                handleMarkRead(id); // Handle the mark as unread action
+              }}
+              className={`cursor-pointer ml-4 ${isHovered ? 'block' : 'hidden'}`} // Increased margin and space
+              title="Open Mail Log"
+              role="button"
+              aria-label="open-mail-log"
+            >
+              <IoMdMailUnread className="text-gray-500" size={18} />{' '}
+              {/* Grey color for unread mail */}
+            </span>
+          )}
+
+          {/* Trash Icon */}
+          <span
+            onClick={event => {
+              event.stopPropagation();
+              handleRemovePatient(id);
+            }}
+            className={`cursor-pointer ml-4 ${isHovered ? 'block' : 'hidden'}`} // Adjust margin for spacing
+            title="Delete"
+            role="button"
+            aria-label="delete"
+          >
+            🗑️
+          </span>
+        </div>
       )}
     </div>
   );

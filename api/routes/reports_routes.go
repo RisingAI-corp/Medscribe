@@ -25,5 +25,9 @@ func ReportRoutes(handler reportsHandler.ReportsHandler) *chi.Mux {
 
 	r.Post("/getTranscript", handler.GetTranscript)
 
+	r.Patch("/markRead", handler.MarkRead)
+
+	r.Patch("/markUnread", handler.MarkUnread)
+
 	return r
 }

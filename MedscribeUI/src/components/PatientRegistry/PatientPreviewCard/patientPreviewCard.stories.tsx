@@ -15,6 +15,13 @@ const samplePatientData: PatientPreviewCardProps = {
   loading: false,
   isChecked: false,
   selectAllToggle: false,
+  readStatus: false,
+  handleMarkRead: (id: string) => {
+    console.log(`Mark patient with ID: ${id} as read`);
+  },
+  handleUnMarkRead: (id: string) => {
+    console.log(`Mark patient with ID: ${id} as unread`);
+  },
   handleRemovePatient: (id: string) => {
     console.log(`this is the patient you want to remove: ${id}`);
   },

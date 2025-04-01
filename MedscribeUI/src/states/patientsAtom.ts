@@ -21,6 +21,7 @@ export interface Report {
   condensedSummary: string;
   finishedGenerating: boolean;
   transcript: string;
+  readStatus: boolean;
 }
 
 // //TODO: remove when apis are built
