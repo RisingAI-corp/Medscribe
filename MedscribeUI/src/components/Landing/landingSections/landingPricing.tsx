@@ -37,11 +37,6 @@ const PricingCard = ({
 const LandingPricing = () => {
   return (
     <div className="w-full h-full flex items-center justify-center relative bg-cover bg-center">
-      <img
-        src={landingBackground}
-        alt="Landing Background"
-        className="absolute inset-0 w-full h-full object-contain -z-10"
-      />
       <div className="max-w-6xl mx-auto px-4 py-12 relative">
         {/* Centered Pricing grid */}
         <div className="flex flex-wrap justify-center gap-10 max-w-7xl mx-auto">
