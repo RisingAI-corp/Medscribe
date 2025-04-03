@@ -91,8 +91,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={renderAuthComponent()} />
-        <Route path="/SignUp" element={<AuthScreen initialSignUp={true} />} />
-        <Route path="/SignIn" element={<AuthScreen initialSignUp={false} />} />
+        <Route path="/SignUp" element={<AuthScreen />} />
+        <Route path="/SignIn" element={<AuthScreen />} />
       </Routes>
     </BrowserRouter>
   );
