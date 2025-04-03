@@ -5,6 +5,8 @@ import App from './App';
 import '@mantine/core/styles.css';
 import '@mantine/tiptap/styles.css';
 import './index.css';
+import '@mantine/notifications/styles.css';
+import { Notifications } from '@mantine/notifications';
 
 import { MantineProvider } from '@mantine/core';
 
@@ -14,6 +16,7 @@ if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <MantineProvider>
+        <Notifications />
         <QueryClientProvider client={queryClient}>
           <App />
         </QueryClientProvider>

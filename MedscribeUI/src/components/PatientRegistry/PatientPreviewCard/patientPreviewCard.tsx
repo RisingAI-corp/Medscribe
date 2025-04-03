@@ -62,7 +62,7 @@ const PatientPreviewCard = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={() => {
-        if (!readStatus && !loading) {
+        if (!readStatus) {
           handleMarkRead(id);
         }
         onClick(id);

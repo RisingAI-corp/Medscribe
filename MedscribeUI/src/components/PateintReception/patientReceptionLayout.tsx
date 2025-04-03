@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { LiveAudioVisualizer } from 'react-audio-visualize';
 import WarningModal from './warningModal';
 import PatientInfoModal from './PatientInfoModal';
@@ -66,6 +67,15 @@ const PatientReception = () => {
       formData: FormData;
       metadata: GenerateReportMetadata;
     }) => generateReport(formData, metadata),
+    onMutate: () => {
+      notifications.show({
+        loading: true,
+        title: 'Generating Report',
+        message: 'This make take anywhere from 10 seconds to 2 minutes',
+        autoClose: 5000,
+        withCloseButton: false,
+      });
+    },
     onSuccess: async reader => {
       setPatientName('');
       await processStream(reader);

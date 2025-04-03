@@ -704,12 +704,12 @@
   resolved "https://registry.npmjs.org/@mantine/modals/-/modals-7.16.3.tgz#8577fa7ec9960266a7c2120059902c77edd26624"
   integrity sha512-BJuDzRugK6xLbuFTTo8NLJumVvVmSYsNVcEtmlXOWTE3NkDGktBXGKo8V1B0XfJ9/d/rZw7HCE0p4i76MtA+bQ==
 
-"@mantine/notifications@^7.12.2":
-  version "7.16.3"
-  resolved "https://registry.npmjs.org/@mantine/notifications/-/notifications-7.16.3.tgz#945cf242af1fe422dc4dfd7e61be099cc6edf29f"
-  integrity sha512-wtEME9kSYfXWYmAmQUZ8c+rwNmhdWRBaW1mlPdQsPkzMqkv4q6yy0IpgwcnuHStSG9EHaQBXazmVxMZJdEAWBQ==
+"@mantine/notifications@^7.17.3":
+  version "7.17.3"
+  resolved "https://registry.npmjs.org/@mantine/notifications/-/notifications-7.17.3.tgz#156d74b5b5acd6d14028a5e77c3ec622413ab1ae"
+  integrity sha512-MqakDqu/CZzO4arZGpXs3TmGTajqL4xm28vtqW4qWFSU5HZWQ4EosqipqvIJ+swC6YbxNiWvFcfnxxPlHdYk9g==
   dependencies:
-    "@mantine/store" "7.16.3"
+    "@mantine/store" "7.17.3"
     react-transition-group "4.4.5"
 
 "@mantine/nprogress@^7.12.2":
@@ -730,6 +730,11 @@
   version "7.16.3"
   resolved "https://registry.npmjs.org/@mantine/store/-/store-7.16.3.tgz#4f464308803f844f555c2ea6f2f06e6a7a5e88fe"
   integrity sha512-6M2M5+0BrRtnVv+PUmr04tY1RjPqyapaHplo90uK1NMhP/1EIqrwTL9KoEtCNCJ5pog1AQtu0bj0QPbqUvxwLg==
+
+"@mantine/store@7.17.3":
+  version "7.17.3"
+  resolved "https://registry.npmjs.org/@mantine/store/-/store-7.17.3.tgz#6f2b623d28bd8f4b74c8f2e013544c858fc999d9"
+  integrity sha512-wXQXe/Ljv2N6TDRsoVwOHmTGZey7Nt/SS6VeeMujKeNnAybPPXaP1jIbN50MKJoDS4qVPCHJNaHwVKIgMur2aQ==
 
 "@mantine/tiptap@^7.12.2":
   version "7.16.3"

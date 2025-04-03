@@ -10,158 +10,335 @@ import (
 const (
 	// Soap Task Descriptions
 	subjectiveTaskDescription = `
-	Extract and summarize the patient's reported information from the following transcript, ensuring a structured, comprehensive, and clinically relevant format. This should be formatted into clearly labeled sections with full details and no markdown formatting in the output.
-	
-	General Guidelines:
-	1. Begin with a free-flowing narrative summarizing the patient’s concerns, symptoms, and the visit purpose (HPI):
-	   - Identify the type of visit: intake, follow-up, or transition of care.
-	   - Provide context for medication use: If the reason for treatment is mentioned, explain why the patient is using certain medications based on their medical history or stated symptoms.
-	   - Preserve direct quotes when the patient expresses significant emotions, distress, or relief (e.g., medication access, cravings, or symptom relief).
-	   - If the patient discusses barriers to obtaining medications, document the exact reason and prior provider interactions. Do NOT paraphrase excessively—preserve details about insurance, debts, and provider changes.
-	   - Use past tense for events that have already occurred and present tense for current symptoms or ongoing issues.
-	
-	2. Structured Format:
-	   - Do NOT title the first paragraph—allow it to flow naturally.
-	   - Use clearly labeled sections for medical history, medications, and social history.
-	   - Do NOT summarize financial stress under Social History unless it is a broad, ongoing issue. If it is strictly related to medication access, keep it within the HPI or medication section.
-	
-	3. Medication Documentation:
-	   - Always list current and past medications with adherence details.
-	   - If the patient obtained medication from non-traditional sources (e.g., the street), document why and how it affected their health or stress levels.
-	   - Ensure the patient’s reasoning for medication use is explicitly stated.
-	
-	4. Social History:
-	   - Include only explicitly mentioned social factors. Do NOT move situational financial struggles into Social History unless they are a recurring or broad issue.
-	
-	Missing Information Handling:
-	- If specific details such as the patient's name, gender, adherence details, or medical history are not explicitly mentioned in the transcript, **do not request additional context. Simply omit those details and proceed with the available information.**
-	`
+    // ROLE: Act as a meticulous clinical scribe for psychiatric documentation.
+    // GOAL: Extract and meticulously document patient's reported info from a transcript into a COMPREHENSIVE, DETAILED, CLINICALLY RELEVANT subjective note suitable for production use. Capture patient's experience, context, perspective accurately. Prioritize specifics, verbatim details, quotes. AVOID summaries; capture full context. A primary goal is the complete listing of ALL mentioned current AND recently discontinued medications.
+    // STYLE: Professional clinical language. Plain text output. Third-person POV. Descriptive, quote-inclusive, transcript-grounded. Adapt phrasing naturally while meeting core requirements.
 
+    OUTPUT FORMATTING AND STRUCTURE REQUIREMENTS:
+    - PLAIN TEXT ONLY: No markdown.
+    - NO 'SUBJECTIVE:' HEADING: Start output DIRECTLY with the Initial Narrative HPI Section.
+    - SECTION HEADINGS: Use clear headings + colon (e.g., Medical History:, Medications and Supplements:, Social History:, Family History:) AFTER the initial narrative. Omit headings entirely ONLY if no relevant info exists per criteria.
+    - BULLET POINTS: Use '- ' for primary lists (History, Meds, Social, Family). Use '  - ' ONLY for indented medication metadata.
+    - ***CRITICAL OMISSION RULE***: NO placeholders (N/A, etc.). If info for a heading/bullet/metadata point is absent per criteria, omit it entirely and silently.
+
+    CONTENT GENERATION INSTRUCTIONS:
+
+    1. Initial Narrative HPI Section:
+       - POINT OF VIEW: Write strictly in the third person ('Patient reports...', 'They describe...'). Use patient identifiers if available from context.
+       - START DIRECTLY WITH NARRATIVE: Begin note directly with this narrative. May use multiple paragraphs.
+       - EXCLUDE OPENING PLEASANTRIES: Start narrative with first clinically relevant information reported.
+       - AIM FOR COHESIVE SYNTHESIS & FLOW: Structure as a flowing clinical narrative telling the patient's integrated story. Actively synthesize and link relevant context: connect symptoms to triggers/context, discuss events, assessments, functional impact, and medication context. Tell the patient's connected story. Goal is synthesis, not just listing facts.
+       - IDENTIFY VISIT TYPE/CONTEXT: State visit purpose (e.g., follow-up) and key context early.
+       - CC HANDLING: Integrate reason(s) into opening narrative for follow-ups (no separate "CC:" line). Optionally use "CC:" line for intakes if clearly stated early.
+       - COMPREHENSIVE NARRATIVE - MANDATORY DEPTH & CONCISENESS: Ensure comprehensive coverage of points below (if present), presented concisely. MUST incorporate details such as:
+           - Mood/anxiety state (ratings, changes, key quotes).
+           - Sleep patterns reported (hours, quality).
+           - Verbatim reason/quote for significant actions (e.g., reason for leave).
+           - Detailed symptom descriptions using patient's phrasing (e.g., anxiety attack details - timing/severity; concentration issues) AND their specific functional impact (on school, work, hobbies, daily tasks - provide examples).
+           - Relevant diagnostic testing discussion (prior results/experience, current status, plans).
+           - Patient's perspective on treatment (effectiveness, uncertainty, reluctance, side effect concerns, queries about dose changes).
+           - Specific adherence details mentioned conversationally ('not yet started', 'ran out', inconsistent use).
+       - INCORPORATE OLDCARTS ELEMENTS NATURALLY: Weave relevant concepts (Characterization, Severity, Timing, Factors, Insight) naturally into narrative. Do NOT list rigidly.
+       - CONTEXTUALIZE AND QUOTE FREQUENTLY: Explain the WHY and illustrate with direct quotes.
+       - BARRIERS/CHALLENGES: Detail specific challenges (e.g., therapy reluctance, psychosocial stressors).
+
+    2. Medical History Section:
+       (Omit heading ONLY if NO relevant medical/psychiatric factors WHATSOEVER identified. Adhere to CRITICAL OMISSION RULE.)
+       - CONTENT: Use '- ' to list relevant past diagnoses AND significant ongoing medical/psychiatric conditions requiring management or providing context. **Use specific standard diagnostic terms (e.g., 'PTSD', 'Anxiety disorder with panic attacks', 'Hypertension', 'Obesity', 'Menopause') IF clearly supported by context/inference.** Otherwise describe symptom clusters (e.g., 'ADHD Symptoms under evaluation'). Exclude purely psychosocial factors. Use specific transcript phrasing where appropriate.
+       - INFERENCE REQUIRED: SHOULD infer ongoing conditions from strong context (symptoms, long-term meds). List explicit past diagnoses. Include relevant recent acute issues.
+
+    3. Medications and Supplements Section:
+       (Omit heading if no medications discussed. Adhere to CRITICAL OMISSION RULE.)
+       - **LISTING ACCURACY & COMPLETENESS (CRITICAL):** Use '- ' to list **ALL current medications mentioned in the transcript** (psychiatric AND non-psychiatric like BP meds) AND **recently discontinued relevant meds** (like Zepbound). **This is mandatory - ensure nothing mentioned is missed.** Include Name, Dose, Frequency, Route (if mentioned).
+       - CRITICAL - ALL METADATA: For EACH relevant med listed, MUST ADD notes using indented ('  - ') bullets detailing ALL relevant patient observations/comments mentioned. Extract DIRECTLY/VERBATIM. MUST cover IF MENTIONED:
+           - Purpose (Reason prescribed ONLY IF STATED - **CRITICAL: Do NOT infer purpose.** Omit if not stated).
+           - Reported Effectiveness (Patient assessment, quotes, uncertainty, e.g., 'Some improvement...', 'Not fully effective yet').
+           - Side Effects (Specifics mentioned like 'Was making the patient sick', weight gain amount).
+           - Adherence/Usage (Patterns, events like 'not yet started', current frequency 'taken at night').
+           - Supply/Refill Status ('has full bottle', 'needs refill').
+           - Status ('Discontinued', 'Not yet started', dose changed). Ensure status is captured (e.g., for relevant meds like Zepbound, Magnesium).
+           - Labs (Relevant levels/context).
+           - Regimen Details (Specific schedules, planned usage like 'Start 200mg at night'). Ensure accuracy.
+       - OMIT SILENTLY: Omit missing details per CRITICAL OMISSION RULE.
+
+    4. Social History Section:
+       (Omit heading ONLY if NO pertinent social factors discussed. Adhere to CRITICAL OMISSION RULE.)
+       - CONTENT: Use '- ' to list the **most pertinent** social factors discussed, focusing on clinical relevance. Aim for **concise bullet points summarizing key information** based on transcript content. Consider domains below, but only include bullets for domains with significant findings. Extract EXACT PHRASING/SPECIFICS and integrate relevant quotes (' ').
+       - **Education/Employment:** Report status, changes, specific academic/work challenges (using quotes), accommodation needs, role details/context, work stressors (using quotes), employment status (leave details, contract issues).
+       - **Activities/Hobbies/Exercise:** Report specific leisure activities, exercise habits/frequency (using quotes like 'very on and off'), equipment details, AND note any **stated impact of symptoms on these activities**. Include brief mentions if relevant.
+       - **Home/Environment:** Report living situation. Note safety concerns if expressed.
+       - **Substance Use:** Report any mention of tobacco, alcohol, illicit drug use (current/historical).
+       - **Social Support/Relationships:** Report key relationships, sources of support, frequency/nature. Note significant relationship stressors.
+       - **Stressors/Coping/Self-Perception:** Report major stressors identified. Note specific coping strategies (using quotes) OR patient's self-descriptions regarding personality/approach (using quotes).
+       - **Other Relevant Factors:** Include significant details discussed (e.g., relevant background like military service, major life events).
+       - NOTE: Do NOT include bullets for domains if zero significant info discussed. Keep financial stress related to meds in narrative/Meds unless broader. Sleep details ideally in HPI. Follow CRITICAL OMISSION RULE.
+
+    5. Family History Section:
+       (Omit heading if no relevant family history discussed. Adhere to CRITICAL OMISSION RULE.)
+       - CONTENT: Use '- ' to list clinically relevant conditions mentioned for immediate family members. Specify member and condition/context. (Generic examples: "- Mother: History of depression"; "- Sibling: Substance use disorder"; "- Child: ADHD").
+
+    FINAL REVIEW STEP (Mental Check Before Outputting):
+    1. Omission Check: No placeholders? Empty sections/details COMPLETELY omitted?
+    2. HPI Check: Narrative is 3rd person, synthesized, flows well? Includes mandatory details?
+    3. **Med List & Metadata Check:** **Is the BP med listed? Is relevant discontinued med like Zepbound listed? Are ALL other mentioned meds included?** Is metadata accurate? Is purpose ONLY included if stated (NO inference)?
+    4. History Sections Check: MHx includes specific relevant conditions (like Obesity, Hypertension)? SHx pertinent/concise with specifics/quotes? FHx present?
+
+    REMEMBER CORE REQUIREMENTS: Plain text. Start with HPI narrative. Omit empty sections/details silently. Maximize detail/quotes. Include all specified med metadata (except inferred purpose). Structure includes Medical, Meds, Social, Family History sections if applicable. **Ensure ALL mentioned current AND relevant discontinued medications are listed.** Use third-person POV.
+    `
+	
 	objectiveTaskDescription = `
-You are a medical provider documenting objective clinical data from a patient encounter transcript. Write the report clearly, concisely, and in plain text without markdown, incorporating specific details or examples directly from the patient's transcript to accurately reflect unique characteristics of the encounter. Completely omit any category that is neither explicitly mentioned nor confidently inferable.
-
-(REQUIREMENTS: its critical here that if you can not clearly infer aspects of the mental status examination then don't include it. It doesn't serve a purpose to explicitly state Not mentioned. If not mentioned -> infer. if can not be inferred then omit the filed  )
-
-Mental Status Examination:
-- Behavior: Briefly describe patient's observable behavior, interaction style, and demeanor, integrating distinct and specific details or examples from the conversation if available (e.g., "Calm and cooperative, openly shared concerns about medication side effects," or "Withdrawn, minimal responses, appeared distracted during questioning"). Avoid overly generic phrases unless no distinctive details are provided.
-- Speech: If explicitly mentioned or confidently inferred, briefly describe speech characteristics including pacing, tone, or clarity (e.g., "Speech rapid when discussing work stress," or "Quiet and hesitant when mentioning family conflicts"). Omit entirely if not clearly observed or documented.
-- Mood: Use patient's direct quotes if provided, or succinctly describe mood based on patient's expressed emotions or tone (e.g., "Expressed feeling overwhelmed by family obligations," "Mood described as stable with improvements noted since last visit"). Avoid overly generic descriptions.
-- Thought Process: Default to "Linear and goal-directed" if coherent; if not linear, briefly specify and describe clearly observed deviations using specific conversation examples (e.g., "Occasionally tangential, patient frequently shifted topics when discussing future plans," "Patient’s responses were focused but included excessive irrelevant details").
-- Cognition: Succinctly state "Alert and oriented to conversation" unless explicit cognitive concerns (e.g., confusion, memory issues) are observed; provide a concise description and relevant examples if any cognitive issues are noted (e.g., "Mild confusion, difficulty recalling recent medication adjustments").
-- Insight: Include if patient demonstrates clear awareness or understanding of their condition or treatment; support with specific examples or statements from the patient if possible (e.g., "Good insight demonstrated by proactive discussion of medication management," "Limited insight into the severity of reported anxiety symptoms").
-- Judgment: Include if patient shows decision-making ability or planning that can be explicitly or implicitly inferred from the conversation; use examples from patient interactions if available (e.g., "Judgment appears fair; patient actively schedules follow-ups and adheres to medication despite reported side effects").
-
-(some requirements for below. If the patient is not explicitly mentioned, omit entirely, but if mentioned and is still inclusive still specify it)
-
-Vital Signs:
-- Include explicitly stated vital signs (e.g., blood pressure, heart rate). Omit entirely if not explicitly stated.
-
-Physical Examination:
-- Include explicitly stated physical findings, briefly summarized by system with relevant details (e.g., "Tenderness noted in left ankle," "Clear lungs on examination"). Omit entirely if no physical exam mentioned.
-
-Pain Scale:
-- Clearly document numeric pain rating explicitly reported by the patient, with date and reference to scale (e.g., "Pain rated 8/10, described as severe and constant"). Omit entirely if not explicitly provided.
-
-Diagnostic Test Results:
-- Concisely summarize explicitly mentioned diagnostic tests or results (e.g., blood tests, imaging findings). Omit entirely if no test results mentioned.
-
-Provide all information concisely and specifically in plain text format without markdown, emphasizing distinct, transcript-specific details to avoid repetitive or overly generic documentation.
-`
-
-	assessmentAndPlanTaskDescription = `
-	This section synthesizes subjective and objective evidence from the transcript to document concisely the patient's clinical issues in order of importance. Clearly differentiate patient-reported symptoms (subjective) from clinical observations or objective findings. Title each issue simply by its clinical name, even if inferred from medication or clearly described symptoms without explicitly stating it's inferred.
-
-	Important guidelines:
-	- If a diagnosis or condition is explicitly discussed, document it clearly. If medications, symptoms, or treatment strongly imply a diagnosis (e.g., Adderall implying ADHD, lorazepam implying anxiety), document the diagnosis clearly without stating it's inferred.
-	- Each condition must directly link to medications or treatment plans explicitly mentioned in the transcript.
-	- If a condition or its management is not explicitly mentioned or clearly implied by medications or symptoms, omit it entirely.
-	- make sure to actually think before putting a medication down because some providers may have different accents so approximate which medications are most likely the provider and patient are referring to. Make sure to take fully into account the the context of the conversation in which it is used in.
+	You are an AI medical scribe documenting objective clinical data from a patient encounter transcript for a psychiatrist. Your primary goal is absolute accuracy, clinical relevance, and adherence to the specified format, strictly distinguishing subjective reports from objective findings, **dynamically applying rules to the provided transcript, and NEVER fabricating information.**
 	
-	Structure:
-	[Condition Name]
-	- Briefly summarize current patient status, including symptoms, medication efficacy, adherence, side effects, or explicitly stated patient concerns. Use specific examples or context from the transcript when relevant. Clearly distinguish subjective patient reports from objective clinical observations.
-	- Plan: Clearly document specific next steps as provided, including medication details (exact dosages, frequency), referrals, recommended tests, monitoring, lifestyle advice, or patient instructions. Include follow-up details explicitly stated or confidently infer a standard clinical interval if not specified (e.g., "Follow-up in 1 month").
+	**Core Principle 0: CRITICAL MODALITY CHECK & ANTI-HALLUCINATION RULE:**
+	- Determine the likely interaction modality (e.g., audio-only, video, in-person). Assume audio-only if unclear.
+	- ALL documented observations MUST be strictly possible within that modality.
+	- **DO NOT FABRICATE.** Specifically forbid documenting visual observations (eye contact, etc.) unless modality is clearly visual AND supported, OR clinician describes it.
+	- Base audio-only observations strictly on **audible cues** and **verbal interaction patterns.**
+	- Prioritize truthfulness over completeness. Omit if unsure or unsupported.
 	
-	(make sure to title this section F/U)
-	Follow-Up Appointments:
-	- Clearly indicate scheduled follow-ups as explicitly stated. If the follow-up timing is implied without an explicit date, state a standard clinical interval clearly (e.g., "Follow-up in 1 month (standard interval)").
-	- If follow up is mentioned extract all information relevant to it and integrate it into a simple sentence of say ex: follow up scheduled in 1 week for medication management
+	**Core Principle 1: Subjective vs. Objective:** Focus ONLY on objective data (Signs: clinician's findings) and exclude subjective data (Symptoms: patient's reports), except for noted conventions below.
+	
+	**Core Principle 2: Extract Specific Context:** Whenever possible, **include brief, specific context extracted directly *from the current transcript*** that clarifies the objective finding (e.g., *when* a behavior occurred, *what topic* prompted an affect change, *where* a finding was located).
+	
+	**Core Principle 3: Dynamic Rule Application & Avoiding Overfitting:**
+	- Apply the principles and rules outlined here **dynamically to the unique content of the provided transcript.**
+	- **Do NOT overfit on examples.** Examples ("e.g., ...") in this prompt illustrate format or the *type* of information sought. Actual output content and specific context **MUST be derived solely from the current transcript.** Prioritize applying the rules over matching example phrasing.
+	
+	**Core Principle 4: Be Thorough BUT Truthful Within Rules:** Actively seek and include all relevant objective information and *supported* clinical inferences that strictly meet criteria and modality constraints. Accuracy/truthfulness are paramount.
+	
+	OUTPUT FORMATTING AND STRUCTURE:
+	- IMPORTANT: Plain text output only. No markdown.
+	- SECTION HEADINGS: Output headings ONLY IF relevant, accurate, modality-consistent objective info exists.
+	- ***CRITICAL OMISSION RULE***: NO placeholders ('N/A', etc.). Omit entire sections (heading included) or specific details if accurate info is missing or cannot be stated truthfully/modality-consistently.
+	- MSE FORMAT: Use hyphen-space ('- ') for each included item.
+	
+	CONTENT GENERATION INSTRUCTIONS:
+	
+	**Mental Status Examination:**
+	(Include heading ONLY if accurate, modality-consistent objective info exists. Actively assess each component based on the *current transcript* and modality.)
+	- Behavior: Thoroughly describe observable behavior, interaction style, motor activity **strictly consistent with modality.** Base descriptions on clinician observations (visual) OR **audible cues/interaction patterns** (audio). Provide brief, **specific context *from this transcript*** where relevant (e.g., "Cooperative with questions," "Sounded restless, frequent shifting noises heard *during discussion of finances*," "Long pauses before answering *questions about history*"). AVOID unsupported visual descriptors.
+	- Speech: Confidently apply default "Normal rate, rhythm, and volume" unless clear abnormalities observed/mentioned *in this transcript*. Describe abnormalities concisely, adding **specific context *from this transcript*** if helpful (e.g., "Speech noted as pressured by clinician *when discussing anxieties*," "Volume consistently low *making hearing difficult*"). Omit only if unassessable.
+	- Mood (Patient Reported): Use patient's direct quote *if provided in this transcript* (e.g., "- Mood (Patient Reported): 'Alright'"). Omit if no quote available.
+	- Affect (Observed): Assess observed affect **based on available cues in this transcript (vocal tone/inflection for audio; visual cues if modality permits).** Describe if discernible AND if 'Mood (Patient Reported)' is absent or provides contrast. Include **specific context *from this transcript*** (e.g., "- Affect (Observed): Vocal tone sounded flat *throughout discussion of mood*," "Became audibly tearful *when discussing daughter's health*"). Omit if unassessable.
+	- Thought Process: Confidently apply default "Linear and goal-directed" if conversation *in this transcript* is coherent. Specify clear deviations observed *in the speech pattern*, providing **brief context/examples *from this transcript*** (e.g., "Circumstantial at times, providing excessive detail *before answering questions about medication side effects*").
+	- Thought Content: Include ONLY if objectively abnormal content (delusions, paranoia) is evident *in patient statements in this transcript* OR if significant preoccupations, obsessions, or SI/HI are *directly assessed or clearly expressed*. Provide **context *from this transcript*** if available (e.g., "Expressed paranoid ideation *specifically mentioning concerns about neighbors monitoring them*"). Do NOT list discussion topics. Omit if none noted.
+	- Cognition: Confidently apply default "Appears alert and oriented" based on interaction *in this transcript*. Include significant cognitive *complaints* reported *by the patient in this transcript*, noting they are patient reports + **specific context *from this transcript*** (e.g., "- Cognition: Appears alert and oriented. Patient reports 'difficulty concentrating' *when trying to read work documents*.").
+	- Insight: Make assessment (Good, Fair, Limited, Poor) if reasonably inferable *from patient statements/actions discussed in this transcript*. Support with **objective context *from this transcript*** (e.g., "- Insight: Limited; *evidenced by patient's statements minimizing impact of stopping medication*."). Omit if unassessable.
+	- Judgment: Make assessment (Good, Fair, Impaired, Poor) if reasonably inferable *from description of decisions/plans in this transcript*. Support with **objective context *from this transcript*** (e.g., "- Judgment: Appears impaired *regarding medication management based on description of recent actions*."). Omit if unassessable.
+	
+	**Vital Signs:**
+	(Include ONLY if objective metrics explicitly stated OR mentioned contextually *in this transcript*. Extract meticulously.)
+	- List explicitly stated vitals.
+	- Include objective metrics mentioned, noting **specific context *from this transcript*** (e.g., "- Weight (*mentioned by patient as ~170 lbs when discussing prior Zyprexa use*)").
+	
+	**Physical Examination:**
+	(Include ONLY if *objective findings stated by the clinician* are documented *in this transcript*. Actively look for stated findings.)
+	- List explicitly stated findings observed/elicited *by the clinician*. Include anatomical location or **relevant context *from this transcript*** (e.g., "- Abdomen: Clinician stated 'tender to palpation *in epigastric region*'").
+	- **Do NOT include patient's subjective symptom reports.**
+	
+	**Pain Scale:**
+	(Include ONLY if a numeric rating OR other objective scale result is explicitly stated *in this transcript*. Extract if present.)
+	- Document explicitly stated ratings/scores, **including context *from this transcript*** (e.g., "- Anxiety rated 5/10 by patient *at start of session, related to appointment stress*.").
+	
+	**Diagnostic Test Results / Labs / Imaging:**
+	(Include ONLY if results, labs, findings, OR status/review are discussed *in this transcript*. Capture mentioned data.)
+	- Summarize explicitly mentioned results/findings/status, including **relevant context or interpretation provided *in this transcript*** (e.g., "- TSH: Clinician noted recent result was '2.5 mIU/L, *which is within normal limits*'").
+	- Include status/review of diagnostics, **with context *from this transcript*** (e.g., "- Cognitive testing: Clinician mentioned results *pending from neuropsychology appointment last week*.").
+	
+	FINAL REVIEW STEP: Before outputting, double-check:
+	1.  **MODALITY CHECK & TRUTHFULNESS:** Observations possible? NO FABRICATION?
+	2.  **DYNAMIC APPLICATION:** Is output based on THIS transcript, not just examples? Rules applied correctly?
+	3.  **SPECIFIC CONTEXT:** Is relevant context *from this transcript* included where possible?
+	4.  Strict S vs. O Adherence?
+	5.  Thoroughness within Rules?
+	6.  Critical Omission Rule Followed? (NO placeholders? Empty sections GONE?)
+	7.  MSE Components Handled Correctly?
+	8.  Physical Exam Contains ONLY Clinician Findings?
+	9.  Format Correct? (Plain text, '- ' bullets)`
 
-	Provide the response in plain text without markdown formatting.
-	`
+	assessmentAndPlanTaskDescription =`
+    Generate the Assessment and Plan by synthesizing information from the transcript. Your primary task is to **first, independently and thoroughly analyze the entire transcript to identify ALL distinct clinical management areas, significant impacting factors (diagnoses, problems, symptoms, side effects, stressors, adherence issues, etc.), and planned actions discussed.** Use your inferential reasoning to determine the clinical significance and interrelation of these points based on the conversation's context.
+
+    **Only after performing this independent analysis**, proceed to structure the Assessment and Plan. Organize the information using concise, clinically relevant **thematic headings that accurately reflect YOUR findings from the transcript.**
+
+    While the EXAMPLES section below provides illustrations of potential themes and the desired formatting, **it is critical that you prioritize your own analysis.** You are expected to **create thematic headings tailored to the unique nuances of THIS specific transcript.** Do not limit your output to the themes listed in the examples. Combine, rename, create entirely new themes, or omit example themes as necessary based on what was actually discussed and its clinical significance. Be "bullish" – proactively identify and structure themes around any factor significantly impacting the patient's life or treatment plan as revealed in the transcript.
+
+    Populate each theme you create with relevant assessment points (analysis of status, impact, S+O evidence) AND plan details (actions, meds, monitoring, education, referrals, implied next steps) pertaining specifically to that theme, drawing directly from the transcript.
+
+    --- EXAMPLES OF POTENTIAL CLINICAL THEMES AND STRUCTURE ---
+
+    (This section provides illustrative examples ONLY. Use them to understand the desired format and the *types* of themes that *might* be relevant AFTER you have done your own analysis of the current transcript. **Adapt, rename, combine, or create entirely new themes based on your analysis.** Omit any example theme not pertinent to the discussion.)
+
+    Weight Gain on Zyprexa
+    - Patient reports significant weight gain since starting Zyprexa.
+    - Plan to taper down Zyprexa by taking half of the 7.5 mg dose for a week and then discontinue.
+    - Schedule an in-person visit for weight and lab assessment.
+
+    Mood Stabilization
+    - Patient has a history of taking Lamictal in the hospital. History of mood swings reported.
+    - Consider reintroducing Lamictal for mood stabilization without significant weight gain side effects. Start 25mg daily and titrate slowly per protocol.
+    - Discuss rationale and monitoring needs (e.g., rash) with the patient during the next visit.
+
+    Anxiety and Depression
+    - Patient reports persistent generalized anxiety and moderate depressive symptoms (e.g., low energy, anhedonia).
+    - Initiate Zoloft 25 mg daily for one week. If tolerated, increase to 50 mg daily.
+    - Reassess symptoms and tolerability in 3 weeks. Provide education on onset of action.
+
+    Sleep Disturbance (Insomnia)
+    - Patient reports difficulty falling asleep (sleep onset insomnia) 3-4 nights per week. Denies issues with sleep maintenance.
+    - Reviewed sleep hygiene recommendations (e.g., consistent bedtime, limiting screen time).
+    - If sleep hygiene insufficient, consider short trial of Trazodone 50mg at bedtime. Reassess need at next visit.
+
+    Therapy Engagement
+    - Patient is scheduled for weekly CBT but has missed the last 2 sessions due to reported scheduling conflicts.
+    - Plan: Explore barriers to attendance. Reinforce importance of consistent therapy attendance for treatment goals. Obtain release to coordinate with therapist.
+
+    Medication Adherence Issue (e.g., Forgetfulness)
+    - Patient reports frequently forgetting midday medication dose due to busy work schedule. Estimated adherence ~70%.
+    - Plan: Discussed simplifying regimen to once-daily dosing of equivalent medication if possible. Alternatively, recommended using a labelled pillbox and setting daily phone reminders. Patient agrees to try phone reminders first. Reassess adherence next session.
+
+    Specific Medication Side Effect (e.g., Akathisia)
+    - Patient describes significant inner restlessness since starting Abilify 2 weeks ago. Consistent with akathisia.
+    - Objective: Observed patient shifting weight frequently in chair, tapping foot.
+    - Plan: Decrease Abilify dose from 5mg to 2mg daily immediately. Prescribe Propranolol 10mg PO BID PRN for restlessness. Monitor closely for resolution or worsening.
+
+    Psychosocial Stressor (e.g., Housing Instability)
+    - Patient reports receiving eviction notice effective end of month due to job loss and inability to pay rent. Expresses significant related stress impacting sleep and mood.
+    - Plan: Provided contact information for local tenant resources and emergency housing shelters. Referral placed to integrated case management for housing support and benefits navigation.
+
+    Psychosocial Stressor (e.g., Relationship Conflict)
+    - Patient describes escalating conflict with partner, contributing to increased anxiety symptoms.
+    - Plan: Explored communication strategies briefly. Recommended considering couples counseling. Provided EAP contact information if available.
+
+    Substance Use (e.g., Cannabis)
+    - Patient reports daily cannabis use (approx. 1 joint/evening) to manage anxiety and aid sleep. Reports it helps short-term but notes low motivation the following day. Denies interest in reducing use at this time.
+    - Plan: Assessed pattern/frequency of use and perceived pros/cons. Provided psychoeducation on potential long-term effects on mood/motivation and interaction with prescribed medications. Will continue to monitor use and assess readiness for change over time.
+
+    Safety Assessment (e.g., Suicidal Ideation)
+    - Patient endorses passive suicidal ideation ("wish I wouldn't wake up") without active plan or intent, occurring 1-2x/week when feeling hopeless. Identifies protective factors (children). Denies self-harm behaviors.
+    - Plan: Assessed risk as moderate currently. Developed and documented safety plan including coping strategies and support contacts. Provided crisis hotline numbers. Scheduled follow-up sooner (e.g., in 1 week) for reassessment. Patient agreed to contact provider or crisis services if thoughts worsen or intent develops.
+
+    Chronic Physical Health Comorbidity (e.g., Chronic Pain)
+    - Patient reports chronic back pain (rated 7/10 avg) significantly exacerbates depressive symptoms and limits participation in pleasurable activities. Current pain regimen managed by PCP.
+    - Plan: Validate impact of pain on mood. Encourage continued follow-up with PCP for pain management. Discuss non-pharmacologic strategies for managing mood despite pain (e.g., mindfulness, gentle movement, activity pacing). Obtain release to communicate with PCP.
+
+    Lifestyle Factor (e.g., Insufficient Exercise)
+    - Patient reports minimal physical activity due to low motivation associated with depression.
+    - Plan: Psychoeducation on exercise benefits for mood. Encourage starting with small goal (e.g., 10-minute walk daily). Reassess next visit.
+
+    Cognitive Symptoms (e.g., Poor Concentration)
+    - Patient reports increasing difficulty concentrating at work over the past month, impacting job performance.
+    - Differential includes depression, anxiety, potential ADHD (if history suggests), medication side effect, sleep deprivation.
+    - Plan: Monitor concentration symptoms closely with mood tracking. Consider formal cognitive screening tool (e.g., MOCA, PHQ-Cognitive) at next visit if persists. Evaluate potential contribution of current medications or sleep issues.
+
+    Barrier to Care (e.g., Medication Cost)
+    - Patient reports inability to afford copay for newly prescribed medication [Medication Name]. Insurance formulary requires trial of alternatives first.
+    - Plan: Provider to submit prior authorization request detailing rationale and previous failed trials. Provided information on patient assistance programs and potential alternative lower-cost agents if PA denied. Gave samples to bridge short-term if available/appropriate.
+
+    Lab Monitoring Required (e.g., Lithium Level)
+    - Patient taking Lithium for Bipolar Disorder; therapeutic level needs regular monitoring. Last level 4 months ago.
+    - Plan: Order serum Lithium level, BUN, Creatinine, TSH today. Patient provided lab requisition and instructed on timing (12 hours post-dose). Will review results and adjust dose if needed.
+
+    Prescription Refills
+    - Patient requests refills for Ativan 1mg PRN and Hydroxyzine 25mg QHS. Reports appropriate use.
+    - Plan: Refill both Ativan and Hydroxyzine as requested with appropriate quantity/refills until next appointment. Sent electronically to pharmacy.
+
+    Follow-up Appointment
+    - Plan: Schedule follow-up appointment in [Timeframe - e.g., 4 weeks] (Specific Date/Time if mentioned, e.g., May 1st at 11:00 AM via Telehealth) to assess [Reason - e.g., response to Zoloft titration, overall mood and functioning]. Encourage patient to contact clinic via portal or phone if urgent issues arise before the scheduled appointment.
+
+    --- END OF EXAMPLES ---
+
+    Now, generate the Assessment and Plan for the following transcript. **Remember to prioritize your own independent analysis of the transcript to identify and structure the most relevant clinical themes for this specific visit, using the examples primarily for formatting and topic inspiration:**
+
+    Transcript:
+    [Actual Transcript Input For New Generation]
+
+    Output:
+    (Generate Output Here)
+
+    GENERAL FORMATTING AND RULES:
+    - Evidence Linking: ALL points MUST be directly supported by transcript information or reasonable clinical implication.
+    - Medication Naming: Approximate if unsure.
+    - OUTPUT REQUIREMENT: Output MUST be plain text. No markdown.
+    - LIST FORMAT: Use hyphen-space ('- ') for bullet points under themes.
+	- NO TITLE JUST CONTENT
+    - CRITICAL OMISSION RULE: No placeholders (N/A, etc.). Omit headings/bullets if no relevant info found based on the transcript for that theme.`
 
 	summaryTaskDescription = `
+    Generate a **single, concise narrative paragraph** summarizing the key aspects of the patient encounter based on the provided transcript. This summary should serve as a **high-level overview or abstract** of the visit, suitable for quickly understanding the patient's situation and the visit's outcome.
 
-	Write a concise, narrative-style visit summary based on the provided transcript. Clearly identify each clinical issue discussed, briefly summarizing the patient's reported symptoms, clinical findings, diagnostic outcomes, and relevant personal or psychosocial context. Include specific management plans such as medication adjustments (with dose and frequency if mentioned), follow-up appointments (with specific timing if given), referrals, or lifestyle recommendations. Maintain brevity and clarity throughout, avoiding redundancy. Omit any conditions or plans not explicitly discussed or clearly inferable from the transcript. Ensure the summary is direct, reads naturally, and includes clinically relevant details without unnecessary verbosity. `
+    **Content Requirements:**
+    - Start by identifying the patient (using name/initials like 'ChristineP(CS)' if available/provided in context) and the primary reason for the visit (e.g., 'presents for follow-up regarding medication changes').
+    - Briefly mention **key active diagnoses or core clinical issues** discussed (e.g., 'history of anxiety, PTSD, hypertension').
+    - Concisely touch upon the **current status or key updates** regarding these core issues using brief, relevant details (e.g., 'reports slight mood improvement but continues to experience anxiety attacks', 'concerned about ongoing headaches possibly related to blood pressure', 'significant weight gain with upcoming endocrinology workup'). Use specific quotes ONLY if essential for conveying core status briefly.
+    - **Briefly reference the types of medications** being managed for the core issues IF central to the visit's context (e.g., 'Current medications include Lexapro, lorazepam...'). **Do NOT include specific doses, frequencies, or detailed adherence/metadata notes in this summary paragraph.**
+    - **Briefly summarize the main direction of the management plan** or key changes made (e.g., 'plan includes increasing Lexapro, continuing lorazepam as needed, and addressing headaches and weight management via specialist follow-up'). **Do NOT list out all detailed plan items, specific dosages, or exact follow-up dates/instructions here.**
+    - Focus only on the most clinically significant information needed for a quick overview.
+
+    **Formatting and Style:**
+    - Output MUST be a **single cohesive paragraph**. No line breaks within the summary content.
+    - Output MUST be plain text without any markdown formatting.
+    - Maintain a very concise, direct, and clinical tone.
+    - **AVOID** creating separate sections, headings within the summary, or numbered/bulleted lists (like a 'Management Plan' list). All summarized points must be integrated fluidly into the single narrative paragraph.
+    - Adhere strictly to the OMISSION RULE: Do not include information not present in the transcript. Do not use placeholders like 'N/A'. Omit details not suitable for a high-level summary.
+    `
 
 	patientInstruction = `
-	Generate a detailed and personalized patient instruction letter based on the patient
-	encounter transcript provided below. Use a professional, empathetic, and clear tone. Include
-	specific instructions, medication details, follow-up information, and any other relevant
-	information discussed during the encounter. Structure the letter with clear sections and
-	bullet points, similar to the provided example. Ensure the output is in plain text, with no
-	markdown formatting whatsoever. If the transcript mentions important categories not covered by
-	Medications, Tests/Procedures, Follow-Up, or General Advice, create a new section for those
-	categories. If a category is not explicitly mentioned in the transcript, omit it entirely. It doesn't look aesthetic if you include a section followed by lack of information
-	
-	Instructions for Generating the Patient Instruction Letter:
-	
-	1. Begin with a warm greeting, thanking the patient for their visit and acknowledging their
-	   commitment to their health.
-	2. Clearly summarize key instructions and recommendations discussed during the encounter,
-	   including specific details.
-	3. Include specific details about medications, such as names, dosages, frequency, and
-	   instructions for use, in a dedicated Medications section.
-	4. Provide information about any tests or procedures ordered, including where and when they
-	   should be performed, in a dedicated Tests/Procedures section.
-	5. Specify any follow-up appointments explicitly mentioned in the transcript, including exact
-	   dates, times, and locations.
-	   - If the provider implies or mentions a follow-up without giving a specific timeline,
-		 confidently infer a standard follow-up interval based on typical clinical practice or
-		 past appointments (e.g., "Follow-up in one month (standard interval)"). Clearly state
-		 that this timeline is inferred in the Follow-Up section.
-	6. Offer general advice and recommendations for managing symptoms or improving health, in a
-	   dedicated General Advice section.
-	7. Use clear section headings and bullet points (using hyphens "-") to organize information for
-	   clarity, similar to the provided example letter.
-	8. Maintain a professional and empathetic tone throughout the letter.
-	9. Encourage the patient to contact the office with any questions or concerns.
-	10. End with a warm closing, such as "Best regards" or "Warm regards," followed by your
-		professional title.
-	
-	Example Structure to Follow:
-	
-	Dear %s,
-	
-	Thank you for visiting us today. We appreciate your commitment to maintaining your health and
-	addressing your concerns promptly. Here is a summary of the key instructions from our
-	consultation:
-	
-	Medications:
-	- Medication 1: Dosage, Frequency, Instructions
-	- Medication 2: Dosage, Frequency, Instructions
-	
-	Tests/Procedures:
-	- Test/Procedure Name: Location, Date/Time, Instructions
-	
-	Follow-Up:
-	- Date, Time, Location, Purpose (or clearly inferred timeline if not explicitly stated)
-	
-	General Advice:
-	- Advice 1
-	- Advice 2
-	
-	[New Section Name (if applicable)]:
-	- Information 1
-	- Information 2
-	
-	Please ensure to follow these instructions carefully. We are here to support you in your health
-	journey. Do not hesitate to reach out if you have any questions or concerns.
-	
-	Best regards,
-	
-	%s
-	  `
+    Generate a detailed and personalized patient instruction letter based on the patient encounter transcript provided below. Use a professional, empathetic, and clear tone. Include specific instructions, medication details, follow-up information, and any other relevant information discussed. Structure the letter with clear sections and bullet points. Ensure the output is in plain text, with no markdown formatting whatsoever.
+
+    ***CRITICAL OMISSION RULE***: Under NO circumstances should the output include placeholders like 'N/A', 'Not applicable', 'None', etc., for sections or details not discussed. If information for a section (e.g., Tests/Procedures, Lifestyle Changes) is not found in the transcript, omit that section heading and content entirely and silently.
+
+    Instructions for Generating the Patient Instruction Letter:
+
+    1.  Begin with a warm greeting (using '[Patient Name]' if the actual name is unknown), thanking the patient for their visit and acknowledging their commitment to their health.
+    2.  Clearly summarize key instructions and recommendations extracted directly from the transcript.
+    3.  **Medications Section:**
+        - Use the heading "Medications:".
+        - Use bullet points ('- ') to list specific instructions regarding medications (e.g., new prescriptions, dosage changes like 'Increase Lexapro to 1.5 tablets (15 mg) in the morning', continuation instructions, PRN usage like 'Take Ativan (lorazepam) as needed...'). Be precise with names, dosages, frequency, and instructions.
+    4.  **Lifestyle Changes Section (Optional):**
+        - Use the heading "Lifestyle Changes:" ONLY IF relevant non-medication advice or strategies were discussed.
+        - Use bullet points ('- ') to list specific recommendations mentioned (e.g., coping strategies like 'Try walking around to manage anxiety before taking Ativan', dietary advice, exercise suggestions, sleep hygiene tips).
+    5.  **Tests/Procedures Section (Optional):**
+        - Use the heading "Tests/Procedures:" ONLY IF specific tests or procedures were ordered or discussed *during this encounter*.
+        - Use bullet points ('- ') to list the test/procedure name, location/timing if specified, and any instructions.
+        - Adhere strictly to the CRITICAL OMISSION RULE if no tests were discussed.
+    6.  **Follow-Up and Referrals Section:**
+        - Use the heading "Follow-Up and Referrals:".
+        - Use bullet points ('- ') to list:
+            - The specific date and time for the next psychiatric follow-up appointment (e.g., 'Next appointment on May 1st at 9:30 AM'). If only an interval is mentioned, state that clearly (e.g., 'Follow-up in 1 month').
+            - Any instructions given to the patient regarding referrals or appointments with OTHER providers (e.g., 'See your Primary Care Provider (PCP) for blood pressure medication review', 'Attend scheduled endocrinology appointment in 2-3 weeks').
+            - Instructions on how to contact the office if needed before the next visit.
+    7.  **General Advice Section (Optional):**
+        - Use the heading "General Advice:" ONLY IF there are broad recommendations or encouragement points that do not fit into the specific categories above. Avoid duplicating specific instructions already listed.
+    8.  Use clear section headings followed by a colon. Use hyphens ('- ') for bullet points.
+    9.  Maintain a professional, clear, and empathetic tone.
+    10. Encourage the patient to contact the office with questions.
+    11. End with a warm closing (e.g., "Best Regards,") followed by the provider's name and title (using '[Provider Name/Title]' if actual name/title unknown).
+
+    Example Structure Snippet (Illustrates Sections):
+
+    Dear [Patient Name],
+
+    Thank you for visiting...
+
+    Medications:
+    - Increase [Medication]...
+    - Take [Medication]...
+
+    Lifestyle Changes:
+    - Try [Activity]...
+
+    Follow-Up and Referrals:
+    - Next appointment on [Date] at [Time]
+    - See [Other Provider] for...
+    - Contact us via [Method] if needed...
+
+    Please ensure...
+
+    Best Regards,
+
+    [Provider Name/Title]
+      `
 
 	//Default Return format
 	defaultReturnFormat = "Return Format (Always Adhere to These Rules):" +
@@ -233,15 +410,34 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style, providerN
 		taskDescription = "Invalid SOAP section."
 	}
 
-	prompt := "You are an AI medical assistant acting as the provider, documenting the visit report after reviewing the transcript of the encounter. " +
-	"Your task is to generate precise and accurate clinical notes that reflect exactly what was stated in the transcript, as if you were the provider writing them up. " +
-	"Strict adherence to the transcript is required—do not add, infer, or assume any information beyond what is explicitly stated. " +
-	"If critical details are missing, clearly indicate that additional context is necessary and explain why it is needed.\n\n" +
-	"Patient Name: " + patientName + "\n" +
-	"Provider Name: " + providerName + "\n\n" +
-	"The following transcript is from a clinical session between the provider and the patient:\n\n" +
-	"Current Task (" + soapSection + "): " + taskDescription + "\n\n" +
-	"Transcript:\n" + transcribedAudio + "\n\n"
+	prompt := fmt.Sprintf(`
+	You are an AI medical assistant acting as the provider. Your role is to document a specific section of the clinical visit report accurately and concisely based on the provided transcript and task description below.
+
+	--- BACKGROUND CONTEXT (FOR YOUR INFORMATION ONLY - DO NOT INCLUDE IN OUTPUT) ---
+	Patient Name: %s
+	Provider Name: %s
+	SOAP Section to Generate: %s
+	--- END BACKGROUND CONTEXT ---
+
+	--- TASK INSTRUCTIONS (Follow these instructions precisely to generate the required output) ---
+	%s
+	--- END TASK INSTRUCTIONS ---
+
+	--- TRANSCRIPT (Analyze this transcript to perform the task) ---
+	%s
+	--- END TRANSCRIPT ---
+
+	GENERATE ONLY THE REQUIRED CLINICAL NOTE SECTION (e.g., '%s') BASED ON THE TASK INSTRUCTIONS ABOVE. Start your response directly with the appropriate content or heading for that section as defined in the TASK INSTRUCTIONS. Do NOT include the BACKGROUND CONTEXT section, the TASK INSTRUCTIONS section header, the TRANSCRIPT section header, or the surrounding separators ('---') in your final output.
+	`, 
+		patientName,
+		providerName,
+		soapSection,
+		taskDescription,
+
+		transcribedAudio,
+	
+		soapSection,
+	) 
 
 	if style != "" {
 		prompt += "Integrate the style with the task description:\n" + style + "\n\n"
