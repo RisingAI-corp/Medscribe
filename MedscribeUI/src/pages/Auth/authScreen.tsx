@@ -16,9 +16,9 @@ import SocialAuth from '../../components/Auth/SocialAuth';
 import AuthToggle from '../../components/Auth/AuthToggle';
 import logo from '../../assets/medscribe-logo.png';
 
-const AuthScreen = ({ initialSignUp }: { initialSignUp: boolean }) => {
+const AuthScreen = () => {
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(initialSignUp);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
