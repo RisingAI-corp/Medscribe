@@ -73,6 +73,7 @@ export const createReportAtom = atom(
       condensedSummary: '',
       finishedGenerating: false,
       transcript: '',
+      readStatus: false,
     };
     set(patientsAtom, [newReport, ...reports]);
   },

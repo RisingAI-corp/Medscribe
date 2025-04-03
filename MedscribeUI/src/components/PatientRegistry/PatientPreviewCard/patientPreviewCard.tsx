@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Checkbox, Loader } from '@mantine/core';
-import { IoMdMail, IoMdMailOpen, IoMdMailUnread } from 'react-icons/io';
+import { IoMdMailOpen, IoMdMailUnread } from 'react-icons/io';
 
 export interface PatientPreviewCardProps {
   id: string;
