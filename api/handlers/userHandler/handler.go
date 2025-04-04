@@ -50,12 +50,12 @@ type userHandler struct {
 	authMiddleware middleware.AuthMiddleware
 }
 
-func NewUserHandler(userStore user.UserStore, reports reports.Reports, logger *zap.Logger,authMiddleware middleware.AuthMiddleware) UserHandler {
+func NewUserHandler(userStore user.UserStore, reports reports.Reports, logger *zap.Logger, authMiddleware middleware.AuthMiddleware) UserHandler {
 	return &userHandler{
-		userStore: userStore,
-		reports:   reports,
-		logger:    logger,
-		authMiddleware:authMiddleware,
+		userStore:      userStore,
+		reports:        reports,
+		logger:         logger,
+		authMiddleware: authMiddleware,
 	}
 }
 
@@ -89,12 +89,11 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(AuthResponse{
-		ID:     ProviderID,
-		Name:   req.Name,
-		Email:  req.Email,
-		UserID: ProviderID, // Added UserID here
+		ID:      ProviderID,
+		Name:    req.Name,
+		Email:   req.Email,
+		UserID:  ProviderID, // Added UserID here
 		Reports: []reports.Report{},
-		
 	}); err != nil {
 		h.logger.Error("Error encoding auth response", zap.Error(err))
 		http.Error(w, "error encoding auth response", http.StatusInternalServerError)

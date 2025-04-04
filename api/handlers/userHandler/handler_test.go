@@ -49,8 +49,8 @@ func TestSignUp(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
-		authMiddleware := middleware.NewAuthMiddleware("test",logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		mockStore.On("Put", mock.Anything, testName, testEmail, testPassword).
 			Return(testUserID, nil)
@@ -94,8 +94,8 @@ func TestSignUp(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		mockStore.On("Put", mock.Anything, testName, testEmail, testPassword).
 			Return("", fmt.Errorf("user already exists with this email: %s", testEmail))
@@ -122,8 +122,8 @@ func TestSignUp(t *testing.T) {
 	t.Run("should return bad request when request body is invalid", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewBufferString("invalid json"))
 		rr := httptest.NewRecorder()
@@ -148,8 +148,8 @@ func TestLogin(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		objectID, err := primitive.ObjectIDFromHex(testUserID)
 		require.NoError(t, err)
@@ -219,8 +219,8 @@ func TestLogin(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		mockStore.On("GetByAuth", mock.Anything, testEmail, testPassword).
 			Return(user.User{}, fmt.Errorf("incorrect authentication credentials"))
@@ -247,8 +247,8 @@ func TestLogin(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStore := new(reports.MockReportsStore)
 
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStore, logger, *authMiddleware)
 
 		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBufferString("invalid json"))
 		rr := httptest.NewRecorder()
@@ -267,8 +267,8 @@ func TestGetMe(t *testing.T) {
 	t.Run("should return user data when authenticated", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		objectID, err := primitive.ObjectIDFromHex(testUserID)
 		if err != nil {
@@ -335,8 +335,8 @@ func TestGetMe(t *testing.T) {
 	t.Run("should return unauthorized when user ID not in context", func(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
-		authMiddleware := middleware.NewAuthMiddleware("test",logger,"dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger,*authMiddleware)
+		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rr := httptest.NewRecorder()

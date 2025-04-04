@@ -21,8 +21,6 @@ type APIConfig struct {
 	Logger           *zap.Logger
 }
 
-
-
 func EntryRoutes(config APIConfig) *chi.Mux {
 	userSubRoutes := UserRoutes(config.UserHandler)
 	reportsSubRoutes := ReportRoutes(config.ReportsHandler)

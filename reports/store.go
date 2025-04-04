@@ -93,7 +93,7 @@ type Report struct {
 	SessionSummary      string             `json:"sessionSummary"`
 	FinishedGenerating  bool               `json:"finishedGenerating"`
 	Transcript          string             `json:"transcript"`
-	ReadStatus              bool               `json:"readStatus"`
+	ReadStatus          bool               `json:"readStatus"`
 }
 
 type Reports interface {

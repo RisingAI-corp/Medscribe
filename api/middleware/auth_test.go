@@ -150,7 +150,7 @@ func TestAuthMiddleware_ValidAccessToken(t *testing.T) {
 		assert.Nil(t, err)
 
 		handler.ServeHTTP(rr, env.req)
- 		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.Equal(t, http.StatusOK, rr.Code)
 
 		newAccessTokenCookie := getTokenFromCookies(t, rr, AccessToken)
 

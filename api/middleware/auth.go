@@ -10,11 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
-
 const (
-	UserIDKey    		 = "userID"
-	AccessToken             = "access_token"
-	RefreshToken            = "refresh_token"
+	UserIDKey    = "userID"
+	AccessToken  = "access_token"
+	RefreshToken = "refresh_token"
 )
 
 const (
@@ -30,10 +29,8 @@ type Claims struct {
 type AuthMiddleware struct {
 	jwtSecret string
 	logger    *zap.Logger
-	env      string
-	secure   bool
-
-
+	env       string
+	secure    bool
 }
 
 func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddleware {
@@ -44,7 +41,7 @@ func NewAuthMiddleware(secret string, logger *zap.Logger, env string) *AuthMiddl
 }
 
 func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
-	
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		refreshCookie, err := r.Cookie(RefreshToken)
 		if err != nil {
@@ -56,11 +53,11 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		claims, err := am.verifyToken(refreshCookie.Value)
 		if err != nil {
 			am.logger.Error("Invalid refresh token",
-			zap.Error(err),
-			zap.String("method", r.Method),
-			zap.String("url", r.URL.Path),
-			zap.String("authHeader", r.Header.Get("Authorization")),
-			zap.String("cookie", r.Header.Get("Cookie")), // optional, just for debug
+				zap.Error(err),
+				zap.String("method", r.Method),
+				zap.String("url", r.URL.Path),
+				zap.String("authHeader", r.Header.Get("Authorization")),
+				zap.String("cookie", r.Header.Get("Cookie")), // optional, just for debug
 			)
 			http.Error(w, "unauthorized access token", http.StatusUnauthorized)
 			return

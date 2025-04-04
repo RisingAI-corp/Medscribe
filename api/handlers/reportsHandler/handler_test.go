@@ -1027,7 +1027,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
-			ReadStatus:     false,
+			ReadStatus: false,
 		}
 
 		req := ReadStatusRequest{
@@ -1061,7 +1061,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 
 		existingReport := reports.Report{
 			ProviderID: testUserID,
-			ReadStatus:     true,
+			ReadStatus: true,
 		}
 
 		req := ReadStatusRequest{

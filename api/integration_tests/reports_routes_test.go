@@ -685,9 +685,6 @@ func loadAudioFile(t *testing.T, filePath string) []byte {
 // 	userID, err := testEnv.CreateTestUser(testUserName, testUserEmail, testUserPassword)
 // 	require.NoError(t, err)
 
-
-
-
 // 	// First, create a report to learn style from
 // 	reportID, err := testEnv.CreateTestReport(userID)
 // 	require.NoError(t, err)
@@ -794,7 +791,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 		invalidReportID := "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
 		markReadRequest := reportsHandler.ReadStatusRequest{
 			ReportID: invalidReportID,
-			Opened: true,
+			Opened:   true,
 		}
 
 		body, err := json.Marshal(markReadRequest)
@@ -815,7 +812,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 		nonExistingReportID := primitive.NewObjectID().Hex()
 		markReadRequest := reportsHandler.ReadStatusRequest{
 			ReportID: nonExistingReportID,
-			Opened: true,	
+			Opened:   true,
 		}
 
 		body, err := json.Marshal(markReadRequest)
@@ -838,7 +835,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 
 		markReadRequest := reportsHandler.ReadStatusRequest{
 			ReportID: reportID,
-			Opened: true,
+			Opened:   true,
 		}
 
 		body, err := json.Marshal(markReadRequest)
@@ -865,7 +862,6 @@ func TestMarkReadAndUnread(t *testing.T) {
 
 		markUnreadRequest := reportsHandler.ReadStatusRequest{
 			ReportID: reportID,
-		
 		}
 
 		body, err := json.Marshal(markUnreadRequest)
