@@ -16,3 +16,21 @@ export const Default: Story = {
   args: {},
 };
 
+export const WithOnePatient: Story = {
+  args: {
+    selectedItems: ['John Smith'],
+  },
+};
+
+export const WithMultiplePatients: Story = {
+  args: {
+    selectedItems: ['John Smith', 'Maria Garcia', 'David Chen'],
+  },
+};
+
+export const WithLongPatientNames: Story = {
+  args: {
+    selectedItems: ['Elizabeth Williamson-Thompson', 'Christopher Rodriguez-Martinez'],
+  },
+};
+

@@ -22,9 +22,7 @@ export const Default: Story = {
     (Story) => {
       const [query, setQuery] = useState('');
       return (
-        <div className="w-[300px]">
-          <Story args={{ query, setQuery }} />
-        </div>
+        <Story args={{ query, setQuery }} />
       );
     },
   ],
