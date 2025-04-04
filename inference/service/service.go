@@ -87,6 +87,8 @@ type ReportRequest struct {
 	SessionSummary            string
 	CondensedSummary          string
 	PatientInstructionsStyle  string `bson:"patientInstructionsStyle"`
+	LastVisitID string 
+	VisitContext string
 }
 
 // GenerateReportPipeline is a pipeline that generates a report based on the given audio bytes and report configuration.
@@ -101,7 +103,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	defer close(contentChan)
 
 	// create pre-configured report
-	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, reports.THEY)
+	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, reports.THEY, report.LastVisitID)
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error storing report: %w", err)
 	}
@@ -204,7 +206,7 @@ func (s *inferenceService) LearnStyle(ctx context.Context, providerID, contentSe
 
 // generateReportSections generates all sections of the report concurrently.
 // It serves as a helper function for both generateReportPipeline and regenerateReport.
-func (s *inferenceService) generateSoapSections(ctx context.Context, report *ReportRequest, contentChan chan ContentChanPayload, updates bson.D) (bson.D, error) {
+func (s *inferenceService) generateSoapSections(ctx context.Context, reportRequest *ReportRequest, contentChan chan ContentChanPayload, updates bson.D) (bson.D, error) {
 	g, ctx := errgroup.WithContext(ctx)
 	updatesChan := make(chan bson.E, len(contentSections))
 
@@ -219,19 +221,19 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, report *Rep
 
 	for _, section := range contentSections {
 		g.Go(func() error {
-			style, err := report.styleFromContentSection(section)
+			style, err := reportRequest.styleFromContentSection(section)
 			if err != nil {
 				return fmt.Errorf("invalid content Section: %w", err)
 			}
-			content, err := report.contentFromContentSection(section)
+			content, err := reportRequest.contentFromContentSection(section)
 			if err != nil {
 				return fmt.Errorf("invalid content Section: %w", err)
 			}
 			contentPrompt := ""
-			if report.TranscribedAudio != "" { // if there is no transcript then we are regenerating report
-				contentPrompt = GenerateReportContentPrompt(report.TranscribedAudio, section, style, report.ProviderName, report.PatientName)
+			if reportRequest.TranscribedAudio != "" { // if there is no transcript then we are regenerating report
+				contentPrompt = GenerateReportContentPrompt(reportRequest.TranscribedAudio, section, style, reportRequest.ProviderName, reportRequest.PatientName, reportRequest.VisitContext)
 			} else {
-				contentPrompt = RegenerateReportContentPrompt(content, section, style, report.Updates)
+				contentPrompt = RegenerateReportContentPrompt(content, section, style, reportRequest.Updates,reportRequest.VisitContext)
 			}
 
 			text, err := s.generateReportSection(ctx, contentPrompt, section, contentChan)

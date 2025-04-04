@@ -156,7 +156,7 @@ func (env *TestEnv) CreateTestUser(name, email, password string) (string, error)
 // Helper function to create a test report
 func (env *TestEnv) CreateTestReport(providerID string) (string, error) {
 	ctx := context.Background()
-	return env.ReportsStore.Put(ctx, "Test Report", providerID, time.Now(), 30, false, "HE")
+	return env.ReportsStore.Put(ctx, "Test Report", providerID, time.Now(), 30, false, "HE","")
 }
 
 // GetTestUser fetches a user by ID
