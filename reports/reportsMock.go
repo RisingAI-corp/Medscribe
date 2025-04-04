@@ -12,7 +12,7 @@ type MockReportsStore struct {
 	mock.Mock
 }
 
-func (m *MockReportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string) (string, error) {
+func (m *MockReportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns, lastVisitID string) (string, error) {
 	args := m.Called(ctx, name, providerID, timestamp, duration, isFollowUp, pronouns)
 	return args.String(0), args.Error(1)
 }

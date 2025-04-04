@@ -94,10 +94,11 @@ type Report struct {
 	FinishedGenerating  bool               `json:"finishedGenerating"`
 	Transcript          string             `json:"transcript"`
 	ReadStatus          bool               `json:"readStatus"`
+	LastVisitID string `json:"lastVisit"`
 }
 
 type Reports interface {
-	Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string) (string, error)
+	Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string) (string, error)
 	Get(ctx context.Context, reportId string) (Report, error)
 	GetAll(ctx context.Context, userId string) ([]Report, error)
 	UpdateReport(ctx context.Context, reportId string, batchedUpdates bson.D) error
@@ -117,7 +118,7 @@ func NewReportsStore(collection *mongo.Collection) Reports {
 }
 
 /* Put partially filled record into reports collection */
-func (r *reportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string) (string, error) {
+func (r *reportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string) (string, error) {
 	if name == "" {
 		return "", errors.New("name cannot be an empty string")
 	}
@@ -134,6 +135,13 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 		return "", fmt.Errorf("pronouns must be either '%s', '%s', or '%s'", HE, SHE, THEY)
 	}
 
+	if lastVisitID != "" {
+		_, err := primitive.ObjectIDFromHex(lastVisitID)
+		if err != nil {
+			return "",fmt.Errorf("invalid last visitID format: %v", err)
+		}
+	}
+
 	// Initialize the Report struct
 	report := Report{
 		Name:                name,
@@ -148,6 +156,7 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 		AssessmentAndPlan:   ReportContent{Loading: true},
 		PatientInstructions: ReportContent{Loading: true},
 		Summary:             ReportContent{Loading: true},
+		LastVisitID: lastVisitID,
 	}
 
 	insertResp, err := r.client.InsertOne(ctx, report)
@@ -496,6 +505,13 @@ func (r *reportsStore) Validate(report *Report) error {
 
 	if report.CondensedSummary == "" {
 		return errors.New("condensedSummary cannot be empty")
+	}
+
+	if report.LastVisitID != "" {
+		_, err := primitive.ObjectIDFromHex(report.LastVisitID)
+		if err != nil {
+			return fmt.Errorf("invalid last visitID format: %v", err)
+		}
 	}
 
 	return nil
