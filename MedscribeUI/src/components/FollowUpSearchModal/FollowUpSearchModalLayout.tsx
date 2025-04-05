@@ -8,13 +8,13 @@ import useSearch from '../../hooks/useSearch';
 import { searchVisitsAtom } from './derivedAtoms';
 
 interface FollowUpSearchModalLayoutProps {
-  selectedItems: SearchResultItem[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<SearchResultItem[]>>;
+  selectedItem: string;
+  setSelectedItem: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const FollowUpSearchModalLayout: React.FC<FollowUpSearchModalLayoutProps> = ({ 
-  selectedItems, 
-  setSelectedItems,
+  selectedItem, 
+  setSelectedItem,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchVisits] = useAtom(searchVisitsAtom);
@@ -31,22 +31,15 @@ const FollowUpSearchModalLayout: React.FC<FollowUpSearchModalLayoutProps> = ({
   };
 
   const handleSelectItem = (item: SearchResultItem) => {
-    setSelectedItems((prev) => {
-      const isAlreadySelected = prev.some((selected) => selected.id === item.id);
-      
-      if (isAlreadySelected) {
-        return prev.filter((selected) => selected.id !== item.id);
-      } else {
-        return [...prev, item];
-      }
-    });
+    setSelectedItem(item.patientName);
+    setIsModalOpen(false); // Close modal after selection
   };
 
   return (
     <div className="relative">
       {/* Main button to open the modal */}
       <div onClick={handleToggleModal}>
-        <SearchButton selectedItems={selectedItems.map(item => item.patientName)} />
+        <SearchButton selectedItem={selectedItem} />
       </div>
 
       {/* Modal overlay */}
@@ -60,7 +53,7 @@ const FollowUpSearchModalLayout: React.FC<FollowUpSearchModalLayoutProps> = ({
           
           {/* Modal content */}
           <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-6 w-[50%]"
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl w-[50%]"
             onClick={(e) => e.stopPropagation()}
           >
             <SearchInput query={query} setQuery={setQuery} />
@@ -68,19 +61,9 @@ const FollowUpSearchModalLayout: React.FC<FollowUpSearchModalLayoutProps> = ({
             <SearchResults 
               filteredResults={filteredResults} 
               onSelectItem={handleSelectItem} 
-              selectedItems={selectedItems} 
+              selectedItemName={selectedItem} 
             />
 
-            <div className="flex justify-end mt-4">
-              <button 
-                onClick={handleToggleModal}
-                className="text-green-500 hover:text-green-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </button>
-            </div>
           </div>
         </div>
       )}

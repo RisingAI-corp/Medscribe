@@ -9,21 +9,22 @@ import (
 )
 
 type Config struct {
-	Env                   string
-	MongoURI              string
-	MongoDBName           string
-	MongoUserCollection   string
-	MongoReportCollection string
-	MongoFreedVisits      string
-	MongoDistillAnalysis  string
-	OpenAIChatURL         string
-	OpenAISpeechURL       string
-	OpenAIAPIKey          string
-	DeepgramAPIKey        string
-	DeepgramAPIURL        string
-	JWTSecret             string
-	FreedAuthToken        string
-	Port                  string
+	Env                       string
+	MongoURI                  string
+	MongoDBName               string
+	MongoUserCollection       string
+	MongoReportCollection     string
+	MongoReportTestCollection string
+	MongoFreedVisits          string
+	MongoDistillAnalysis      string
+	OpenAIChatURL             string
+	OpenAISpeechURL           string
+	OpenAIAPIKey              string
+	DeepgramAPIKey            string
+	DeepgramAPIURL            string
+	JWTSecret                 string
+	FreedAuthToken            string
+	Port                      string
 }
 
 func LoadConfig() (*Config, error) {
@@ -48,6 +49,10 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 	mongoReportColl, err := getEnvStrict("MONGODB_REPORT_COLLECTION", "")
+	if err != nil {
+		return nil, err
+	}
+	mongoReportTestColl, err := getEnvStrict("MONGODB_REPORT_TEST_COLLECTION", "")
 	if err != nil {
 		return nil, err
 	}
@@ -93,21 +98,22 @@ func LoadConfig() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Env:                   env,
-		MongoURI:              mongoURI,
-		MongoDBName:           mongoDBName,
-		MongoUserCollection:   mongoUserColl,
-		MongoReportCollection: mongoReportColl,
-		MongoFreedVisits:      mongoFreedVisits,
-		MongoDistillAnalysis:  mongoDistillAnalysis,
-		OpenAIChatURL:         openAIChatURL,
-		OpenAISpeechURL:       openAISpeechURL,
-		OpenAIAPIKey:          openAIKey,
-		DeepgramAPIKey:        deepgramKey,
-		DeepgramAPIURL:        deepgramURL,
-		JWTSecret:             jwtSecret,
-		FreedAuthToken:        freedToken,
-		Port:                  port,
+		Env:                       env,
+		MongoURI:                  mongoURI,
+		MongoDBName:               mongoDBName,
+		MongoUserCollection:       mongoUserColl,
+		MongoReportCollection:     mongoReportColl,
+		MongoReportTestCollection: mongoReportTestColl,
+		MongoFreedVisits:          mongoFreedVisits,
+		MongoDistillAnalysis:      mongoDistillAnalysis,
+		OpenAIChatURL:             openAIChatURL,
+		OpenAISpeechURL:           openAISpeechURL,
+		OpenAIAPIKey:              openAIKey,
+		DeepgramAPIKey:            deepgramKey,
+		DeepgramAPIURL:            deepgramURL,
+		JWTSecret:                 jwtSecret,
+		FreedAuthToken:            freedToken,
+		Port:                      port,
 	}
 
 	return cfg, nil

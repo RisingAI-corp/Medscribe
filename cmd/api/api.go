@@ -26,6 +26,7 @@ import (
 type mockTranscriber struct{}
 
 const sample1 = ``
+
 func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string, error) {
 	return sample1, nil
 }
@@ -76,7 +77,7 @@ func main() {
 
 	db := client.Database(cfg.MongoDBName)
 	userColl := db.Collection(cfg.MongoUserCollection)
-	reportsColl := db.Collection(cfg.MongoReportCollection)
+	reportsColl := db.Collection(cfg.MongoReportTestCollection) //TODO: Change back to MongoReportCollection
 
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)

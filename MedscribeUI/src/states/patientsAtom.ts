@@ -1,4 +1,6 @@
 import { atom } from 'jotai';
+import { Client, He, Patient, She, They } from '../constants';
+
 export interface ReportContent {
   data: string;
   loading: boolean;
@@ -45,12 +47,12 @@ const reports: Report[] = [
 
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Likely tension headache.',
 
       loading: false,
     },
-    planning: {
+    patientInstructions: {
       data: 'Recommend rest and hydration.',
 
       loading: false,
@@ -60,8 +62,10 @@ const reports: Report[] = [
 
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 1',
-    shortSummary: 'Short summary of visit 1',
+    sessionSummary: 'Session summary 1',
+    condensedSummary: 'Condensed summary of visit 1',
+    transcript: 'Transcript of visit 1',
+    readStatus: true,
     finishedGenerating: true,
   },
   {
@@ -82,12 +86,12 @@ const reports: Report[] = [
       data: 'Limited range of motion in lower back.',
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Chronic lower back pain, further evaluation needed.',
 
       loading: false,
     },
-    planning: {
+    patientInstructions: {
       data: 'Referral to physical therapy.',
       loading: false,
     },
@@ -95,8 +99,10 @@ const reports: Report[] = [
       data: 'Follow-up appointment scheduled.',
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 2',
-    shortSummary: 'Short summary of visit 2',
+    sessionSummary: 'Session summary 2',
+    condensedSummary: 'Condensed summary of visit 2',
+    transcript: 'Transcript of visit 2',
+    readStatus: true,
     finishedGenerating: true,
   },
   {
@@ -118,12 +124,12 @@ const reports: Report[] = [
 
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Anxiety disorder.',
 
       loading: false,
     },
-    planning: {
+    patientInstructions: {
       data: 'Prescribed medication and therapy.',
 
       loading: false,
@@ -133,8 +139,10 @@ const reports: Report[] = [
 
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 3',
-    shortSummary: 'Short summary of visit 3',
+    sessionSummary: 'Session summary 3',
+    condensedSummary: 'Condensed summary of visit 3',
+    transcript: 'Transcript of visit 3',
+    readStatus: true,
     finishedGenerating: true,
   },
   {
@@ -156,12 +164,12 @@ const reports: Report[] = [
 
       loading: false,
     },
-    assessment: {
+    assessmentAndPlan: {
       data: 'Anxiety disorder.',
 
       loading: false,
     },
-    planning: {
+    patientInstructions: {
       data: 'Prescribed medication and therapy.',
 
       loading: false,
@@ -171,8 +179,10 @@ const reports: Report[] = [
 
       loading: false,
     },
-    oneLinerSummary: 'Patient visit summary 4',
-    shortSummary: 'Short summary of visit 4',
+    sessionSummary: 'Session summary 4',
+    condensedSummary: 'Condensed summary of visit 4',
+    transcript: 'Transcript of visit 4',
+    readStatus: true,
     finishedGenerating: true,
   },
 ];

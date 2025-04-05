@@ -1,30 +1,25 @@
 import React from 'react';
 
 interface SearchButtonProps {
-  selectedItems?: string[];
+  selectedItem?: string;
   maxDisplayLength?: number;
 }
 
 const SearchButton: React.FC<SearchButtonProps> = ({ 
-  selectedItems = [], 
+  selectedItem = "", 
   maxDisplayLength = 35
 }) => {
   const getDisplayText = () => {
-    if (selectedItems.length === 0) {
+    if (!selectedItem) {
       return "Search follow-ups...";
     }
     
-    if (selectedItems.length === 1) {
-      return selectedItems[0];
+    if (selectedItem.length <= maxDisplayLength) {
+      return selectedItem;
     }
     
-    const text = selectedItems.join(', ');
-    if (text.length <= maxDisplayLength) {
-      return text;
-    }
-    
-    // If we have multiple items and the text is too long
-    return `${selectedItems.length} patients selected`;
+    // If the text is too long
+    return `${selectedItem.substring(0, maxDisplayLength)}...`;
   };
   
   const displayText = getDisplayText();
