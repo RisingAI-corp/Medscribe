@@ -24,129 +24,167 @@ export interface Report {
   readStatus: boolean;
 }
 
-// //TODO: remove when apis are built
-// const reports: Report[] = [
-//   {
-//     id: 'report1',
-//     providerID: 'provider123',
-//     name: 'Emenike',
-//     timestamp: '2024-07-26T10:00:00Z',
-//     duration: 600000,
-//     pronouns: She,
-//     isFollowUp: false,
-//     patientOrClient: Patient,
-//     subjective: {
-//       data: 'Patient presented with mild headache.',
+//TODO: remove when apis are built
+const reports: Report[] = [
+  {
+    id: 'report1',
+    providerID: 'provider123',
+    name: 'Emenike',
+    timestamp: '2024-07-26T10:00:00Z',
+    duration: 600000,
+    pronouns: She,
+    isFollowUp: false,
+    patientOrClient: Patient,
+    subjective: {
+      data: 'Patient presented with mild headache.',
 
-//       loading: false,
-//     },
-//     objective: {
-//       data: 'Blood pressure 120/80, no fever.',
+      loading: false,
+    },
+    objective: {
+      data: 'Blood pressure 120/80, no fever.',
 
-//       loading: false,
-//     },
-//     assessmentAndPlan: {
-//       data: 'Likely tension headache.',
+      loading: false,
+    },
+    assessment: {
+      data: 'Likely tension headache.',
 
-//       loading: false,
-//     },
-//     patientInstructions: {
-//       data: 'Rest and drink fluids.',
+      loading: false,
+    },
+    planning: {
+      data: 'Recommend rest and hydration.',
 
-//       loading: false,
-//     },
-//     summary: {
-//       data: 'Routine follow-up recommended.',
+      loading: false,
+    },
+    summary: {
+      data: 'Routine follow-up recommended.',
 
-//       loading: false,
-//     },
-//     sessionSummary: 'Patient visit summary 1',
-//     condensedSummary: 'condensed summary of visit 1',
-//     finishedGenerating: true,
-//     transcript: 'some random text',
-//   },
-//   {
-//     id: 'report2',
-//     providerID: 'provider456',
-//     name: 'President',
-//     timestamp: '2024-07-26T11:30:00Z',
-//     duration: 1800000,
-//     pronouns: He,
-//     isFollowUp: true,
-//     patientOrClient: Patient,
-//     subjective: {
-//       data: 'Patient reported chronic back pain.',
+      loading: false,
+    },
+    oneLinerSummary: 'Patient visit summary 1',
+    shortSummary: 'Short summary of visit 1',
+    finishedGenerating: true,
+  },
+  {
+    id: 'report2',
+    providerID: 'provider456',
+    name: 'President',
+    timestamp: '2024-07-26T11:30:00Z',
+    duration: 1800000,
+    pronouns: He,
+    isFollowUp: true,
+    patientOrClient: Patient,
+    subjective: {
+      data: 'Patient reported chronic back pain.',
 
-//       loading: false,
-//     },
-//     objective: {
-//       data: 'Limited range of motion in lower back.',
-//       loading: false,
-//     },
-//     assessmentAndPlan: {
-//       data: 'Chronic lower back pain, further evaluation needed.',
+      loading: false,
+    },
+    objective: {
+      data: 'Limited range of motion in lower back.',
+      loading: false,
+    },
+    assessment: {
+      data: 'Chronic lower back pain, further evaluation needed.',
 
-//       loading: false,
-//     },
-//     patientInstructions: {
-//       data: 'Referral to physical therapy.',
-//       loading: false,
-//     },
-//     summary: {
-//       data: 'Follow-up appointment scheduled.',
-//       loading: false,
-//     },
-//     sessionSummary: 'Patient visit summary 2',
-//     condensedSummary: 'condensed summary of visit 2',
-//     finishedGenerating: true,
-//     transcript: '',
-//   },
-//   {
-//     id: 'report3',
-//     providerID: 'provider123',
-//     name: 'Cockroach',
-//     timestamp: '2024-07-27T09:00:00Z',
-//     duration: 200000,
-//     pronouns: They, // Using imported constant
-//     isFollowUp: false,
-//     patientOrClient: Client, // Using imported constant
-//     subjective: {
-//       data: 'Patient presented with anxiety.',
+      loading: false,
+    },
+    planning: {
+      data: 'Referral to physical therapy.',
+      loading: false,
+    },
+    summary: {
+      data: 'Follow-up appointment scheduled.',
+      loading: false,
+    },
+    oneLinerSummary: 'Patient visit summary 2',
+    shortSummary: 'Short summary of visit 2',
+    finishedGenerating: true,
+  },
+  {
+    id: 'report3',
+    providerID: 'provider123',
+    name: 'Cockroach',
+    timestamp: '2024-07-27T09:00:00Z',
+    duration: 200000,
+    pronouns: They, // Using imported constant
+    isFollowUp: false,
+    patientOrClient: Client, // Using imported constant
+    subjective: {
+      data: 'Patient presented with anxiety.',
 
-//       loading: false,
-//     },
-//     objective: {
-//       data: 'Restlessness observed.',
+      loading: false,
+    },
+    objective: {
+      data: 'Restlessness observed.',
 
-//       loading: false,
-//     },
-//     assessmentAndPlan: {
-//       data: 'Anxiety disorder.',
+      loading: false,
+    },
+    assessment: {
+      data: 'Anxiety disorder.',
 
-//       loading: false,
-//     },
-//     patientInstructions: {
-//       data: 'Prescribed medication and therapy.',
+      loading: false,
+    },
+    planning: {
+      data: 'Prescribed medication and therapy.',
 
-//       loading: false,
-//     },
-//     summary: {
-//       data: 'Follow-up appointment in two weeks.',
+      loading: false,
+    },
+    summary: {
+      data: 'Follow-up appointment in two weeks.',
 
-//       loading: false,
-//     },
-//     sessionSummary: 'Patient visit summary 3',
-//     condensedSummary: 'condensed summary of visit 3',
-//     finishedGenerating: true,
-//     transcript: '',
-//   },
-// ];
+      loading: false,
+    },
+    oneLinerSummary: 'Patient visit summary 3',
+    shortSummary: 'Short summary of visit 3',
+    finishedGenerating: true,
+  },
+  {
+    id: 'report4',
+    providerID: 'provider123',
+    name: 'Satya',
+    timestamp: '2024-07-27T09:00:00Z',
+    duration: 200000,
+    pronouns: He, // Using imported constant
+    isFollowUp: false,
+    patientOrClient: Patient, // Using imported constant
+    subjective: {
+      data: 'Patient presented with anxiety.',
 
-// const sampleCurrentlySelectedPatient = 'report1';
+      loading: false,
+    },
+    objective: {
+      data: 'Restlessness observed.',
 
-export const currentlySelectedPatientAtom = atom<string>('');
+      loading: false,
+    },
+    assessment: {
+      data: 'Anxiety disorder.',
 
-export const patientsAtom = atom<Report[]>([]);
+      loading: false,
+    },
+    planning: {
+      data: 'Prescribed medication and therapy.',
+
+      loading: false,
+    },
+    summary: {
+      data: 'Follow-up appointment in two weeks.',
+
+      loading: false,
+    },
+    oneLinerSummary: 'Patient visit summary 4',
+    shortSummary: 'Short summary of visit 4',
+    finishedGenerating: true,
+  },
+];
+
+//TODO: remove when e2e with the backend is built
+const sampleCurrentlySelectedPatient = 'report1';
+
+export const currentlySelectedPatientAtom = atom<string>(
+  sampleCurrentlySelectedPatient,
+);
+
+export const patientsAtom = atom<Report[]>(reports);
 
 export const reportStreamingAtom = atom<Set<string>>(new Set<string>());
 
