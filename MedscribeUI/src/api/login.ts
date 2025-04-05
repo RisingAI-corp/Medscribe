@@ -17,6 +17,7 @@ export async function loginProvider({ email, password }: LoginProps) {
     { withCredentials: true },
   );
 
+  console.log(response.data, ' here it is');
   const { success, data, error } = AuthResponse.safeParse(response.data);
   if (!success) {
     throw new Error('Error parsing Api request: ' + error.toString());

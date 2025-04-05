@@ -10,7 +10,6 @@ import {
 } from '../states/patientsAtom';
 
 import { useAtom } from 'jotai';
-import { currentlySelectedPatientAtom } from '../states/patientsAtom';
 
 export interface UseStreamProcessorOptions {
   attemptCreateReport?: (report: CreateReportProps) => void;
@@ -33,9 +32,6 @@ export function useStreamProcessor({
 }: UseStreamProcessorOptions) {
   const [_, setReportStreamStatus] = useAtom(setReportStreamStatusAtom);
   const [__, unsetReportStreamStatus] = useAtom(unsetReportStreamStatusAtom);
-  const [currentlySelectedPatient, setCurrentlySelectedPatient] = useAtom(
-    currentlySelectedPatientAtom,
-  );
 
   const processStream = useCallback(
     async (eventReader: ReadableStreamDefaultReader<Uint8Array>) => {
@@ -85,6 +81,7 @@ export function useStreamProcessor({
             if (!success) {
               throw new Error('Error parsing API request: ' + error.toString());
             }
+            console.log(data);
             if (data.Key === '_id') {
               if (typeof data.Value === 'string' && attemptCreateReport) {
                 // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,9 +101,6 @@ export function useStreamProcessor({
                 );
               }
             } else {
-              if (currentlySelectedPatient === '') {
-                setCurrentlySelectedPatient(reportID);
-              }
               updateReports({ id: reportID, ...data });
             }
           } catch (err) {

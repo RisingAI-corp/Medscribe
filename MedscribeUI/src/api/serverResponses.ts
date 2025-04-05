@@ -1,4 +1,17 @@
 import { z } from 'zod';
+import { Report } from '../states/patientsAtom';
+
+export interface AuthResponse {
+  id: string;
+  name: string;
+  email: string;
+  subjectiveStyle: string;
+  objectiveStyle: string;
+  assessmentAndPlanStyle: string;
+  summaryStyle: string;
+  patientInstructionsStyle: string;
+  reports: Report[];
+}
 
 export const ReportContentSchema = z.object({
   data: z.string(),
@@ -16,23 +29,25 @@ export const ReportSchema = z.object({
   patientOrClient: z.string(),
   subjective: ReportContentSchema,
   objective: ReportContentSchema,
-  assessment: ReportContentSchema,
-  planning: ReportContentSchema,
+  assessmentAndPlan: ReportContentSchema,
+  patientInstructions: ReportContentSchema,
   summary: ReportContentSchema,
-  oneLinerSummary: z.string(),
-  shortSummary: z.string(),
+  condensedSummary: z.string(),
+  sessionSummary: z.string(),
   finishedGenerating: z.boolean(),
+  transcript: z.string().default(''),
+  readStatus: z.boolean(),
 });
 
 export const AuthResponse = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
-  reports: z.array(ReportSchema).nullable().default([]),
+  reports: z.array(ReportSchema).default([]),
   subjectiveStyle: z.string(),
   objectiveStyle: z.string(),
-  assessmentStyle: z.string(),
-  planningStyle: z.string(),
+  assessmentAndPlanStyle: z.string(),
+  patientInstructionsStyle: z.string(),
   summaryStyle: z.string(),
 });
 

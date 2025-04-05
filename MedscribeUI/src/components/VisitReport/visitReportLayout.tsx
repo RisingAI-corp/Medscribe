@@ -1,7 +1,7 @@
 import { Flex } from '@mantine/core';
 import SoapSectionBox from './SoapSectionBox/soapSectionBox';
 import { useAtom } from 'jotai';
-import { SoapAtom } from './derivedAtoms';
+import { SoapAtom, updateTranscriptAtom } from './derivedAtoms';
 import { useEffect } from 'react';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
 import { replaceReportAtom } from './derivedAtoms';
@@ -10,6 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import { reportStreamingAtom } from '../../states/patientsAtom';
 import { learnStyle } from '../../api/learnStyle';
 import { updateContentSection } from '../../api/updateContentSection';
+import { getTranscript } from '../../api/getTranscript';
 
 function VisitReportLayout() {
   const [soapData, updateSoapData] = useAtom(SoapAtom);
@@ -17,6 +18,7 @@ function VisitReportLayout() {
   const [selectedPatientID, _] = useAtom(currentlySelectedPatientAtom);
   const [__, replaceReport] = useAtom(replaceReportAtom);
   const [reportStreaming, ___] = useAtom(reportStreamingAtom);
+  const [____, updateTranscript] = useAtom(updateTranscriptAtom);
 
   const getReportMutation = useMutation({
     mutationFn: async (props: GetReportPayload) => {
@@ -52,6 +54,18 @@ function VisitReportLayout() {
     },
   });
 
+  const fetchTranscriptMutation = useMutation({
+    mutationFn: getTranscript,
+
+    onSuccess: transcript => {
+      updateTranscript({ id: selectedPatientID, transcript: transcript });
+    },
+
+    onError: error => {
+      console.error('Error getting transcripts:', error);
+    },
+  });
+
   useEffect(() => {
     if (!reportStreaming.has(selectedPatientID) && !soapData?.loading) {
       const payload: GetReportPayload = {
@@ -75,29 +89,72 @@ function VisitReportLayout() {
     });
   };
 
-  const handleLearnFormat = (contentSection: string, content: string) => {
+  const handleLearnFormat = (
+    contentSection: string,
+    previous: string,
+    current: string,
+  ) => {
     learnStyleMutation.mutate({
       ReportID: selectedPatientID,
       ContentSection: contentSection,
-      Content: content,
+      Previous: previous,
+      Current: current,
     });
   };
 
+  const handleGetTranscript = () => {
+    fetchTranscriptMutation.mutate({ reportID: selectedPatientID });
+  };
+  const { isPending, isSuccess } = fetchTranscriptMutation;
+  const { variables } = updateContentSectionMutation;
+  console.log(variables?.ContentSection, 'here here');
   return (
     <>
-      <Flex direction="column" gap="xl">
-        {soapData?.content.map(section => (
-          <SoapSectionBox
-            key={`${selectedPatientID}-${section.type}`}
-            reportID={selectedPatientID}
-            title={section.type}
-            text={section.content.data}
-            isLoading={section.content.loading}
-            handleSave={handleSoapDataUpdate}
-            handleLearnFormat={handleLearnFormat}
-          />
-        ))}
-      </Flex>
+      {soapData && (
+        <Flex direction="column" gap="xl">
+          {soapData.soapContent.map(section => (
+            <SoapSectionBox
+              key={`${selectedPatientID}-${section.title}-${section.content.data}`}
+              reportID={selectedPatientID}
+              title={section.title}
+              sectionType={section.sectionType}
+              text={section.content.data}
+              isLoading={section.content.loading}
+              handleSave={handleSoapDataUpdate}
+              handleLearnFormat={handleLearnFormat}
+              onExpand={() => {
+                return;
+              }}
+              isExpanded={true}
+              readonly={false}
+              isContentSaveLoading={
+                updateContentSectionMutation.isPending &&
+                updateContentSectionMutation.variables.ContentSection ===
+                  section.sectionType
+              }
+              isLearnStyleLoading={
+                learnStyleMutation.isPending &&
+                learnStyleMutation.variables.ContentSection ===
+                  section.sectionType
+              }
+            />
+          ))}
+          {soapData.loading && (
+            <SoapSectionBox
+              key={`${selectedPatientID}-${soapData.transcript}`}
+              reportID={selectedPatientID}
+              title={'Full Transcript'}
+              text={soapData.transcript}
+              isLoading={isPending}
+              onExpand={() => {
+                handleGetTranscript();
+              }}
+              isExpanded={isPending || isSuccess}
+              readonly={true}
+            />
+          )}
+        </Flex>
+      )}
     </>
   );
 }

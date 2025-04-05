@@ -11,10 +11,17 @@ const samplePatientData: PatientPreviewCardProps = {
   dateOfRecording: '2025-01-18',
   timeOfRecording: '10:30 AM',
   durationOfRecording: '15 min',
-  shortenedSummary: 'Follow-up consultation for back pain.',
+  sessionSummary: 'Follow-up consultation for back pain.',
   loading: false,
   isChecked: false,
   selectAllToggle: false,
+  readStatus: false,
+  handleMarkRead: (id: string) => {
+    console.log(`Mark patient with ID: ${id} as read`);
+  },
+  handleUnMarkRead: (id: string) => {
+    console.log(`Mark patient with ID: ${id} as unread`);
+  },
   handleRemovePatient: (id: string) => {
     console.log(`this is the patient you want to remove: ${id}`);
   },

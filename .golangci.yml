@@ -3,8 +3,14 @@ go:
   lintFlags:
     - "--fast"
 
+linters:
+  disable:
+    - scripts/cmd/**
+    - scripts/distelledPrompts/**
+
 linters-settings:
   govet:
     disable-all: false
     disable:
       - loopclosure
+

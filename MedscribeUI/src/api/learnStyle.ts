@@ -3,7 +3,8 @@ import axios from 'axios';
 export interface LearnStyleRequest {
   ReportID: string;
   ContentSection: string;
-  Content: string;
+  Previous: string;
+  Current: string;
 }
 
 export async function learnStyle(payload: LearnStyleRequest) {

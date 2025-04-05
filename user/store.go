@@ -8,39 +8,38 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	SubjectiveStyleField = "subjectiveStyle"
-	ObjectiveStyleField  = "objectiveStyle"
-	AssessmentStyleField = "assessmentStyle"
-	PlanningStyleField   = "planningStyle"
-	SummaryStyleField    = "summaryStyle"
+	SubjectiveStyleField          = "subjectiveStyle"
+	ObjectiveStyleField           = "objectiveStyle"
+	AssessmentAndPlanStyleField   = "assessmentStyle"
+	PlanningStyleField            = "planningStyle"
+	SummaryStyleField             = "summaryStyle"
+	PatientInstructionsStyleField = "patientInstructionsStyle"
 )
 
 const EmailField = "email"
 
-type Styles struct {
-	SubjectiveStyle string `bson:"subjectiveStyle"`
-	ObjectiveStyle  string `bson:"objectiveStyle"`
-	AssessmentStyle string `bson:"assessmentStyle"`
-	PlanningStyle   string `bson:"planningStyle"`
-	SummaryStyle    string `bson:"summaryStyle"`
-}
-
 type User struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Name         string             `bson:"name"`
-	Email        string             `bson:"email"`
-	PasswordHash string             `bson:"passwordHash"`
-	Styles
+	ID                       primitive.ObjectID `bson:"_id,omitempty"`
+	Name                     string             `bson:"name"`
+	Email                    string             `bson:"email"`
+	PasswordHash             string             `bson:"passwordHash"`
+	SubjectiveStyle          string             `bson:"subjectiveStyle"`
+	ObjectiveStyle           string             `bson:"objectiveStyle"`
+	AssessmentAndPlanStyle   string             `bson:"assessmentStyle"`
+	SummaryStyle             string             `bson:"summaryStyle"`
+	PatientInstructionsStyle string             `bson:"patientInstructionsStyle"`
 }
 
 type UserStore interface {
 	Put(ctx context.Context, name, email, password string) (string, error)
 	Get(ctx context.Context, id string) (User, error)
 	GetByAuth(ctx context.Context, email, password string) (User, error)
+	GetStyleField(ctx context.Context, userID, styleField string) (string, error)
 	UpdateStyle(ctx context.Context, providerID, contentType, newStyle string) error
 }
 
@@ -101,7 +100,6 @@ func (s *store) Get(ctx context.Context, id string) (User, error) {
 		}
 		return User{}, fmt.Errorf("failed to retrieve user: %v", err)
 	}
-
 	return retrievedUser, nil
 }
 
@@ -129,10 +127,41 @@ func (s *store) GetByAuth(ctx context.Context, email, password string) (User, er
 
 func IsValidStyle(style string) bool {
 	switch style {
-	case SubjectiveStyleField, ObjectiveStyleField, AssessmentStyleField, PlanningStyleField, SummaryStyleField:
+	case SubjectiveStyleField, ObjectiveStyleField, AssessmentAndPlanStyleField, PlanningStyleField, SummaryStyleField, PatientInstructionsStyleField:
 		return true
 	default:
 		return false
+	}
+}
+
+func (s *store) GetStyleField(ctx context.Context, userID, styleField string) (string, error) {
+	if !IsValidStyle(styleField) {
+		return "", fmt.Errorf("invalid style: %s", styleField)
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return "", fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{"_id": objectID}
+	projection := bson.M{styleField: 1, "_id": 0}
+	opts := options.FindOne().SetProjection(projection)
+
+	var result bson.M
+	err = s.client.FindOne(ctx, filter, opts).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return "", errors.New("user not found")
+		}
+		return "", fmt.Errorf("failed to fetch user: %v", err)
+	}
+
+	stringValue, ok := result[styleField].(string)
+	if ok {
+		return stringValue, nil
+	} else {
+		return "", fmt.Errorf("error: field '%s' not found or not a string", stringValue)
 	}
 }
 

@@ -1,7 +1,7 @@
 # ===========================
 # Stage 1: Build the Frontend (Vite)
 # ===========================
-FROM node:18-alpine AS frontend
+FROM node:20-alpine AS frontend
 
 # Set working directory
 WORKDIR /MedscribeUI
@@ -60,5 +60,7 @@ COPY --from=frontend /MedscribeUI/dist ./MedscribeUI/dist
 RUN chmod +x /app/app
 
 EXPOSE 8080
+
+ENV ENVIRONMENT="production"
 
 CMD ["/app/app"]

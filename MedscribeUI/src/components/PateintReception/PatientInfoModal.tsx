@@ -1,20 +1,19 @@
 import { Modal, TextInput, Button, Group } from '@mantine/core';
+import { useRef } from 'react';
 
 interface PatientInfoModalProps {
   isOpen: boolean;
   patientName: string;
   onClose: () => void;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (name: string) => void;
 }
 
 const PatientInfoModal = ({
   isOpen,
-  patientName,
   onClose,
-  onChange,
   onSubmit,
 }: PatientInfoModalProps) => {
+  const patientNameRef = useRef<HTMLInputElement>(null);
   return (
     <Modal
       centered
@@ -24,15 +23,19 @@ const PatientInfoModal = ({
     >
       <TextInput
         label="Patient Name"
+        ref={patientNameRef}
         placeholder="Enter patient's name"
-        value={patientName}
-        onChange={event => {
-          onChange(event.currentTarget.value);
-        }}
         required
       />
       <Group className="flex justify-end mt-4">
-        <Button color="blue" onClick={onSubmit}>
+        <Button
+          color="blue"
+          onClick={() => {
+            if (patientNameRef.current != null) {
+              onSubmit(patientNameRef.current.value);
+            }
+          }}
+        >
           Start Recording
         </Button>
       </Group>

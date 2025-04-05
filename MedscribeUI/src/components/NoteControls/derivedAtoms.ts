@@ -57,8 +57,8 @@ export const toggleLoadingForReportSectionsAtom = atom(null, (get, set) => {
         ...report,
         subjective: updateSectionLoading(report.subjective),
         objective: updateSectionLoading(report.objective),
-        assessment: updateSectionLoading(report.assessment),
-        planning: updateSectionLoading(report.planning),
+        assessmentAndPlan: updateSectionLoading(report.assessmentAndPlan),
+        patientInstructions: updateSectionLoading(report.patientInstructions),
         summary: updateSectionLoading(report.summary),
       };
     } else {
@@ -78,8 +78,8 @@ export const fetchContentDataAtom = atom(null, get => {
   return {
     subjective: report.subjective.data,
     objective: report.objective.data,
-    assessment: report.assessment.data,
-    planning: report.planning.data,
+    assessmentAndPlan: report.assessmentAndPlan.data,
+    patientInstructions: report.patientInstructions.data,
     summary: report.summary.data,
   };
 });

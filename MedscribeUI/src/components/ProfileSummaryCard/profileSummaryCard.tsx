@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
+import { Tooltip } from '@mantine/core';
+import { useDebouncedNameChange } from '../../hooks/useDebounceNameChange';
 
 export interface ProfileSummaryCardProps {
   name: string;
@@ -7,42 +7,49 @@ export interface ProfileSummaryCardProps {
   onChange: (newName: string) => void;
   handleUpdateName: (newName: string) => void;
 }
+
 function ProfileSummaryCard({
   name,
   description,
   onChange,
   handleUpdateName,
 }: ProfileSummaryCardProps) {
-  const localNameRef = useRef(name);
-  const [currentName, setName] = useState(name);
-  localNameRef.current = currentName;
+  const { nameRef, nameValue, setNameValue, debouncedNameChange } =
+    useDebouncedNameChange({
+      name,
+      onChange,
+      handleUpdateName,
+    });
 
-  const debouncedNameChange = useDebouncedCallback((value: string) => {
-    onChange(value);
-  }, 200);
-
-  useEffect(() => {
-    return () => {
-      debouncedNameChange.cancel();
-      if (localNameRef.current !== name) {
-        handleUpdateName(localNameRef.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const isEmpty = !nameValue.trim();
 
   return (
     <div className="bg-gray-100 p-5 border border-gray-300 shadow-md">
-      <input
-        type="text"
-        value={currentName}
-        onChange={e => {
-          setName(e.target.value);
-          debouncedNameChange(e.target.value);
-        }}
-        className="text-lg font-bold border-none bg-transparent outline-none w-full"
-      />
-      <div className="text-sm text-gray-600">One Liner</div>
+      <div className="flex items-center">
+        <div className="relative w-full">
+          <Tooltip
+            label="Name field cannot be empty"
+            opened={isEmpty}
+            position="top"
+            withArrow
+          >
+            <input
+              type="text"
+              ref={nameRef}
+              value={nameValue}
+              onChange={e => {
+                setNameValue(e.target.value);
+                debouncedNameChange(e.target.value);
+              }}
+              placeholder="Enter patient's name"
+              required
+              className={`border-b-2 ${isEmpty ? 'border-red-500' : 'border-gray-400'} 
+                          focus:outline-none hover:border-blue-700 focus:border-blue-500 pl-0 pb-1 pt-1 text-sm bg-transparent font-bold`}
+              style={{ width: '15rem' }}
+            />
+          </Tooltip>
+        </div>
+      </div>
       <div className="text-sm text-gray-600 mb-5">{description}</div>
     </div>
   );

@@ -13,7 +13,7 @@ import (
 const (
 	Temperature = 0.7
 	TopP        = 0.95
-	MaxTokens   = 800
+	MaxTokens   = 1000
 )
 
 // Message represents a message in a conversation, including the role (e.g., "user" or "system") and content (text and type).

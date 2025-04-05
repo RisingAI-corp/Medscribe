@@ -2,6 +2,7 @@ package azure
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -65,7 +66,9 @@ func TestTranscribe(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
+
 			txn := NewAzureTranscriber(apiUrl, apiKey)
+			fmt.Println(txn)
 
 			transcript, err := txn.Transcribe(ctx, tc.audioData)
 			assert.Equal(t, err, tc.expectErr)

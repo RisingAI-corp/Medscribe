@@ -144,19 +144,18 @@ function NoteControlsLayout() {
     toggle();
     toggleContentLoading();
     regenerateReportMutation.mutate({
-      providerID: provider.ID,
       ID: currentlySelectedPatient,
       subjectiveStyle: provider.subjectiveStyle,
       objectiveStyle: provider.objectiveStyle,
-      assessmentStyle: provider.assessmentStyle,
-      planningStyle: provider.planningStyle,
+      assessmentAndPlanStyle: provider.assessmentAndPlanStyle,
+      patientInstructionsStyle: provider.patientInstructionsStyle,
       summaryStyle: provider.summaryStyle,
       updates: updates,
-      SubjectiveContent: contentData.subjective,
-      ObjectiveContent: contentData.objective,
-      AssessmentContent: contentData.assessment,
-      PlanningContent: contentData.planning,
-      SummaryContent: contentData.summary,
+      subjectiveContent: contentData.subjective,
+      objectiveContent: contentData.objective,
+      assessmentAndPlanContent: contentData.assessmentAndPlan,
+      patientInstructionsContent: contentData.patientInstructions,
+      summaryContent: contentData.summary,
     });
 
     editPatientVisit[1](changes);

@@ -15,17 +15,27 @@ export const Client = 'Client';
 //
 export const REPORT_CONTENT_TYPE_SUBJECTIVE = 'subjective';
 export const REPORT_CONTENT_TYPE_OBJECTIVE = 'objective';
-export const REPORT_CONTENT_TYPE_ASSESSMENT = 'assessment';
-export const REPORT_CONTENT_TYPE_PLANNING = 'planning';
+export const REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN = 'assessmentAndPlan';
+export const REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS = 'patientInstructions';
 export const REPORT_CONTENT_TYPE_SUMMARY = 'summary';
+export const REPORT_CONTENT_TYPE_CONDENSED_SUMMARY = 'condensedSummary';
+export const REPORT_CONTENT_TYPE_SESSION_SUMMARY = 'sessionSummary';
 
 export const REPORT_CONTENT_SECTIONS = [
   REPORT_CONTENT_TYPE_SUBJECTIVE,
   REPORT_CONTENT_TYPE_OBJECTIVE,
-  REPORT_CONTENT_TYPE_ASSESSMENT,
-  REPORT_CONTENT_TYPE_PLANNING,
+  REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN,
+  REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS,
   REPORT_CONTENT_TYPE_SUMMARY,
 ];
 
 //audio constants
 export const MIME_TYPE = 'audio/webm';
+
+//notification constants
+export const NOTIFICATION_POSITION_TOP_LEFT = 'top-left';
+export const NOTIFICATION_POSITION_TOP_RIGHT = 'top-right';
+export const NOTIFICATION_POSITION_BOTTOM_LEFT = 'bottom-left';
+export const NOTIFICATION_POSITION_BOTTOM_RIGHT = 'bottom-right';
+export const NOTIFICATION_POSITION_TOP_CENTER = 'top-center';
+export const NOTIFICATION_POSITION_BOTTOM_CENTER = 'bottom-center';

@@ -35,11 +35,11 @@ const (
 	Patient = "Patient"
 	Client  = "Client"
 
-	Subjective = "subjective"
-	Objective  = "objective"
-	Assessment = "assessment"
-	Planning   = "planning"
-	Summary    = "summary"
+	Subjective          = "subjective"
+	Objective           = "objective"
+	AssessmentAndPlan   = "assessmentAndPlan"
+	Summary             = "summary"
+	PatientInstructions = "patientInstructions"
 
 	FinishedGenerating = "finishedGenerating"
 
@@ -56,11 +56,18 @@ const (
 
 	Name = "name"
 
-	providerID = "providerid"
+	ProviderID = "providerid"
 
 	ID = "_id"
 
-	timestamp = "timestamp"
+	TimeStamp = "timestamp"
+
+	CondensedSummary = "condensedSummary"
+	SessionSummary   = "sessionSummary"
+
+	Transcript = "transcript"
+
+	readStatus = "readstatus"
 )
 
 type ReportContent struct {
@@ -69,31 +76,37 @@ type ReportContent struct {
 }
 
 type Report struct {
-	ID                 primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	ProviderID         string             `json:"providerID"`
-	Name               string             `json:"name"`
-	TimeStamp          primitive.DateTime `json:"timestamp"`
-	Duration           float64            `json:"duration"`
-	Pronouns           string             `json:"pronouns"`
-	IsFollowUp         bool               `json:"isFollowUp"`
-	PatientOrClient    string             `json:"patientOrClient"`
-	Subjective         ReportContent      `json:"subjective"`
-	Objective          ReportContent      `json:"objective"`
-	Assessment         ReportContent      `json:"assessment"`
-	Planning           ReportContent      `json:"planning"`
-	Summary            ReportContent      `json:"summary"`
-	OneLinerSummary    string             `json:"oneLinerSummary"`
-	ShortSummary       string             `json:"shortSummary"`
-	FinishedGenerating bool               `json:"finishedGenerating"`
+	ID                  primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ProviderID          string             `json:"providerID"`
+	Name                string             `json:"name"`
+	TimeStamp           primitive.DateTime `json:"timestamp"`
+	Duration            float64            `json:"duration"`
+	Pronouns            string             `json:"pronouns"`
+	IsFollowUp          bool               `json:"isFollowUp"`
+	PatientOrClient     string             `json:"patientOrClient"`
+	Subjective          ReportContent      `json:"subjective"`
+	Objective           ReportContent      `json:"objective"`
+	AssessmentAndPlan   ReportContent      `json:"assessmentAndPlan"`
+	Summary             ReportContent      `json:"summary"`
+	PatientInstructions ReportContent      `json:"patientInstructions"`
+	CondensedSummary    string             `json:"condensedSummary"`
+	SessionSummary      string             `json:"sessionSummary"`
+	FinishedGenerating  bool               `json:"finishedGenerating"`
+	Transcript          string             `json:"transcript"`
+	ReadStatus          bool               `json:"readStatus"`
+	LastVisitID string `json:"lastVisit"`
 }
 
 type Reports interface {
-	Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string) (string, error)
+	Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string) (string, error)
 	Get(ctx context.Context, reportId string) (Report, error)
 	GetAll(ctx context.Context, userId string) ([]Report, error)
 	UpdateReport(ctx context.Context, reportId string, batchedUpdates bson.D) error
 	Validate(report *Report) error
 	Delete(ctx context.Context, reportId string) error
+	GetTranscription(ctx context.Context, reportId string) (string, string, error)
+	MarkRead(ctx context.Context, reportId string) error
+	MarkUnread(ctx context.Context, reportId string) error
 }
 
 type reportsStore struct {
@@ -105,7 +118,7 @@ func NewReportsStore(collection *mongo.Collection) Reports {
 }
 
 /* Put partially filled record into reports collection */
-func (r *reportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string) (string, error) {
+func (r *reportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string) (string, error) {
 	if name == "" {
 		return "", errors.New("name cannot be an empty string")
 	}
@@ -122,20 +135,28 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 		return "", fmt.Errorf("pronouns must be either '%s', '%s', or '%s'", HE, SHE, THEY)
 	}
 
+	if lastVisitID != "" {
+		_, err := primitive.ObjectIDFromHex(lastVisitID)
+		if err != nil {
+			return "",fmt.Errorf("invalid last visitID format: %v", err)
+		}
+	}
+
 	// Initialize the Report struct
 	report := Report{
-		Name:               name,
-		TimeStamp:          primitive.NewDateTimeFromTime(timestamp),
-		Duration:           duration,
-		ProviderID:         providerID,
-		FinishedGenerating: false,
-		IsFollowUp:         isFollowUp,
-		Pronouns:           THEY,
-		Subjective:         ReportContent{Loading: true},
-		Objective:          ReportContent{Loading: true},
-		Assessment:         ReportContent{Loading: true},
-		Planning:           ReportContent{Loading: true},
-		Summary:            ReportContent{Loading: true},
+		Name:                name,
+		TimeStamp:           primitive.NewDateTimeFromTime(timestamp),
+		Duration:            duration,
+		ProviderID:          providerID,
+		FinishedGenerating:  false,
+		IsFollowUp:          isFollowUp,
+		Pronouns:            THEY,
+		Subjective:          ReportContent{Loading: true},
+		Objective:           ReportContent{Loading: true},
+		AssessmentAndPlan:   ReportContent{Loading: true},
+		PatientInstructions: ReportContent{Loading: true},
+		Summary:             ReportContent{Loading: true},
+		LastVisitID: lastVisitID,
 	}
 
 	insertResp, err := r.client.InsertOne(ctx, report)
@@ -159,12 +180,39 @@ func (r *reportsStore) Get(ctx context.Context, reportId string) (Report, error)
 	}
 
 	filter := bson.M{ID: objectID}
+	projection := bson.M{Transcript: 0} // Exclude transcript field
+	opts := options.FindOne().SetProjection(projection)
+
 	var retrievedReport Report
-	err = r.client.FindOne(ctx, filter).Decode(&retrievedReport)
+	err = r.client.FindOne(ctx, filter, opts).Decode(&retrievedReport)
 	if err != nil {
 		return Report{}, fmt.Errorf("failed to retrieve report: %v", err)
 	}
 	return retrievedReport, nil
+}
+
+/* GetTranscript retrieves the transcript for a report by its unique identifier */
+func (r *reportsStore) GetTranscription(ctx context.Context, reportId string) (string, string, error) {
+	objectID, err := primitive.ObjectIDFromHex(reportId)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{ID: objectID}
+	projection := bson.M{Transcript: 1, ProviderID: 1, ID: 0} // Include only transcript and providerID fields
+	opts := options.FindOne().SetProjection(projection)
+
+	var retrievedReport struct {
+		Transcript string `json:"transcript"`
+		ProviderID string `json:"providerid"`
+	}
+
+	err = r.client.FindOne(ctx, filter, opts).Decode(&retrievedReport)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to retrieve transcript: %v", err)
+	}
+
+	return retrievedReport.ProviderID, retrievedReport.Transcript, nil
 }
 
 /* GetAll retrieves all the reports linked to a userId unique identifier */
@@ -173,11 +221,11 @@ func (r *reportsStore) GetAll(ctx context.Context, providerId string) ([]Report,
 	if providerId == "" {
 		return []Report{}, errors.New("missing provider ID")
 	}
-	filter := bson.M{providerID: providerId}
+	filter := bson.M{ProviderID: providerId}
 
-	options := options.Find().SetSort(bson.M{timestamp: -1})
+	options := options.Find().SetSort(bson.M{TimeStamp: -1})
 
-	var retrievedReports []Report
+	retrievedReports := []Report{}
 
 	cursor, err := r.client.Find(ctx, filter, options)
 	if err != nil {
@@ -205,6 +253,43 @@ func (r *reportsStore) Delete(ctx context.Context, reportId string) error {
 	}
 
 	if result.DeletedCount == 0 {
+		return fmt.Errorf("report not found")
+	}
+
+	return nil
+}
+func (r *reportsStore) MarkRead(ctx context.Context, reportId string) error {
+	objectID, err := primitive.ObjectIDFromHex(reportId)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{ID: objectID}
+	update := bson.M{"$set": bson.M{readStatus: true}}
+
+	result, err := r.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to mark report as read: %v", err)
+	}
+	fmt.Println(result.ModifiedCount, "modified count")
+	return nil
+}
+
+func (r *reportsStore) MarkUnread(ctx context.Context, reportId string) error {
+	objectID, err := primitive.ObjectIDFromHex(reportId)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{ID: objectID}
+	update := bson.M{"$set": bson.M{readStatus: false}}
+
+	result, err := r.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to mark report as unread: %v", err)
+	}
+
+	if result.ModifiedCount == 0 {
 		return fmt.Errorf("report not found")
 	}
 
@@ -330,7 +415,7 @@ func (r *reportsStore) UpdateReport(ctx context.Context, reportId string, update
 			Data:    "for validation purposes",
 			Loading: false,
 		},
-		Assessment: ReportContent{
+		AssessmentAndPlan: ReportContent{
 			Data:    "for validation purposes",
 			Loading: true,
 		},
@@ -338,8 +423,12 @@ func (r *reportsStore) UpdateReport(ctx context.Context, reportId string, update
 			Data:    "for validation purposes",
 			Loading: false,
 		},
-		OneLinerSummary:    "for validation purposes",
-		ShortSummary:       "for validation purposes",
+		PatientInstructions: ReportContent{
+			Data:    "for validation purposes",
+			Loading: false,
+		},
+		SessionSummary:     "for validation purposes",
+		CondensedSummary:   "for validation purposes",
 		FinishedGenerating: true,
 	}
 
@@ -410,12 +499,19 @@ func (r *reportsStore) Validate(report *Report) error {
 		return fmt.Errorf("PatientOrClient must be either '%s' or '%s'", Patient, Client)
 	}
 
-	if report.OneLinerSummary == "" {
-		return errors.New("OneLinerSummary cannot be empty")
+	if report.SessionSummary == "" {
+		return errors.New("sessionSummary cannot be empty")
 	}
 
-	if report.ShortSummary == "" {
-		return errors.New("ShortSummary cannot be empty")
+	if report.CondensedSummary == "" {
+		return errors.New("condensedSummary cannot be empty")
+	}
+
+	if report.LastVisitID != "" {
+		_, err := primitive.ObjectIDFromHex(report.LastVisitID)
+		if err != nil {
+			return fmt.Errorf("invalid last visitID format: %v", err)
+		}
 	}
 
 	return nil

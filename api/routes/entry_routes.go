@@ -4,6 +4,8 @@ import (
 	"Medscribe/api/handlers/reportsHandler"
 	userhandler "Medscribe/api/handlers/userHandler"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/cors"
@@ -24,14 +26,14 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 	reportsSubRoutes := ReportRoutes(config.ReportsHandler)
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000","http://localhost:6006","http://localhost:8080"}, // dev server, storybook, backend server
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		AllowCredentials: true, // Allows cookies & authentication headers
+		AllowCredentials: true,
 	})
 
 	r := chi.NewRouter()
-	
+
 	r.Use(config.LoggerMiddleware)
 	r.Use(corsHandler.Handler)
 
@@ -46,19 +48,34 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 		r.Mount("/", reportsSubRoutes)
 	})
 
-	fs := http.FileServer(http.Dir("./MedscribeUI/dist"))
-	r.Handle("/*", fs) // Serves all static files correctly
-
-	// Ensure `index.html` is served for the root
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeFile(w, r, "./MedscribeUI/dist/index.html")
-	})
-
-	// Fallback: Serve `index.html` for unknown frontend routes (for SPAs)
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./MedscribeUI/dist/index.html")
+	// Serve SPA frontend with static + fallback logic
+	r.Handle("/*", spaHandler{
+		staticPath: "./MedscribeUI/dist",
+		indexPath:  "index.html",
 	})
 
 	return r
+}
+
+type spaHandler struct {
+	staticPath string
+	indexPath  string
+}
+
+func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	requestPath := filepath.Join(h.staticPath, r.URL.Path)
+	_, err := os.Stat(requestPath)
+
+	if os.IsNotExist(err) {
+		// Not a file? Serve index.html so React Router can handle it
+		http.ServeFile(w, r, filepath.Join(h.staticPath, h.indexPath))
+		return
+	} else if err != nil {
+		// Something went wrong (permissions, disk error, etc.)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// File exists, serve it
+	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }

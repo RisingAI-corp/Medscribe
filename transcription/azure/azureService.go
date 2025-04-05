@@ -23,7 +23,7 @@ type azureResponse struct {
 }
 
 func NewAzureTranscriber(apiUrl, apiKey string) transcriberType.Transcription {
-	return &transcriber{apiKey: apiKey, apiUrl: apiUrl}
+	return &transcriber{apiUrl: apiUrl, apiKey: apiKey}
 }
 
 func (t *transcriber) Transcribe(ctx context.Context, audio []byte) (string, error) {

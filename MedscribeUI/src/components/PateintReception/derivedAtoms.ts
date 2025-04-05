@@ -66,12 +66,14 @@ export const createReportAtom = atom(
       patientOrClient: '',
       subjective: { data: '', loading: true },
       objective: { data: '', loading: true },
-      assessment: { data: '', loading: true },
-      planning: { data: '', loading: true },
+      assessmentAndPlan: { data: '', loading: true },
+      patientInstructions: { data: '', loading: true },
       summary: { data: '', loading: true },
-      oneLinerSummary: '',
-      shortSummary: '',
+      sessionSummary: '',
+      condensedSummary: '',
       finishedGenerating: false,
+      transcript: '',
+      readStatus: false,
     };
     set(patientsAtom, [newReport, ...reports]);
   },

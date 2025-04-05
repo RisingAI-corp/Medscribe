@@ -1,16 +1,16 @@
 import ProfileSummaryCard from '../ProfileSummaryCard/profileSummaryCard';
 import VisitReportLayout from '../VisitReport/visitReportLayout';
 import NoteControlsLayout from '../NoteControls/noteControlsLayout';
-import { HeaderInformationAtom } from './derivedAtoms';
+import { SelectedPatientHeaderInformationAtom } from './derivedAtoms';
+import { UpdateSelectedPatientNameAtom } from '../../states/patientsAtom';
 import { useAtom } from 'jotai';
 import { useMutation } from '@tanstack/react-query';
 import { changeName } from '../../api/changeName';
 
 function PatientDashBoardLayout() {
-  const [headerInformation, updateHeaderInformation] = useAtom(
-    HeaderInformationAtom,
-  );
-  const updateNameMutatuon = useMutation({
+  const [headerInformation, _] = useAtom(SelectedPatientHeaderInformationAtom);
+  const [, updateHeaderInformation] = useAtom(UpdateSelectedPatientNameAtom);
+  const updateNameMutation = useMutation({
     mutationFn: changeName,
     onError: error => {
       console.error(error);
@@ -18,7 +18,7 @@ function PatientDashBoardLayout() {
   });
 
   const handleUpdateName = (name: string) => {
-    updateNameMutatuon.mutate({
+    updateNameMutation.mutate({
       ReportID: headerInformation.id,
       NewName: name,
     });
@@ -29,7 +29,7 @@ function PatientDashBoardLayout() {
       <div className="flex-shrink-0 border-b border-gray-300">
         <ProfileSummaryCard
           name={headerInformation.name}
-          description={headerInformation.oneLiner}
+          description={headerInformation.condensedSummary}
           onChange={updateHeaderInformation}
           handleUpdateName={handleUpdateName}
         />

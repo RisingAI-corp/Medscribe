@@ -8,6 +8,7 @@ interface SignUpProps {
 }
 
 export async function createProvider({ name, email, password }: SignUpProps) {
+  console.log('sending');
   if (!email || !name || !password) {
     throw new Error('Email, name, and password are required.');
   }
@@ -20,8 +21,6 @@ export async function createProvider({ name, email, password }: SignUpProps) {
       { name, email, password },
       { withCredentials: true },
     );
-    console.log('donzo');
-
     const { success, data, error } = AuthResponse.safeParse(response.data);
     if (!success) {
       throw new Error('Error parsing API response: ' + error.toString());

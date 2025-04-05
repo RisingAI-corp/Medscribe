@@ -5,6 +5,7 @@ import (
 	userhandler "Medscribe/api/handlers/userHandler"
 	"Medscribe/api/middleware"
 	"Medscribe/api/routes"
+	"Medscribe/config"
 	inferenceService "Medscribe/inference/service"
 	inferencestore "Medscribe/inference/store"
 	"Medscribe/reports"
@@ -12,111 +13,120 @@ import (
 	"Medscribe/user"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
-type mockTranscriber struct{
+type mockTranscriber struct{}
 
-}
+const sample1 = ``
 func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string, error) {
-	return "I have a itchy throat and i feel really sick", nil
+	return sample1, nil
 }
 
 func main() {
-	logger, err := zap.NewDevelopment() // Or zap.NewDevelopment() for development
+	log.Println("🚀 App is starting...")
+	log.Println("⚡ ENV BEFORE .env load: PORT =", os.Getenv("PORT"))
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		fmt.Println("Failed to initialize Zap logger:", err)
-		return
+		log.Fatalf("❌ Critical error loading config: %v", err)
+	}
+
+	var logger *zap.Logger
+	if cfg.Env == "development" {
+		logger, err = zap.NewDevelopment()
+	} else {
+		logger, err = zap.NewProduction()
+	}
+	if err != nil {
+		log.Fatalf("❌ Failed to initialize zap logger: %v", err)
 	}
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			fmt.Printf("Error syncing logger: %v\n", err)
+			fmt.Printf("⚠️ Error syncing logger: %v\n", err)
 		}
 	}()
-	if err := godotenv.Load(".env"); err != nil {
-		logger.Error("Error loading .env file", zap.Error(err))
-		return
-	}
+
+	logger.Info("✅ Configuration loaded", zap.String("env", cfg.Env))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	mongoURI := os.Getenv("MONGODB_URI")
-	if mongoURI == "" {
-		logger.Error("MONGODB_URI environment variable is not set")
-		return
-	}
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	logger.Info("🌐 Connecting to MongoDB", zap.String("uri", cfg.MongoURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
-		logger.Error("Failed to connect to MongoDB", zap.Error(err))
-		return
+		logger.Fatal("❌ Failed to connect to MongoDB", zap.Error(err))
 	}
-
 	if err = client.Ping(ctx, nil); err != nil {
-		logger.Error("Failed to ping MongoDB", zap.Error(err))
-
-		return
+		logger.Fatal("❌ Failed to ping MongoDB", zap.Error(err))
 	}
+	logger.Info("✅ Connected to MongoDB")
+
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
-			panic(fmt.Sprintf("Critical error disconnecting client: %v", err))
+			logger.Error("⚠️ Error disconnecting MongoDB client", zap.Error(err))
 		}
 	}()
 
-	db := client.Database(os.Getenv("MONGODB_DB"))
-	userColl := db.Collection(os.Getenv("MONGODB_USER_COLLECTION_TEST"))
-	reportsColl := db.Collection(os.Getenv("MONGODB_REPORT_COLLECTION_TEST"))
+	db := client.Database(cfg.MongoDBName)
+	userColl := db.Collection(cfg.MongoUserCollection)
+	reportsColl := db.Collection(cfg.MongoReportCollection)
 
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
 
-	transcriber := azure.NewAzureTranscriber(
-		os.Getenv("OPENAI_API_SPEECH_URL"),
-		os.Getenv("OPENAI_API_KEY"),
+	inferenceStore := inferencestore.NewInferenceStore(
+		cfg.OpenAIChatURL,
+		cfg.OpenAIAPIKey,
 	)
 
-	inferenceStore := inferencestore.NewInferenceStore(
-		os.Getenv("OPENAI_API_CHAT_URL"),
-		os.Getenv("OPENAI_API_KEY"),
+	transcriber := azure.NewAzureTranscriber(
+		cfg.OpenAISpeechURL,
+		cfg.OpenAIAPIKey,
 	)
 
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
+		// &mockTranscriber{},
 		transcriber,
 		inferenceStore,
 		userStore,
 	)
 
-	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger)
+	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
+
+	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,
 		ReportsHandler:   reportsHandler,
-		AuthMiddleware:   middleware.Middleware,
+		AuthMiddleware:   authMiddleware.Middleware,
 		LoggerMiddleware: middleware.LoggingMiddleware,
 		Logger:           logger,
 	})
 
-	port := os.Getenv("PORT")
+	// Ensure we're reading the PORT env var properly
+	port := cfg.Port
+	if port == "" {
+		port = os.Getenv("PORT")
+	}
 	if port == "" {
 		port = "8080"
-		logger.Info("PORT environment variable not set. Using default port", zap.String("port", port))
+		logger.Warn("PORT not set; defaulting to 8080")
 	}
-	port = ":" + port
+	logger.Info("✅ Ready to start HTTP server", zap.String("port", port))
 
-	logger.Info("Server listening on port", zap.String("port", port))
-	err = http.ListenAndServe(port, router)
+	fullAddr := ":" + port
+	log.Printf("🌍 Binding to %s", fullAddr)
+	err = http.ListenAndServe(fullAddr, router)
 	if err != nil {
-		logger.Error("Error starting server", zap.Error(err))
-		return
+		logger.Fatal("❌ Error starting HTTP server", zap.Error(err))
 	}
 }

@@ -29,6 +29,12 @@ func (m *MockUserStore) GetByAuth(ctx context.Context, email, password string) (
 	return args.Get(0).(User), args.Error(1) // Type assertion
 }
 
+// GetStyleField mocks the GetStyleField method.
+func (m *MockUserStore) GetStyleField(ctx context.Context, userID, styleField string) (string, error) {
+	args := m.Called(ctx, userID, styleField)
+	return args.String(0), args.Error(1)
+}
+
 // UpdateStyle mocks the UpdateStyle method.
 func (m *MockUserStore) UpdateStyle(ctx context.Context, providerID, contentType, newStyle string) error {
 	args := m.Called(ctx, providerID, contentType, newStyle)

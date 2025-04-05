@@ -1,6 +1,4 @@
 import { atom } from 'jotai';
-import { Client, He, Patient, She, They } from '../constants';
-
 export interface ReportContent {
   data: string;
   loading: boolean;
@@ -16,12 +14,14 @@ export interface Report {
   patientOrClient: string;
   subjective: ReportContent;
   objective: ReportContent;
-  assessment: ReportContent;
-  planning: ReportContent;
+  assessmentAndPlan: ReportContent;
+  patientInstructions: ReportContent;
   summary: ReportContent;
-  oneLinerSummary: string;
-  shortSummary: string;
+  sessionSummary: string;
+  condensedSummary: string;
   finishedGenerating: boolean;
+  transcript: string;
+  readStatus: boolean;
 }
 
 //TODO: remove when apis are built
@@ -202,5 +202,27 @@ export const unsetReportStreamStatusAtom = atom(
     const newSet = new Set(currentSet);
     newSet.delete(id);
     set(reportStreamingAtom, newSet);
+  },
+);
+
+export const UpdateSelectedPatientNameAtom = atom(
+  null,
+  (get, set, newName: string) => {
+    const currentlySelectedPatient = get(currentlySelectedPatientAtom);
+    const patients = get(patientsAtom);
+    const patient = patients.find(p => p.id === currentlySelectedPatient);
+
+    if (patient) {
+      const updatedPatients = patients.map(p => {
+        if (p.id === patient.id) {
+          return {
+            ...p,
+            name: newName,
+          };
+        }
+        return p;
+      });
+      set(patientsAtom, updatedPatients);
+    }
   },
 );

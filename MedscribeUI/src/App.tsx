@@ -11,7 +11,9 @@ import { useAtom } from 'jotai';
 import { checkAuth } from './api/checkAuth';
 import AuthScreen from './pages/Auth/authScreen';
 import FallbackScreen from './pages/Fallback/fallbackScreen';
+import LandingScreen from './pages/Landing/landingScreen';
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 function App() {
   const [timerActive, setTimerActive] = useState(true);
@@ -24,9 +26,12 @@ function App() {
   );
 
   useEffect(() => {
+    if (isAuthenticated) return;
+
     setTimeout(() => {
       setTimerActive(false);
     }, 800);
+
     checkAuthMutation.mutate(undefined, {
       onSuccess: ({
         id,
@@ -35,8 +40,8 @@ function App() {
         reports,
         subjectiveStyle,
         objectiveStyle,
-        assessmentStyle,
-        planningStyle,
+        assessmentAndPlanStyle,
+        patientInstructionsStyle,
         summaryStyle,
       }) => {
         setProvider({
@@ -45,24 +50,26 @@ function App() {
           email: email,
           subjectiveStyle,
           objectiveStyle,
-          assessmentStyle,
-          planningStyle,
+          assessmentAndPlanStyle,
+          patientInstructionsStyle,
           summaryStyle,
         });
-        setPatients(reports ?? []);
+        setPatients(reports);
         setIsAuthenticated(true);
-        if (reports && reports.length > 0) {
+        if (reports.length > 0) {
           setCurrentlySelectedPatient(reports[0].id);
-          return;
+        } else {
+          setCurrentlySelectedPatient('');
         }
-        setCurrentlySelectedPatient('');
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuthMutation = useMutation({
     mutationFn: checkAuth,
+    onSuccess: data => {
+      console.log('Authenticated:', data);
+    },
     onError: error => {
       console.error('Error adding todo:', error);
     },
@@ -70,13 +77,25 @@ function App() {
 
   const { isPending, isSuccess, isIdle } = checkAuthMutation;
 
-  if (isPending || isIdle || timerActive) {
-    return <FallbackScreen />;
-  } else if (isSuccess || isAuthenticated) {
-    return <HomeScreen />;
-  } else {
-    return <AuthScreen />;
-  }
+  const renderAuthComponent = () => {
+    if (isPending || isIdle || timerActive) {
+      return <FallbackScreen />;
+    } else if (isSuccess || isAuthenticated) {
+      return <HomeScreen />;
+    } else {
+      return <LandingScreen />;
+    }
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={renderAuthComponent()} />
+        <Route path="/SignUp" element={<AuthScreen />} />
+        <Route path="/SignIn" element={<AuthScreen />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

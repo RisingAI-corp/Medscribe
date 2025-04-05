@@ -4,20 +4,29 @@ import {
   CopyButton,
   Button,
   LoadingOverlay,
-  Box,
+  Loader,
 } from '@mantine/core';
 
 import { IconDeviceFloppy, IconDownload } from '@tabler/icons-react';
 import { useRef, useEffect, useState } from 'react';
-import { useDisclosure } from '@mantine/hooks';
 
 interface SoapEditableSectionProps {
   reportID: string;
   title: string;
   text: string;
   isLoading: boolean;
-  handleSave: (field: string, newText: string, reportID: string) => void;
-  handleLearnFormat: (contentSection: string, content: string) => void;
+  handleSave?: (field: string, newText: string, reportID: string) => void;
+  handleLearnFormat?: (
+    contentSection: string,
+    previous: string,
+    content: string,
+  ) => void;
+  onExpand?: () => void;
+  isExpanded: boolean;
+  readonly: boolean;
+  sectionType?: string;
+  isLearnStyleLoading?: boolean;
+  isContentSaveLoading?: boolean;
 }
 
 const SoapSectionBox = ({
@@ -27,24 +36,32 @@ const SoapSectionBox = ({
   isLoading,
   handleSave,
   handleLearnFormat,
+  onExpand,
+  isExpanded,
+  readonly,
+  sectionType,
+  isContentSaveLoading,
+  isLearnStyleLoading,
 }: SoapEditableSectionProps) => {
+  console.log('saving loading ', isContentSaveLoading);
   const [clicked, setClicked] = useState(false);
 
-  const [visible] = useDisclosure(false);
   const [isDirty, setIsDirty] = useState(false);
 
   const latestLocalTextRef = useRef(text);
 
   useEffect(() => {
     return () => {
-      if (latestLocalTextRef.current !== text) {
-        handleSave(title, latestLocalTextRef.current, reportID);
+      if (latestLocalTextRef.current !== text && sectionType && handleSave) {
+        handleSave(sectionType, latestLocalTextRef.current, reportID);
       }
     };
   }, []);
 
   const handleClick = () => {
-    handleLearnFormat(title, latestLocalTextRef.current);
+    if (handleLearnFormat && sectionType) {
+      handleLearnFormat(sectionType, text, latestLocalTextRef.current);
+    }
     setClicked(true);
     setTimeout(() => {
       setClicked(false);
@@ -54,8 +71,14 @@ const SoapSectionBox = ({
   return (
     <div className="relative">
       <Accordion
-        defaultValue={title}
+        defaultValue={isExpanded || text ? title : ''}
         className="shadow-lg rounded-lg overflow-hidden bg-white"
+        onChange={value => {
+          console.log('Accordion value:', value);
+          if (text === '' && onExpand && value === title) {
+            onExpand();
+          }
+        }}
       >
         <Accordion.Item key={title} value={title}>
           <Accordion.Control>
@@ -68,8 +91,8 @@ const SoapSectionBox = ({
               key={text}
               defaultValue={text}
               autosize={true}
-              maxRows={10}
-              minRows={4}
+              maxRows={18}
+              minRows={0}
               placeholder="Input Text Here"
               onChange={e => {
                 if (e.currentTarget.value !== text) {
@@ -79,6 +102,7 @@ const SoapSectionBox = ({
                 }
                 latestLocalTextRef.current = e.currentTarget.value;
               }}
+              readOnly={readonly}
             />
 
             <LoadingOverlay
@@ -88,37 +112,53 @@ const SoapSectionBox = ({
               loaderProps={{ color: 'blue', type: 'bars' }}
             />
 
-            <div className="flex justify-between mt-4">
-              <Button
-                variant="outline"
-                color={clicked ? 'teal' : undefined}
-                onClick={handleClick}
-              >
-                Learn Style
-              </Button>
+            <div className="flex justify-between items-center mt-4">
+              {!readonly && (
+                <div className="flex gap-4">
+                  {latestLocalTextRef.current !== '' && (
+                    <>
+                      <div className="flex gap-2 justify-center items-center">
+                        <Button
+                          variant="outline"
+                          color={clicked ? 'teal' : undefined}
+                          onClick={handleClick}
+                        >
+                          Learn Style
+                        </Button>
+                        {isLearnStyleLoading && (
+                          <Loader color={'blue'} size={18} />
+                        )}
+                      </div>
+                    </>
+                  )}
 
-              <div className="flex gap-4">
-                <Box className="relative h-full w-6">
-                  <LoadingOverlay
-                    visible={visible}
-                    zIndex={1000}
-                    overlayProps={{ radius: 'sm', blur: 2 }}
-                    loaderProps={{ color: 'blue', type: 'bars', size: 'sm' }}
-                  />
-                </Box>
-                {isDirty && (
-                  <Button
-                    variant="outline"
-                    rightSection={<IconDeviceFloppy size={20} />}
-                    onClick={() => {
-                      handleSave(title, latestLocalTextRef.current, reportID);
-                      setIsDirty(false);
-                    }}
-                  >
-                    Save
-                  </Button>
-                )}
-                {text !== '' && (
+                  {isDirty && (
+                    <div className="flex gap-2 justify-center items-center">
+                      <Button
+                        variant="outline"
+                        rightSection={<IconDeviceFloppy size={20} />}
+                        onClick={() => {
+                          if (handleSave && sectionType) {
+                            handleSave(
+                              sectionType,
+                              latestLocalTextRef.current,
+                              reportID,
+                            );
+                            setIsDirty(false);
+                          }
+                        }}
+                      >
+                        Save
+                      </Button>
+                      {isContentSaveLoading && (
+                        <Loader color={'blue'} size={18} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div>
+                {latestLocalTextRef.current !== '' && (
                   <CopyButton value={text}>
                     {({ copied, copy }) => (
                       <Button
