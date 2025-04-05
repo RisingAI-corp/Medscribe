@@ -137,6 +137,44 @@ const reports: Report[] = [
     shortSummary: 'Short summary of visit 3',
     finishedGenerating: true,
   },
+  {
+    id: 'report4',
+    providerID: 'provider123',
+    name: 'Satya',
+    timestamp: '2024-07-27T09:00:00Z',
+    duration: 200000,
+    pronouns: He, // Using imported constant
+    isFollowUp: false,
+    patientOrClient: Patient, // Using imported constant
+    subjective: {
+      data: 'Patient presented with anxiety.',
+
+      loading: false,
+    },
+    objective: {
+      data: 'Restlessness observed.',
+
+      loading: false,
+    },
+    assessment: {
+      data: 'Anxiety disorder.',
+
+      loading: false,
+    },
+    planning: {
+      data: 'Prescribed medication and therapy.',
+
+      loading: false,
+    },
+    summary: {
+      data: 'Follow-up appointment in two weeks.',
+
+      loading: false,
+    },
+    oneLinerSummary: 'Patient visit summary 4',
+    shortSummary: 'Short summary of visit 4',
+    finishedGenerating: true,
+  },
 ];
 
 //TODO: remove when e2e with the backend is built

@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
+import { useAtom } from 'jotai';
 import { SearchResultItem } from './SearchResults/SearchResults';
 import SearchButton from './SearchButton/SearchButton';
 import SearchInput from './SearchInput/SearchInput';
 import SearchResults from './SearchResults/SearchResults';
 import useSearch from '../../hooks/useSearch';
+import { searchVisitsAtom } from './derivedAtoms';
 
 interface FollowUpSearchModalLayoutProps {
   selectedItems: SearchResultItem[];
   setSelectedItems: React.Dispatch<React.SetStateAction<SearchResultItem[]>>;
-  mockData?: SearchResultItem[]; // For demo/story purposes
 }
 
 const FollowUpSearchModalLayout: React.FC<FollowUpSearchModalLayoutProps> = ({ 
   selectedItems, 
   setSelectedItems,
-  mockData = [] 
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchVisits] = useAtom(searchVisitsAtom);
   
   // Use the search hook to manage the query and filtered results
   const [filteredResults, query, setQuery] = useSearch<SearchResultItem>(
-    mockData,
+    searchVisits,
     (item) => `${item.patientName} ${item.dateOfRecording} ${item.shortenedSummary || ''}`,
     300 // debounce time
   );

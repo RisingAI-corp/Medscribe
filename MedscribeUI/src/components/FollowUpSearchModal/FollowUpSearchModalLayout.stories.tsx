@@ -3,40 +3,6 @@ import { useState } from 'react';
 import FollowUpSearchModalLayout from './FollowUpSearchModalLayout';
 import { SearchResultItem } from './SearchResults/SearchResults';
 
-// Mock data for the story
-const mockSearchResults: SearchResultItem[] = [
-  {
-    id: '1',
-    patientName: 'John Smith',
-    dateOfRecording: '2023-05-10',
-    shortenedSummary: 'Patient complains of persistent headaches for the past week.'
-  },
-  {
-    id: '2',
-    patientName: 'Maria Garcia',
-    dateOfRecording: '2023-05-12',
-    shortenedSummary: 'Follow-up for hypertension management. Blood pressure readings stable.'
-  },
-  {
-    id: '3',
-    patientName: 'David Chen',
-    dateOfRecording: '2023-05-15',
-    shortenedSummary: 'Post-surgical follow-up. Incision healing well, no signs of infection.'
-  },
-  {
-    id: '4',
-    patientName: 'Sarah Johnson',
-    dateOfRecording: '2023-05-18',
-    shortenedSummary: 'Annual wellness check. All vitals within normal ranges.'
-  },
-  {
-    id: '5',
-    patientName: 'Robert Williams',
-    dateOfRecording: '2023-05-20',
-    shortenedSummary: 'Diabetic check-up. HbA1c shows improvement from previous visit.'
-  }
-];
-
 // Wrapper component for state management in the story
 const FollowUpSearchModalWithState = () => {
   const [selectedItems, setSelectedItems] = useState<SearchResultItem[]>([]);
@@ -46,7 +12,6 @@ const FollowUpSearchModalWithState = () => {
       <FollowUpSearchModalLayout 
         selectedItems={selectedItems} 
         setSelectedItems={setSelectedItems}
-        mockData={mockSearchResults}
       />
       
       {/* Additional info for the story */}
