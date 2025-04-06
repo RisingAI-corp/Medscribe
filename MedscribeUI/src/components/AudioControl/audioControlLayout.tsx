@@ -6,7 +6,7 @@ interface AudioControlLayoutProps {
   onAudioCaptured?: (blob: Blob, duration: number, timestamp: number) => void | Promise<void>;
 }
 
-const AudioControlLayout: React.FC<AudioControlLayoutProps> = ({ onAudioCaptured }) => {
+const AudioControlLayout = ({ onAudioCaptured }: AudioControlLayoutProps) => {
   const {
     isRecording,
     mediaRecorder,
