@@ -12,18 +12,22 @@ export const NoteControlsAtom = atom(get => {
       pronouns: patient.pronouns,
       visitType: patient.isFollowUp,
       patientOrClient: patient.patientOrClient,
+      visitContext: patient.visitContext,
     };
   }
   return {
     pronouns: '',
     visitType: false,
     patientOrClient: '',
+    visitContext: '',
   };
 });
 
 export interface noteControlEditsProps {
   id: string;
-  changes: Partial<Pick<Report, 'patientOrClient' | 'pronouns' | 'isFollowUp'>>;
+  changes: Partial<
+    Pick<Report, 'patientOrClient' | 'pronouns' | 'isFollowUp' | 'visitContext'>
+  >;
 }
 
 export const editPatientVisitAtom = atom(

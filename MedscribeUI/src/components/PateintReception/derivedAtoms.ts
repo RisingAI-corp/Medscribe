@@ -74,6 +74,8 @@ export const createReportAtom = atom(
       finishedGenerating: false,
       transcript: '',
       readStatus: false,
+      lastVisitID: '',
+      visitContext: '',
     };
     set(patientsAtom, [newReport, ...reports]);
   },

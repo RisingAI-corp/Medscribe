@@ -34,6 +34,7 @@ const FollowUpSearchModalLayout = ({
     console.log('hit');
     handleSelectedVisit(item);
     setSelectedVisitID(item.id);
+    console.log('this is item', item);
     setPatientName(item.patientName);
     setIsModalOpen(false); // Close modal after selection
   };
