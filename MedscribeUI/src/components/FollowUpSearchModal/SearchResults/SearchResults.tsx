@@ -1,3 +1,5 @@
+import { IconX } from '@tabler/icons-react';
+
 export interface SearchResultItem {
   id: string;
   patientName: string;
@@ -29,6 +31,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     return duration > 1 ? durationToString : '< 1 min';
   };
 
+  const handleUnselectVisit = () => {
+    onSelectItem({} as SearchResultItem);
+  };
+
   return (
     <div className="h-[400px] overflow-y-auto border border-gray-200 rounded-b-lg">
       {filteredResults.length > 0 ? (
@@ -36,8 +42,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           {filteredResults.map(item => (
             <li
               key={item.id}
-              className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                isSelected(item.id) ? 'bg-blue-50' : ''
+              className={`px-4 py-3 cursor-pointer hover:bg-[#e8f1ff] transition-colors ${
+                isSelected(item.id) ? 'bg-blue-100' : ''
               }`}
               onClick={() => {
                 onSelectItem(item);
@@ -58,6 +64,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
                     </div>
                   )}
                 </div>
+                {isSelected(item.id) && (
+                  <IconX
+                    // Modify the onClick handler for the icon
+                    onClick={event => {
+                      event.stopPropagation();
+                      console.log('IconX onClick triggered for item:', item.id); // For debugging
+                      handleUnselectVisit();
+                    }}
+                    className="text-red-500 hover:text-red-700 transition-colors cursor-pointer" // Added cursor-pointer here too
+                  />
+                )}
               </div>
             </li>
           ))}
