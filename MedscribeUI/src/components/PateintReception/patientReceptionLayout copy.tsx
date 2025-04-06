@@ -5,7 +5,8 @@ import { LiveAudioVisualizer } from 'react-audio-visualize';
 import WarningModal from './warningModal';
 import PatientInfoModal from './PatientInfoModal';
 import CaptureConversationButton from './captureConversation';
-import AudioControlLayout from '../AudioControl/audioControlLayout';
+import ControlButtons from './audioControls';
+import useAudioRecorder from '../../hooks/useAudioRecorder';
 import { useMutation } from '@tanstack/react-query';
 import {
   generateReport,
@@ -23,10 +24,22 @@ const PatientReception = () => {
   const [provider, _____] = useAtom(userAtom);
 
   const [timestamp, setTimeStamp] = useState<string>('');
-  const [patientInfoModalOpen, setPatientInfoModalOpen] = useState(false);
+  const [captureModalOpen, setCaptureModalOpen] = useState(false);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [duration, setDuration] = useState(0);
+
+  const {
+    isRecording,
+    mediaRecorder,
+    handleStartRecording,
+    handlePauseRecording,
+    handleResumeRecording,
+    handleStopRecording,
+    recordingStartTime,
+    audioBlobRef,
+    handleResetMediaRecorder,
+  } = useAudioRecorder();
 
   const processStream = useStreamProcessor({
     attemptCreateReport,
@@ -72,15 +85,16 @@ const PatientReception = () => {
     },
   });
 
-  const handleGenerateReport = (duration: number, recordingTime: number, audioBlob: Blob) => {
-    if (!patientName) {
-      setPatientInfoModalOpen(true);
-      return;
+  const handleGenerateReport = (duration: number) => {
+    if (audioBlobRef.current == null) {
+      throw Error('cannot generate Report when Blob file is null');
     }
-    
-    const reportTime = new Date(recordingTime).toISOString();
+    if (recordingStartTime.current == null) {
+      throw Error('timestamp cannot be null');
+    }
+    const formData = convertBlobToFormData(audioBlobRef.current);
+    const reportTime = new Date(recordingStartTime.current).toISOString();
     setTimeStamp(reportTime);
-    
     const metadata: GenerateReportMetadata = {
       providerName: provider.name,
       patientName: patientName,
@@ -93,39 +107,58 @@ const PatientReception = () => {
       summaryStyle: provider.summaryStyle,
     };
 
-    generateReportMutation.mutate({ 
-      formData: convertBlobToFormData(audioBlob),
-      metadata 
-    });
+    generateReportMutation.mutate({ formData, metadata });
   };
 
-  const handleAudioCaptured = (blob: Blob, duration: number, timestamp: number) => {
-    if (duration < 0) {
+  const handleEndVisit = async () => {
+    if (!recordingStartTime.current) return;
+
+    const elapsedSeconds = (Date.now() - recordingStartTime.current) / 1000;
+    if (elapsedSeconds < 0) {
       setWarningModalOpen(true);
-      return;
+      handlePauseRecording();
+    } else {
+      setDuration(elapsedSeconds);
+      await handleStopRecording();
+      handleGenerateReport(elapsedSeconds);
+      handleResetMediaRecorder();
     }
-    
-    setDuration(duration);
-    handleGenerateReport(duration, timestamp, blob);
   };
 
   return (
     <div>
-      {!patientName && (
+      {!isRecording && !mediaRecorder && (
         <CaptureConversationButton
           onClick={() => {
-            setPatientInfoModalOpen(true);
+            setCaptureModalOpen(true);
           }}
         />
       )}
 
-      {patientName && (
+      {mediaRecorder && (
         <div>
-          <Text size="sm" className="mb-2 text-center">
-            Patient: {patientName}
+          <Text size="lg" className="mb-2 text-center">
+            {isRecording
+              ? 'Listening to patient conversation. Keep this screen open, please.'
+              : 'Press "End Visit" to generate the report or "Resume" to continue the visit.'}
           </Text>
-          <AudioControlLayout onAudioCaptured={handleAudioCaptured} />
+          <LiveAudioVisualizer
+            mediaRecorder={mediaRecorder}
+            width={500}
+            height={75}
+          />
         </div>
+      )}
+      {mediaRecorder && (
+        <ControlButtons
+          isRecording={isRecording}
+          onEndVisit={handleEndVisit}
+          onPause={handlePauseRecording}
+          onReset={handleResetMediaRecorder}
+          onResume={() => {
+            handleResumeRecording();
+          }}
+        />
       )}
 
       <WarningModal
@@ -136,14 +169,15 @@ const PatientReception = () => {
       />
 
       <PatientInfoModal
-        isOpen={patientInfoModalOpen}
+        isOpen={captureModalOpen}
         patientName={patientName}
         onClose={() => {
-          setPatientInfoModalOpen(false);
+          setCaptureModalOpen(false);
         }}
         onSubmit={(name: string) => {
           if (name.trim()) {
-            setPatientInfoModalOpen(false);
+            setCaptureModalOpen(false);
+            void handleStartRecording();
             setPatientName(name);
           } else {
             alert('Please enter a valid patient name.');
