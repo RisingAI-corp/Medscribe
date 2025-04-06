@@ -639,7 +639,7 @@ func GenerateReportContentPrompt(transcribedAudio, soapSection, style, providerN
         providerName,
         soapSection,
     )
-
+    
     if context != "" {
         prompt += fmt.Sprintf(`**IMPORTANT CONTEXT FROM PREVIOUS VISIT:** %s\n\n`, context)
         prompt += fmt.Sprintf(`Use this information as an aid and reference when generating the %s section.\n\n`, soapSection)

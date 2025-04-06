@@ -30,7 +30,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   };
 
   return (
-    <div className="h-[300px] overflow-y-auto border border-gray-200 rounded-b-lg">
+    <div className="h-[400px] overflow-y-auto border border-gray-200 rounded-b-lg">
       {filteredResults.length > 0 ? (
         <ul className="divide-y divide-gray-200">
           {filteredResults.map(item => (

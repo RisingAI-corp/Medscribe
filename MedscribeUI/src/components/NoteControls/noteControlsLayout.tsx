@@ -43,6 +43,9 @@ function NoteControlsLayout() {
   const [selectedVisitType, setSelectedVisitType] = useState(
     noteControls.visitType,
   );
+  const [selectedVisitContext, setSelectedVisitContext] = useState(
+    noteControls.visitContext,
+  );
   const [changes, setChanges] = useState<noteControlEditsProps>({
     id: currentlySelectedPatient,
     changes: {},
@@ -76,7 +79,8 @@ function NoteControlsLayout() {
   const isDirty =
     selectedVisitType !== noteControls.visitType ||
     selectedPronoun !== noteControls.pronouns ||
-    selectedPatientClient !== noteControls.patientOrClient;
+    selectedPatientClient !== noteControls.patientOrClient ||
+    selectedVisitContext !== noteControls.visitContext;
 
   const handleVisitTypeSelect = (value: boolean) => {
     if (value !== noteControls.visitType) {
@@ -121,6 +125,17 @@ function NoteControlsLayout() {
     }
   };
 
+  const handleVisitContextSelect = (visitContext: SearchResultItem) => {
+    setSelectedVisitContext(visitContext.summary);
+    setChanges(prevChanges => ({
+      ...prevChanges,
+      changes: {
+        ...prevChanges.changes,
+        visitContext: visitContext.summary,
+      },
+    }));
+  };
+
   const handleRegenerate = () => {
     const updates: Updates[] = [];
     //Todo: send changes upstream to endPoint
@@ -158,12 +173,12 @@ function NoteControlsLayout() {
       assessmentAndPlanContent: contentData.assessmentAndPlan,
       patientInstructionsContent: contentData.patientInstructions,
       summaryContent: contentData.summary,
+      lastVisitID: currentlySelectedPatient,
+      visitContext: changes.changes.visitContext,
     });
 
     editPatientVisit[1](changes);
   };
-
-  const handleFollowUpVisitSelect = (visitContent: SearchResultItem) => {};
 
   return (
     <div className="relative">
@@ -173,10 +188,13 @@ function NoteControlsLayout() {
         overlayProps={{ radius: 'sm', blur: 2 }}
         loaderProps={{ color: 'blue', type: 'bars' }}
       />
-      <span className="block mb-2">Visit Type</span>
+      <span className="block mb-2">Link Prior Visit</span>
       <FollowUpSearchModalLayout
-        handleSelectedVisit={handleFollowUpVisitSelect}
+        handleSelectedVisit={handleVisitContextSelect}
       />
+      <hr className="my-4" />
+
+      <span className="block mb-2">Visit Type</span>
       <Select
         defaultValue={''}
         data={[NewVisit, FollowUp]}

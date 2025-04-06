@@ -9,7 +9,6 @@ import (
 	inferenceService "Medscribe/inference/service"
 	inferencestore "Medscribe/inference/store"
 	"Medscribe/reports"
-	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -25,7 +24,73 @@ import (
 
 type mockTranscriber struct{}
 
-const sample1 = ``
+const sample1 = `Good.
+Hi, Miss Joanne.
+How are you?
+I'm okay.
+Thank you.
+That's good.
+Happy new month.
+Happy new month to you, too.
+Okay.
+No problem.
+I've been taking it easy on myself.
+That's good.
+Awesome.
+Yeah.
+Okay.
+Okay.
+I've been doing walking, making walk, you know, that too.
+I've been doing that around the building, you know, so my fears could go away.
+I've been doing that.
+Okay.
+That's good.
+I love that.
+We got little Chloe here with me.
+Oh, really?
+Yeah, little dog.
+She's so cute.
+How old is she again?
+She's gonna be two.
+Wow.
+Okay, that's good.
+That's good, that's awesome.
+Yeah, she don't shed, she don't, she's good, she's good.
+Okay, all right, that's awesome.
+So no panic attacks, no depressive episodes?
+Not this month, no.
+Okay, all right, awesome.
+How about your mood, your mood okay?
+You know, my moods always go up and down.
+That's something normal, I think.
+Us women, we go through that, you know?
+Of course, that's we women, always going through that.
+Yeah, like we want to get the satisfaction that at one point we were getting and we're not getting it today.
+We gotta give it to ourselves.
+Yes.
+Yes.
+Okay.
+All right.
+So how about your medication?
+Everything?
+Everything's working.
+Everything is working.
+Okay.
+All right.
+I will send you all of your medication to your pharmacy, the gabapentin, lorazepam, you know, hydralazine, mirtazapine and duloxetine.
+Okay.
+And your Suboxone.
+Okay.
+Thank you very much.
+All right.
+Yes, I will see you next month on, um, let me tell you, um, that would be one, 2, 3 July, May 3rd at 9 a. m.
+Yeah, we're good.
+Alright, see you, okay?
+Nice talking with you, honey.
+Alright.
+Have a nice weekend.
+And you too, bye.
+Okay.`
 
 func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string, error) {
 	return sample1, nil
@@ -87,15 +152,15 @@ func main() {
 		cfg.OpenAIAPIKey,
 	)
 
-	transcriber := azure.NewAzureTranscriber(
-		cfg.OpenAISpeechURL,
-		cfg.OpenAIAPIKey,
-	)
+	// transcriber := azure.NewAzureTranscriber(
+	// 	cfg.OpenAISpeechURL,
+	// 	cfg.OpenAIAPIKey,
+	// )
 
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
-		// &mockTranscriber{},
-		transcriber,
+		&mockTranscriber{},
+		// transcriber,
 		inferenceStore,
 		userStore,
 	)

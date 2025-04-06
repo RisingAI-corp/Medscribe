@@ -24,7 +24,7 @@ export interface Report {
   finishedGenerating: boolean;
   transcript: string;
   readStatus: boolean;
-  lastVisit: string;
+  lastVisitID: string;
   visitContext: string;
 }
 //TODO: remove when apis are built
@@ -63,7 +63,7 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 1',
     readStatus: true,
     finishedGenerating: true,
-    lastVisit: '',
+    lastVisitID: '',
     visitContext: '',
   },
   {
@@ -100,7 +100,7 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 2',
     readStatus: true,
     finishedGenerating: true,
-    lastVisit: '',
+    lastVisitID: '',
     visitContext: '',
   },
   {
@@ -137,7 +137,7 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 3',
     readStatus: true,
     finishedGenerating: true,
-    lastVisit: '',
+    lastVisitID: '',
     visitContext: '',
   },
   {
@@ -174,7 +174,7 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 4',
     readStatus: true,
     finishedGenerating: true,
-    lastVisit: '',
+    lastVisitID: '',
     visitContext: '',
   },
 ];
