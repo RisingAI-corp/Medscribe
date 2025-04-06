@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { LiveAudioVisualizer } from 'react-audio-visualize';
 import WarningModal from './warningModal';
 import PatientInfoModal from './PatientInfoModal';
 import CaptureConversationButton from './captureConversation';
@@ -72,15 +71,19 @@ const PatientReception = () => {
     },
   });
 
-  const handleGenerateReport = (duration: number, recordingTime: number, audioBlob: Blob) => {
+  const handleGenerateReport = (
+    duration: number,
+    recordingTime: number,
+    audioBlob: Blob,
+  ) => {
     if (!patientName) {
       setPatientInfoModalOpen(true);
       return;
     }
-    
+
     const reportTime = new Date(recordingTime).toISOString();
     setTimeStamp(reportTime);
-    
+
     const metadata: GenerateReportMetadata = {
       providerName: provider.name,
       patientName: patientName,
@@ -93,18 +96,22 @@ const PatientReception = () => {
       summaryStyle: provider.summaryStyle,
     };
 
-    generateReportMutation.mutate({ 
+    generateReportMutation.mutate({
       formData: convertBlobToFormData(audioBlob),
-      metadata 
+      metadata,
     });
   };
 
-  const handleAudioCaptured = (blob: Blob, duration: number, timestamp: number) => {
+  const handleAudioCaptured = (
+    blob: Blob,
+    duration: number,
+    timestamp: number,
+  ) => {
     if (duration < 0) {
       setWarningModalOpen(true);
       return;
     }
-    
+
     setDuration(duration);
     handleGenerateReport(duration, timestamp, blob);
   };

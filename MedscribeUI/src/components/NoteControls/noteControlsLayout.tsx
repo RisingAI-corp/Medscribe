@@ -24,6 +24,8 @@ import { regenerateReport, Updates } from '../../api/regenerateReport';
 import { userAtom } from '../../states/userAtom';
 import { useStreamProcessor } from '../../hooks/useStreamProcessor';
 import { UpdateReportsAtom } from '../PateintReception/derivedAtoms';
+import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
+import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
 
 function NoteControlsLayout() {
   const [noteControls] = useAtom(NoteControlsAtom);
@@ -161,6 +163,10 @@ function NoteControlsLayout() {
     editPatientVisit[1](changes);
   };
 
+  const handleFollowUpVisitSelect = (visitContent: SearchResultItem) => {
+    
+  };
+
   return (
     <div className="relative">
       <LoadingOverlay
@@ -170,6 +176,9 @@ function NoteControlsLayout() {
         loaderProps={{ color: 'blue', type: 'bars' }}
       />
       <span className="block mb-2">Visit Type</span>
+      <FollowUpSearchModalLayout
+        handleSelectedVisit={handleFollowUpVisitSelect}
+      />
       <Select
         defaultValue={''}
         data={[NewVisit, FollowUp]}

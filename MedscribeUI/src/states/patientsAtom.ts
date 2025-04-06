@@ -24,6 +24,8 @@ export interface Report {
   finishedGenerating: boolean;
   transcript: string;
   readStatus: boolean;
+  lastVisit: string;
+  visitContext: string;
 }
 
 //TODO: remove when apis are built

@@ -20,6 +20,8 @@ export interface RegenerateReportMetadata {
   assessmentAndPlanContent: string;
   patientInstructionsContent: string;
   summaryContent: string;
+  lastVisitID?: string;
+  visitContext?: string;
 }
 
 export async function regenerateReport(payload: RegenerateReportMetadata) {
