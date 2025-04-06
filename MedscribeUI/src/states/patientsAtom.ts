@@ -27,7 +27,6 @@ export interface Report {
   lastVisit: string;
   visitContext: string;
 }
-
 //TODO: remove when apis are built
 const reports: Report[] = [
   {
@@ -41,27 +40,22 @@ const reports: Report[] = [
     patientOrClient: Patient,
     subjective: {
       data: 'Patient presented with mild headache.',
-
       loading: false,
     },
     objective: {
       data: 'Blood pressure 120/80, no fever.',
-
       loading: false,
     },
     assessmentAndPlan: {
       data: 'Likely tension headache.',
-
       loading: false,
     },
     patientInstructions: {
       data: 'Recommend rest and hydration.',
-
       loading: false,
     },
     summary: {
       data: 'Routine follow-up recommended.',
-
       loading: false,
     },
     sessionSummary: 'Session summary 1',
@@ -69,6 +63,8 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 1',
     readStatus: true,
     finishedGenerating: true,
+    lastVisit: '',
+    visitContext: '',
   },
   {
     id: 'report2',
@@ -81,7 +77,6 @@ const reports: Report[] = [
     patientOrClient: Patient,
     subjective: {
       data: 'Patient reported chronic back pain.',
-
       loading: false,
     },
     objective: {
@@ -90,7 +85,6 @@ const reports: Report[] = [
     },
     assessmentAndPlan: {
       data: 'Chronic lower back pain, further evaluation needed.',
-
       loading: false,
     },
     patientInstructions: {
@@ -106,6 +100,8 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 2',
     readStatus: true,
     finishedGenerating: true,
+    lastVisit: '',
+    visitContext: '',
   },
   {
     id: 'report3',
@@ -113,32 +109,27 @@ const reports: Report[] = [
     name: 'Cockroach',
     timestamp: '2024-07-27T09:00:00Z',
     duration: 200000,
-    pronouns: They, // Using imported constant
+    pronouns: They,
     isFollowUp: false,
-    patientOrClient: Client, // Using imported constant
+    patientOrClient: Client,
     subjective: {
       data: 'Patient presented with anxiety.',
-
       loading: false,
     },
     objective: {
       data: 'Restlessness observed.',
-
       loading: false,
     },
     assessmentAndPlan: {
       data: 'Anxiety disorder.',
-
       loading: false,
     },
     patientInstructions: {
       data: 'Prescribed medication and therapy.',
-
       loading: false,
     },
     summary: {
       data: 'Follow-up appointment in two weeks.',
-
       loading: false,
     },
     sessionSummary: 'Session summary 3',
@@ -146,6 +137,8 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 3',
     readStatus: true,
     finishedGenerating: true,
+    lastVisit: '',
+    visitContext: '',
   },
   {
     id: 'report4',
@@ -153,32 +146,27 @@ const reports: Report[] = [
     name: 'Satya',
     timestamp: '2024-07-27T09:00:00Z',
     duration: 200000,
-    pronouns: He, // Using imported constant
+    pronouns: He,
     isFollowUp: false,
-    patientOrClient: Patient, // Using imported constant
+    patientOrClient: Patient,
     subjective: {
       data: 'Patient presented with anxiety.',
-
       loading: false,
     },
     objective: {
       data: 'Restlessness observed.',
-
       loading: false,
     },
     assessmentAndPlan: {
       data: 'Anxiety disorder.',
-
       loading: false,
     },
     patientInstructions: {
       data: 'Prescribed medication and therapy.',
-
       loading: false,
     },
     summary: {
       data: 'Follow-up appointment in two weeks.',
-
       loading: false,
     },
     sessionSummary: 'Session summary 4',
@@ -186,6 +174,8 @@ const reports: Report[] = [
     transcript: 'Transcript of visit 4',
     readStatus: true,
     finishedGenerating: true,
+    lastVisit: '',
+    visitContext: '',
   },
 ];
 

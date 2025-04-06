@@ -163,9 +163,7 @@ function NoteControlsLayout() {
     editPatientVisit[1](changes);
   };
 
-  const handleFollowUpVisitSelect = (visitContent: SearchResultItem) => {
-    
-  };
+  const handleFollowUpVisitSelect = (visitContent: SearchResultItem) => {};
 
   return (
     <div className="relative">
