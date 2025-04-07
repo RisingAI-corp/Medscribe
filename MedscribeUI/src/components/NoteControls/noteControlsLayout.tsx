@@ -26,6 +26,7 @@ import { useStreamProcessor } from '../../hooks/useStreamProcessor';
 import { UpdateReportsAtom } from '../PateintReception/derivedAtoms';
 import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
+import SearchInput from '../SearchInput/SearchInput';
 
 function NoteControlsLayout() {
   const [noteControls] = useAtom(NoteControlsAtom);
@@ -54,6 +55,8 @@ function NoteControlsLayout() {
   const [selectedPatientClient, setSelectedPatientClient] = useState(
     noteControls.patientOrClient,
   );
+
+  const [visitSearchValue, setVisitSearchValue] = useState('');
   const [visible, { toggle }] = useDisclosure(false);
 
   const regenerateReportMutation = useMutation({
@@ -126,6 +129,7 @@ function NoteControlsLayout() {
   };
 
   const handleVisitContextSelect = (visitContext: SearchResultItem) => {
+    setVisitSearchValue(visitContext.patientName);
     setSelectedVisitContext(visitContext.summary);
     setChanges(prevChanges => ({
       ...prevChanges,
@@ -189,9 +193,9 @@ function NoteControlsLayout() {
         loaderProps={{ color: 'blue', type: 'bars' }}
       />
       <span className="block mb-2">Link Prior Visit</span>
-      <FollowUpSearchModalLayout
-        handleSelectedVisit={handleVisitContextSelect}
-      />
+      <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
+        <SearchInput query={visitSearchValue} className="h-8" />
+      </FollowUpSearchModalLayout>
       <hr className="my-4" />
 
       <span className="block mb-2">Visit Type</span>

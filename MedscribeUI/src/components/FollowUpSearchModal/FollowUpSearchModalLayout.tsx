@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { SearchResultItem } from './SearchResults/SearchResults';
-import SearchButton from './SearchButton/SearchButton';
-import SearchInput from './SearchInput/SearchInput';
+import SearchInput from '../SearchInput/SearchInput';
 import SearchResults from './SearchResults/SearchResults';
 import useSearch from '../../hooks/useSearch';
 import { searchVisitsAtom } from './derivedAtoms';
 
 interface FollowUpSearchModalLayoutProps {
   handleSelectedVisit: (visit: SearchResultItem) => void;
+  children: React.ReactNode;
 }
 
 const FollowUpSearchModalLayout = ({
   handleSelectedVisit,
+  children,
 }: FollowUpSearchModalLayoutProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchVisits] = useAtom(searchVisitsAtom);
-  const [patientName, setPatientName] = useState<string>('');
   const [selectedVisitID, setSelectedVisitID] = useState<string>('');
 
   // Use the search hook to manage the query and filtered results
@@ -32,19 +32,17 @@ const FollowUpSearchModalLayout = ({
 
   const handleSelectItem = (item: SearchResultItem) => {
     console.log('hit');
+    setQuery(item.patientName);
     handleSelectedVisit(item);
     setSelectedVisitID(item.id);
     console.log('this is item', item);
-    setPatientName(item.patientName);
     setIsModalOpen(false); // Close modal after selection
   };
 
   return (
     <div className="relative">
       {/* Main button to open the modal */}
-      <div onClick={handleToggleModal}>
-        <SearchButton selectedItem={patientName} />
-      </div>
+      <div onClick={handleToggleModal}>{children}</div>
 
       {/* Modal overlay */}
       {isModalOpen && (
@@ -62,7 +60,7 @@ const FollowUpSearchModalLayout = ({
               e.stopPropagation();
             }}
           >
-            <SearchInput query={query} setQuery={setQuery} />
+            <SearchInput query={query} />
 
             <SearchResults
               filteredResults={filteredResults}
