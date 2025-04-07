@@ -17,7 +17,7 @@ export const searchVisitsAtom = atom<SearchResultItem[]>(get => {
       patientName: visit.name,
       dateOfRecording: format(new Date(visit.timestamp), 'MM/dd/yy'),
       summary: visit.summary.data,
-      condensedSummary: visit.summary.data,
+      condensedSummary: visit.condensedSummary,
       timeOfRecording: format(new Date(visit.timestamp), 'h:mm a'),
       durationOfRecording: visit.duration,
     }));

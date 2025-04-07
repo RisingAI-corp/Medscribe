@@ -99,7 +99,6 @@ type ReportRequest struct {
 // returns:
 // - An error if the pipeline fails.
 func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *ReportRequest, contentChan chan ContentChanPayload) error {
-	fmt.Println("this is trasncription ", s.transcriptionService)
 	defer close(contentChan)
 
 	// create pre-configured report
@@ -153,6 +152,8 @@ func (s *inferenceService) RegenerateReport(
 		reports.VisitType:       true,
 		reports.PatientOrClient: true,
 		reports.IsFollowUp:      true,
+		reports.LastVisitID: true ,
+
 	}
 
 	for _, update := range report.Updates {

@@ -68,6 +68,8 @@ const (
 	Transcript = "transcript"
 
 	readStatus = "readstatus"
+
+	LastVisitID = "lastvisitid"
 )
 
 type ReportContent struct {

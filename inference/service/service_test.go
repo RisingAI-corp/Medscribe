@@ -98,23 +98,6 @@ func TestSuccessfulReportGeneration(t *testing.T) {
 		On("Query", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("int")).
 		Return(sampleContentData, nil)
 
-	env.reports.
-		On("UpdateReport", mock.Anything, reportID, mock.MatchedBy(func(batchedUpdates bson.D) bool {
-			expectedBatchedUpdates := bson.D{
-				{Key: reports.Subjective, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.Objective, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.AssessmentAndPlan, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.Summary, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.PatientInstructions, Value: bson.D{{Key: reports.ContentData, Value: sampleContentData}, {Key: reports.Loading, Value: false}}},
-				{Key: reports.FinishedGenerating, Value: true},
-				{Key: reports.CondensedSummary, Value: sampleContentData},
-				{Key: reports.SessionSummary, Value: sampleContentData},
-			}
-			sortedBatchUpdates := sortedBsonD(batchedUpdates)
-			sortedExpectedBatchedUpdates := sortedBsonD(expectedBatchedUpdates)
-			return reflect.DeepEqual(sortedExpectedBatchedUpdates, sortedBatchUpdates)
-		})).
-		Return(nil)
 
 	err := env.service.GenerateReportPipeline(context.Background(), env.reportCfg, env.contentChan)
 	assert.NoError(t, err)

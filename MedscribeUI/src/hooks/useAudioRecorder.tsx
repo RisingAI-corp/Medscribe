@@ -35,9 +35,23 @@ const useAudioRecorder = () => {
     }
   };
 
-  const handlePauseRecording = () => {
-    mediaRecorder?.pause();
-    setIsRecording(false);
+  const handlePauseRecording = (): Promise<void> => {
+    return new Promise<void>(resolve => {
+      if (!mediaRecorder || mediaRecorder.state !== 'recording') {
+        resolve();
+        return;
+      }
+
+      mediaRecorder.onpause = () => {
+        audioBlobRef.current = new Blob(audioChunksRef.current, {
+          type: MIME_TYPE,
+        });
+        setIsRecording(false);
+        resolve();
+      };
+
+      mediaRecorder.pause();
+    });
   };
 
   const handleResumeRecording = () => {

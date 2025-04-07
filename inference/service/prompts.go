@@ -3,6 +3,7 @@ package inferenceService
 import (
 	"Medscribe/reports"
 	"fmt"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -607,119 +608,108 @@ Anxiety and medication discussion
 
 // TODO: we don't need the section style
 func GenerateReportContentPrompt(transcribedAudio, soapSection, style, providerName, patientName string, context string) string {
-    var taskDescription string
+	var taskDescription string
 
-    switch soapSection {
-    case reports.Subjective:
-        taskDescription = subjectiveTaskDescription
-    case reports.Objective:
-        taskDescription = objectiveTaskDescription
-    case reports.AssessmentAndPlan:
-        taskDescription = assessmentAndPlanTaskDescription
-    case reports.PatientInstructions:
-        taskDescription = patientInstruction
-    case reports.Summary:
-        taskDescription = summaryTaskDescription
-    default:
-        taskDescription = "Invalid SOAP section."
-    }
+	switch soapSection {
+	case reports.Subjective:
+		taskDescription = subjectiveTaskDescription
+	case reports.Objective:
+		taskDescription = objectiveTaskDescription
+	case reports.AssessmentAndPlan:
+		taskDescription = assessmentAndPlanTaskDescription
+	case reports.PatientInstructions:
+		taskDescription = patientInstruction
+	case reports.Summary:
+		taskDescription = summaryTaskDescription
+	default:
+		taskDescription = "Invalid SOAP section."
+	}
 
-    prompt := fmt.Sprintf(`
-    You are an AI medical assistant acting as the provider. Your role is to document a specific section of the clinical visit report accurately and concisely based on the provided transcript and task description below.
+	prompt := fmt.Sprintf(`
+You are an AI medical assistant acting as the provider. Your role is to document a specific section of the clinical visit report accurately and concisely based on the provided transcript and task description below.
 
-    --- BACKGROUND CONTEXT (FOR YOUR INFORMATION ONLY - DO NOT INCLUDE IN OUTPUT) ---
-    Patient Name: %s
-    Provider Name: %s
-    SOAP Section to Generate: %s
-    --- END BACKGROUND CONTEXT ---
+--- BACKGROUND CONTEXT (FOR YOUR INFORMATION ONLY - DO NOT INCLUDE IN OUTPUT) ---
+Patient Name: %s
+Provider Name: %s
+SOAP Section to Generate: %s
+--- END BACKGROUND CONTEXT ---
 
-    --- TASK INSTRUCTIONS (Follow these instructions precisely to generate the required output) ---
-    `,
-        patientName,
-        providerName,
-        soapSection,
-    )
-    
-    if context != "" {
-        prompt += fmt.Sprintf(`**IMPORTANT CONTEXT FROM PREVIOUS VISIT:** %s\n\n`, context)
-        prompt += fmt.Sprintf(`Use this information as an aid and reference when generating the %s section.\n\n`, soapSection)
-    }
+--- TASK INSTRUCTIONS (Follow these instructions precisely to generate the required output) ---
+`, patientName, providerName, soapSection)
 
-    prompt += fmt.Sprintf(`%s
-    --- END TASK INSTRUCTIONS ---
+	if strings.TrimSpace(context) != "" && context != "N/A" && !strings.Contains(strings.ToLower(context), "additional context") {
+		prompt += fmt.Sprintf(`**IMPORTANT CONTEXT FROM PREVIOUS VISIT:** %s
 
-    --- TRANSCRIPT (Analyze this transcript to perform the task) ---
-    %s
-    --- END TRANSCRIPT ---
+Use this information as an aid and reference when generating the %s section. If the content below is vague, non-clinical, or not relevant (e.g., "N/A", "additional context needed"), you must ignore it entirely and generate the note solely based on the transcript and task description above.
 
-    GENERATE ONLY THE REQUIRED CLINICAL NOTE SECTION (e.g., '%s') BASED ON THE TASK INSTRUCTIONS ABOVE. Start your response directly with the appropriate content or heading for that section as defined in the TASK INSTRUCTIONS. Do NOT include the BACKGROUND CONTEXT section, the TASK INSTRUCTIONS section header, the TRANSCRIPT section header, or the surrounding separators ('---') in your final output.
-    `,
-        taskDescription,
-        transcribedAudio,
-        soapSection,
-    )
+`, context, soapSection)
+	}
 
-    if style != "" {
-        prompt += "Integrate the style with the task description:\n" + style + "\n\n"
-    }
+	prompt += fmt.Sprintf(`%s
+--- END TASK INSTRUCTIONS ---
 
-    prompt += defaultReturnFormat + "\n\n" + defaultWarnings
+--- TRANSCRIPT (Analyze this transcript to perform the task) ---
+%s
+--- END TRANSCRIPT ---
 
-    return prompt
+GENERATE ONLY THE REQUIRED CLINICAL NOTE SECTION (e.g., '%s') BASED ON THE TASK INSTRUCTIONS ABOVE. Start your response directly with the appropriate content or heading for that section as defined in the TASK INSTRUCTIONS. Do NOT include the BACKGROUND CONTEXT section, the TASK INSTRUCTIONS section header, the TRANSCRIPT section header, or the surrounding separators ('---') in your final output.
+`, taskDescription, transcribedAudio, soapSection)
 
+	if style != "" {
+		prompt += "Integrate the style with the task description:\n" + style + "\n\n"
+	}
+
+	prompt += defaultReturnFormat + "\n\n" + defaultWarnings
+	return prompt
 }
 func RegenerateReportContentPrompt(previousContent string, soapSection, exampleStyle string, updates bson.D, context string) string {
-    var taskDescription string
+	var taskDescription string
 
-    switch soapSection {
-    case reports.Subjective:
-        taskDescription = subjectiveTaskDescription
-    case reports.Objective:
-        taskDescription = objectiveTaskDescription
-    case reports.AssessmentAndPlan:
-        taskDescription = assessmentAndPlanTaskDescription
-    case reports.Summary:
-        taskDescription = summaryTaskDescription
-    case reports.PatientInstructions:
-        taskDescription = patientInstruction
-    default:
-        taskDescription = "Invalid SOAP section."
-    }
+	switch soapSection {
+	case reports.Subjective:
+		taskDescription = subjectiveTaskDescription
+	case reports.Objective:
+		taskDescription = objectiveTaskDescription
+	case reports.AssessmentAndPlan:
+		taskDescription = assessmentAndPlanTaskDescription
+	case reports.Summary:
+		taskDescription = summaryTaskDescription
+	case reports.PatientInstructions:
+		taskDescription = patientInstruction
+	default:
+		taskDescription = "Invalid SOAP section."
+	}
 
-    prompt := "You are an AI medical assistant acting as the provider, responsible for **fully rewriting** a clinical SOAP note section (Subjective, Objective, Assessment, Planning) " +
-        "to ensure consistency between the provided metadata updates and the existing content. Your task is to carefully apply only the specified updates while maintaining the accuracy and integrity of the original content. " +
-        "Strict adherence to the provided information is required—do NOT infer, modify, or introduce any details beyond what is explicitly stated in the previous content. " +
-        "Your role is to ensure that the documentation remains precise, professional, and aligned with the updated metadata.\n\n"
+	prompt := "You are an AI medical assistant acting as the provider, responsible for **fully rewriting** a clinical SOAP note section (Subjective, Objective, Assessment, Planning) " +
+		"to ensure consistency between the provided metadata updates and the existing content. Your task is to carefully apply only the specified updates while maintaining the accuracy and integrity of the original content. " +
+		"Strict adherence to the provided information is required—do NOT infer, modify, or introduce any details beyond what is explicitly stated in the previous content.\n\n"
 
-    if context != "" {
-        prompt += fmt.Sprintf("**IMPORTANT CONTEXT FROM PREVIOUS VISIT:** %s\n\n", context)
-        prompt += fmt.Sprintf(`Use this information as an aid and reference when regenerating the %s section, especially when evaluating the coherence and completeness of the previous content.\n\n`, soapSection)
-    }
+	if strings.TrimSpace(context) != "" && context != "N/A" && !strings.Contains(strings.ToLower(context), "additional context") {
+		prompt += fmt.Sprintf("**IMPORTANT CONTEXT FROM PREVIOUS VISIT:** %s\n\n", context)
+		prompt += fmt.Sprintf("Use this as a reference when updating the %s section. If the content is vague or non-clinical (e.g., 'N/A', 'additional context needed'), ignore it completely and work only from the actual content and metadata updates provided.\n\n", soapSection)
+	}
 
-    prompt += "If the existing content is already aligned with the metadata updates, return the content as is. If the previous content is incoherent, incomplete, unclear, or if additional context is required, " +
-        "simply return: 'Additional context needed.' and specify why it is needed.\n\n" +
+	prompt += "If the existing content is already aligned with the metadata updates, return the content as is. If the previous content is incoherent, incomplete, unclear, or if additional context is required, " +
+		"simply return: 'Additional context needed.' **only if the previous content itself is insufficient—not based on weak prior visit context**.\n\n"
 
-        "The required updates strictly involve **metadata** such as:\n" +
-        "- Patient pronouns (he/she/they)\n" +
-        "- Visit type (initial visit or follow-up)\n" +
-        "- Terminology adjustments (e.g., 'patient' vs. 'client')\n\n" +
+	prompt += "The required updates strictly involve **metadata** such as:\n" +
+		"- Patient pronouns (he/she/they)\n" +
+		"- Visit type (initial visit or follow-up)\n" +
+		"- Terminology adjustments (e.g., 'patient' vs. 'client')\n\n"
 
-        "These updates do NOT introduce new medical details, symptoms, diagnoses, or treatment plans. Your modifications should solely ensure the content remains **coherent, accurate, and aligned with the updated metadata** while preserving its original medical meaning.\n\n" +
+	prompt += "Do NOT introduce new medical facts or diagnoses. Maintain coherence and accuracy while reflecting only the provided metadata updates.\n\n"
 
-        "Current SOAP Section: " + soapSection + "\n" +
-        "Task Description: " + taskDescription + "\n\n" +
+	prompt += "Current SOAP Section: " + soapSection + "\n" +
+		"Task Description: " + taskDescription + "\n\n" +
+		"Previous Content:\n" + previousContent + "\n\n" +
+		"Required Metadata Updates:\n" + formatUpdateDetails(updates) + "\n\n"
 
-        "Previous Content:\n" + previousContent + "\n\n" +
+	if exampleStyle != "" {
+		prompt += "Ensure the regenerated content closely matches this style:\n" + exampleStyle + "\n\n"
+	}
 
-        "Required Metadata Updates:\n" + formatUpdateDetails(updates) + "\n\n"
-
-    if exampleStyle != "" {
-        prompt += "Ensure the regenerated content closely matches this style (if no style provided, disregard this):\n" + exampleStyle + "\n\n"
-    }
-
-    prompt += defaultReturnFormat + "\n\n" + defaultWarnings
-
-    return prompt
+	prompt += defaultReturnFormat + "\n\n" + defaultWarnings
+	return prompt
 }
 
 func formatUpdateDetails(updates bson.D) string {

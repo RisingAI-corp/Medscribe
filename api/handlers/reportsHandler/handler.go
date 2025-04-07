@@ -76,6 +76,7 @@ func NewReportsHandler(reportsService reports.Reports, inferenceService inferenc
 }
 
 func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("entered application")
 	userID, ok := middleware.GetProviderIDFromContext(r.Context())
 	if !ok {
 		h.logger.Error("user is not authorized: ", zap.String("UserID: ", userID))

@@ -5,7 +5,7 @@ import { LiveAudioVisualizer } from 'react-audio-visualize';
 interface ControlButtonGroupProps {
   isRecording: boolean;
   onEndVisit: () => void | Promise<void>;
-  onPause: () => void;
+  onPause: () => Promise<void>;
   onResume: () => void;
   onReset: () => void;
   mediaRecorder?: MediaRecorder;
@@ -31,7 +31,9 @@ const ControlButtonGroup: React.FC<ControlButtonGroupProps> = ({
       {isRecording && (
         <>
           <button
-            onClick={onPause}
+            onClick={() => {
+              void onPause();
+            }}
             className="bg-blue-200 rounded-full shadow-md p-2 hover:bg-blue-300 text-black"
           >
             <IconPlayerPause size={24} />

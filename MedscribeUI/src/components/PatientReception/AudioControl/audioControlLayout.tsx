@@ -1,50 +1,34 @@
 import CaptureButton from './CaptureButton/CaptureButton';
 import ControlButtonGroup from './ControlButtonGroup/ControlButtonGroup';
-import useAudioRecorder from '../../../hooks/useAudioRecorder';
+import { MutableRefObject } from 'react';
 
-interface AudioControlLayoutProps {
+export interface AudioControlLayoutProps {
+  isRecording: boolean;
+  mediaRecorder: MediaRecorder | null;
+  audioBlobRef: MutableRefObject<Blob | null>;
+  recordingStartTime: MutableRefObject<number | null>;
+  handleStartRecording: () => Promise<void>;
+  handlePauseRecording: () => Promise<void>;
+  handleResumeRecording: () => void;
+  handleStopRecording: () => Promise<void>;
+  handleResetMediaRecorder: () => void;
   onAudioCaptured?: (
     blob: Blob,
     duration: number,
     timestamp: number,
   ) => void | Promise<void>;
+  handleEndVisit: () => void | Promise<void>;
 }
 
-const AudioControlLayout = ({ onAudioCaptured }: AudioControlLayoutProps) => {
-  const {
-    isRecording,
-    mediaRecorder,
-    handleStartRecording,
-    handlePauseRecording,
-    handleResumeRecording,
-    handleStopRecording,
-    recordingStartTime,
-    audioBlobRef,
-    handleResetMediaRecorder,
-  } = useAudioRecorder();
-
-  const handleEndVisit = async () => {
-    if (!recordingStartTime.current) return;
-
-    const elapsedSeconds = (Date.now() - recordingStartTime.current) / 1000;
-    if (elapsedSeconds <= 0) {
-      handlePauseRecording();
-      return;
-    }
-
-    await handleStopRecording();
-
-    if (onAudioCaptured && audioBlobRef.current) {
-      await onAudioCaptured(
-        audioBlobRef.current,
-        elapsedSeconds,
-        recordingStartTime.current,
-      );
-    }
-
-    handleResetMediaRecorder();
-  };
-
+const AudioControlLayout = ({
+  isRecording,
+  mediaRecorder,
+  handleStartRecording,
+  handlePauseRecording,
+  handleResumeRecording,
+  handleResetMediaRecorder,
+  handleEndVisit,
+}: AudioControlLayoutProps) => {
   return (
     <div className="flex flex-col items-center">
       {!isRecording && !mediaRecorder && (
