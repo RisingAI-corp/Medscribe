@@ -1,14 +1,16 @@
-import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
+interface PatientBackgroundDetailsProps {
+  dateOfRecording: string;
+  summary: string;
+  condensedSummary: string;
+  durationOfRecording: number;
+}
 
 const PatientBackgroundDetails = ({
-  id,
-  patientName,
   dateOfRecording,
-  summary,
   condensedSummary,
-  timeOfRecording,
   durationOfRecording,
-}: SearchResultItem) => {
+  summary,
+}: PatientBackgroundDetailsProps) => {
   const durationInMinutes = Math.round(durationOfRecording / 60000);
 
   const getDuration = (duration: number) => {

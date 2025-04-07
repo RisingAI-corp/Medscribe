@@ -13,7 +13,7 @@ import { UpdateReportsAtom, createReportAtom } from './derivedAtoms';
 
 import { useAtom } from 'jotai';
 import { useStreamProcessor } from '../../hooks/useStreamProcessor';
-import { Tooltip, Button } from '@mantine/core';
+import { Button } from '@mantine/core';
 import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
 import { useDebouncedNameChange } from '../../hooks/useDebounceNameChange';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';

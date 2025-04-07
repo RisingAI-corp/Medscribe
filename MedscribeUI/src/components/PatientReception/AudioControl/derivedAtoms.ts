@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
-import { patientsAtom, Report } from '../../states/patientsAtom';
-import { REPORT_CONTENT_SECTIONS } from '../../constants';
+import { Report, patientsAtom } from '../../../states/patientsAtom';
+import { REPORT_CONTENT_SECTIONS } from '../../../constants';
 
 export interface UpdateProps {
   id: string;
@@ -16,33 +16,34 @@ export interface CreateReportProps {
   duration: number;
 }
 
+// Atom to update an existing report in patientsAtom
 export const UpdateReportsAtom = atom(
   null,
   (get, set, { id, Key, Value }: UpdateProps) => {
     const reports = get(patientsAtom);
 
-    const newReports = reports.map(report => {
-      if (report.id === id) {
-        // Create a new report object with updated values
-        const updatedReport = { ...report }; // Shallow copy
-        if (REPORT_CONTENT_SECTIONS.find(member => member === Key)) {
-          updatedReport[Key] = {
-            data: Value,
-            loading: false,
-          };
-        } else {
-          updatedReport[Key] = Value;
-        }
+    const updatedReports = reports.map(report => {
+      if (report.id !== id) return report;
 
-        return updatedReport;
+      const updatedReport = { ...report };
+
+      if (REPORT_CONTENT_SECTIONS.includes(Key)) {
+        updatedReport[Key] = {
+          data: Value,
+          loading: false,
+        };
+      } else {
+        updatedReport[Key] = Value;
       }
-      return report; // Return unchanged reports
+
+      return updatedReport;
     });
 
-    set(patientsAtom, newReports);
+    set(patientsAtom, updatedReports);
   },
 );
 
+// Atom to create a new report and insert it into patientsAtom
 export const createReportAtom = atom(
   null,
   (
@@ -51,10 +52,12 @@ export const createReportAtom = atom(
     { id, providerID, name, timestamp, duration }: CreateReportProps,
   ) => {
     const reports = get(patientsAtom);
-    if (reports.find(report => report.id === id)) {
-      console.error('report already exists');
+
+    if (reports.some(report => report.id === id)) {
+      console.warn(`Report with ID '${id}' already exists. Skipping creation.`);
       return;
     }
+
     const newReport: Report = {
       id,
       providerID,
@@ -75,6 +78,7 @@ export const createReportAtom = atom(
       transcript: '',
       readStatus: false,
     };
+
     set(patientsAtom, [newReport, ...reports]);
   },
 );

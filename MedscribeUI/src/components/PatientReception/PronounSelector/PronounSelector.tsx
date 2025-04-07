@@ -1,16 +1,16 @@
 import { Select } from '@mantine/core';
 
 interface PronounSelectorProps {
-    pronoun: string;
-    setPronoun: (pronoun: string) => void;
+  pronoun: string;
+  setPronoun: (pronoun: string) => void;
 }
 
-const PronounSelector = ({pronoun, setPronoun}: PronounSelectorProps) => {
+const PronounSelector = ({ pronoun, setPronoun }: PronounSelectorProps) => {
   const pronounOptions = [
     { value: 'he/him', label: 'He/Him' },
     { value: 'she/her', label: 'She/Her' },
     { value: 'they/them', label: 'They/Them' },
-    { value: 'other', label: 'Other' }
+    { value: 'other', label: 'Other' },
   ];
 
   return (
@@ -19,7 +19,9 @@ const PronounSelector = ({pronoun, setPronoun}: PronounSelectorProps) => {
       data={pronounOptions}
       variant="unstyled"
       value={pronoun}
-      onChange={(value) => setPronoun(value || '')}
+      onChange={value => {
+        setPronoun(value ?? '');
+      }}
     />
   );
 };

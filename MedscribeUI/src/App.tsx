@@ -54,6 +54,7 @@ function App() {
           patientInstructionsStyle,
           summaryStyle,
         });
+
         setPatients(reports);
         setIsAuthenticated(true);
         if (reports.length > 0) {
