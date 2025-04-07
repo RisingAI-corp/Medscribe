@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import {
   CreateReportProps,
   UpdateProps,
-} from '../components/PateintReception/derivedAtoms';
+} from '../components/PatientReception/derivedAtoms';
 import { UpdateResponse } from '../api/serverResponses';
 import {
   setReportStreamStatusAtom,

@@ -6,8 +6,6 @@ import { UpdateSelectedPatientNameAtom } from '../../states/patientsAtom';
 import { useAtom } from 'jotai';
 import { useMutation } from '@tanstack/react-query';
 import { changeName } from '../../api/changeName';
-import { useState } from 'react';
-import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
 
 function PatientDashBoardLayout() {
   const [headerInformation, _] = useAtom(SelectedPatientHeaderInformationAtom);
