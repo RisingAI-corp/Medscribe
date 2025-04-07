@@ -13,6 +13,7 @@ export const NoteControlsAtom = atom(get => {
       visitType: patient.isFollowUp,
       patientOrClient: patient.patientOrClient,
       visitContext: patient.visitContext,
+      loading: patient.finishedGenerating,
     };
   }
   return {
@@ -20,6 +21,7 @@ export const NoteControlsAtom = atom(get => {
     visitType: false,
     patientOrClient: '',
     visitContext: '',
+    loading: false,
   };
 });
 
