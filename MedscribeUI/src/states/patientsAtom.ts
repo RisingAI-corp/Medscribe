@@ -1,5 +1,4 @@
 import { atom } from 'jotai';
-import { Client, He, Patient, She, They } from '../constants';
 
 export interface ReportContent {
   data: string;
