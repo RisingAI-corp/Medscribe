@@ -1,6 +1,6 @@
 import CaptureButton from './CaptureButton/CaptureButton';
 import ControlButtonGroup from './ControlButtonGroup/ControlButtonGroup';
-import useAudioRecorder from '../../hooks/useAudioRecorder';
+import useAudioRecorder from '../../../hooks/useAudioRecorder';
 
 interface AudioControlLayoutProps {
   onAudioCaptured?: (blob: Blob, duration: number, timestamp: number) => void | Promise<void>;
