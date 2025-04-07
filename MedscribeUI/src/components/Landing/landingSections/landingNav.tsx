@@ -11,10 +11,10 @@ function LandingNav() {
       const offset = 60;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
-      
+
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -26,13 +26,26 @@ function LandingNav() {
         <span className="ml-2 text-2xl text-gray-800">MedScribe</span>
       </div>
       <div className="flex items-center gap-8">
-        <button onClick={() => scrollToSection('hero')} className="text-gray-600 hover:text-gray-900">
+        <button
+          onClick={() => {
+            scrollToSection('hero');
+          }}
+          className="text-gray-600 hover:text-gray-900"
+        >
           Home
         </button>
-        <button onClick={() => scrollToSection('pricing')} className="text-gray-600 hover:text-gray-900">
+        <button
+          onClick={() => {
+            scrollToSection('pricing');
+          }}
+          className="text-gray-600 hover:text-gray-900"
+        >
           Pricing
         </button>
-        <button onClick={() => scrollToSection('faq')} className="text-gray-600 hover:text-gray-900">
+        <button
+          onClick={() => scrollToSection('faq')}
+          className="text-gray-600 hover:text-gray-900"
+        >
           FAQ
         </button>
       </div>

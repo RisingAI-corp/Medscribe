@@ -20,8 +20,12 @@ const PricingCard = ({
       <div
         className={`${isHighlighted ? 'bg-blue-600 text-white' : 'bg-blue-100 text-black'} py-4 rounded-md mb-4`}
       >
-        <h3 className="lg:text-3xl text-xl font-bold text-center mb-2">{title}</h3>
-        <div className="lg:text-5xl text-3xl font-bold text-center">{price}</div>
+        <h3 className="lg:text-3xl text-xl font-bold text-center mb-2">
+          {title}
+        </h3>
+        <div className="lg:text-5xl text-3xl font-bold text-center">
+          {price}
+        </div>
       </div>
 
       <ul className="list-disc pt-[20px] pb-[50px] px-[50px] space-y-4 lg:text-xl text-sm text-black">
@@ -40,10 +44,7 @@ const LandingPricing = () => {
         {/* Centered Pricing grid */}
         <div className="flex flex-row justify-center gap-[50px] max-w-7xl mx-auto">
           {landingContent.pricing.plans.map((plan, index) => (
-            <div
-              className="w-full"
-              key={index}
-            >
+            <div className="w-full" key={index}>
               <PricingCard
                 title={plan.title}
                 price={plan.price}

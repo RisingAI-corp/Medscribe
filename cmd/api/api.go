@@ -9,6 +9,7 @@ import (
 	inferenceService "Medscribe/inference/service"
 	inferencestore "Medscribe/inference/store"
 	"Medscribe/reports"
+	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -152,15 +153,15 @@ func main() {
 		cfg.OpenAIAPIKey,
 	)
 
-	// transcriber := azure.NewAzureTranscriber(
-	// 	cfg.OpenAISpeechURL,
-	// 	cfg.OpenAIAPIKey,
-	// )
+	transcriber := azure.NewAzureTranscriber(
+		cfg.OpenAISpeechURL,
+		cfg.OpenAIAPIKey,
+	)
 
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
-		&mockTranscriber{},
-		// transcriber,
+		// &mockTranscriber{},
+		transcriber,
 		inferenceStore,
 		userStore,
 	)
