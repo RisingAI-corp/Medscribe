@@ -26,7 +26,6 @@ import { useStreamProcessor } from '../../hooks/useStreamProcessor';
 import { UpdateReportsAtom } from '../PateintReception/derivedAtoms';
 import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
-import SearchBox from '../PatientRegistry/searchBox/searchBox';
 import SearchInput from '../SearchInput/SearchInput';
 
 function NoteControlsLayout() {
@@ -130,6 +129,7 @@ function NoteControlsLayout() {
   };
 
   const handleVisitContextSelect = (visitContext: SearchResultItem) => {
+    setVisitSearchValue(visitContext.patientName);
     setSelectedVisitContext(visitContext.summary);
     setChanges(prevChanges => ({
       ...prevChanges,
@@ -194,11 +194,7 @@ function NoteControlsLayout() {
       />
       <span className="block mb-2">Link Prior Visit</span>
       <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
-        <SearchInput
-          query={visitSearchValue}
-          setQuery={setVisitSearchValue}
-          className="h-8"
-        />
+        <SearchInput query={visitSearchValue} className="h-8" />
       </FollowUpSearchModalLayout>
       <hr className="my-4" />
 

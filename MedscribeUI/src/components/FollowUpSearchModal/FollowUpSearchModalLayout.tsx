@@ -32,6 +32,7 @@ const FollowUpSearchModalLayout = ({
 
   const handleSelectItem = (item: SearchResultItem) => {
     console.log('hit');
+    setQuery(item.patientName);
     handleSelectedVisit(item);
     setSelectedVisitID(item.id);
     console.log('this is item', item);
@@ -59,7 +60,7 @@ const FollowUpSearchModalLayout = ({
               e.stopPropagation();
             }}
           >
-            <SearchInput query={query} setQuery={setQuery} />
+            <SearchInput query={query} />
 
             <SearchResults
               filteredResults={filteredResults}

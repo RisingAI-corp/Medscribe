@@ -2,19 +2,10 @@ import React from 'react';
 
 interface SearchInputProps {
   query: string;
-  setQuery: (query: string) => void;
   className?: string;
 }
 
-const SearchInput: React.FC<SearchInputProps> = ({
-  query,
-  setQuery,
-  className,
-}) => {
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-  };
-
+const SearchInput: React.FC<SearchInputProps> = ({ query, className }) => {
   return (
     <div
       className={` h-[60px] w-full px-4 py-2 bg-white border border-gray-300 shadow-sm hover:border-gray-400 ${className ?? ''}`}
@@ -35,7 +26,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           />
         </svg>
         <span className="ml-2 text-gray-700 text-lg">
-          Search Previous Visits
+          {query == '' ? 'Search Previous Visits' : query}
         </span>
       </div>
     </div>
