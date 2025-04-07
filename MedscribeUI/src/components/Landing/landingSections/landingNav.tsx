@@ -4,22 +4,37 @@ import { useNavigate } from 'react-router-dom';
 
 function LandingNav() {
   const navigate = useNavigate();
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 60;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <div className="h-20 w-full flex bg-white justify-between items-center px-8 fixed top-0 z-10">
+    <div className="h-full w-full flex bg-white justify-between items-center px-8">
       <div className="flex items-center">
         <img src={logo} alt="MedScribe Logo" className="w-10 h-10" />
         <span className="ml-2 text-2xl text-gray-800">MedScribe</span>
       </div>
       <div className="flex items-center gap-8">
-        <a href="#hero" className="text-gray-600 hover:text-gray-900">
+        <button onClick={() => scrollToSection('hero')} className="text-gray-600 hover:text-gray-900">
           Home
-        </a>
-        <a href="#pricing" className="text-gray-600 hover:text-gray-900">
+        </button>
+        <button onClick={() => scrollToSection('pricing')} className="text-gray-600 hover:text-gray-900">
           Pricing
-        </a>
-        <a href="#faq" className="text-gray-600 hover:text-gray-900">
+        </button>
+        <button onClick={() => scrollToSection('faq')} className="text-gray-600 hover:text-gray-900">
           FAQ
-        </a>
+        </button>
       </div>
 
       <div className="flex items-center gap-4">

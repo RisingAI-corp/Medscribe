@@ -7,12 +7,7 @@ function LandingFAQ() {
 
   return (
     <div className="h-full w-full flex relative justify-center items-center">
-      <img
-        src={landingBackground}
-        alt="Landing Background"
-        className="absolute inset-0 w-full h-full object-cover opacity-50"
-      />
-
+      
       <Container size="lg" className="py-10 w-full max-w-5xl mx-auto z-10">
         <Title order={2} className="mb-6 text-center text-gray-800">
           Frequently Asked Questions

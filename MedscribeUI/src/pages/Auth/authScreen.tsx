@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import landingBg from '../../assets/landing-bg.png';
+import landingBg from '../../assets/hero-image.png';
 import { loginProvider } from '../../api/login';
 import { createProvider } from '../../api/signUp';
 import { AuthResponse } from '../../api/serverResponses';
@@ -99,7 +99,7 @@ const AuthScreen = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-[700px] h-screen">
       {/* Left side - Auth Form */}
       <div className="w-1/3 px-[50px] flex flex-col min-w-[500px]">
         <div className="mt-8 flex items-center gap-2">

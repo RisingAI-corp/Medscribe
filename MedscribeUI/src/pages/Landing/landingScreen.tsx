@@ -3,38 +3,41 @@ import LandingHero from '../../components/Landing/landingSections/landingHero';
 import LandingPricing from '../../components/Landing/landingSections/landingPricing';
 import LandingFAQ from '../../components/Landing/landingSections/landingFAQ';
 import LandingFooter from '../../components/Landing/landingSections/landingFooter';
+import LandingBlank from '../../components/Landing/landingSections/landingBlank';
+import landingBackground from '../../assets/landing-bg.png';
 
 function LandingLayout() {
   return (
-    <div className="w-full flex flex-col min-h-screen">
-      <LandingNav />
-      <div className="flex flex-col w-full snap-y snap-mandatory h-screen overflow-y-auto scroll-smooth">
-        <section
-          id="hero"
-          className="min-h-screen w-full flex items-center justify-center snap-start"
-        >
-          <LandingHero />
-        </section>
-        <section
-          id="pricing"
-          className="min-h-screen w-full flex items-center justify-center snap-start"
-        >
-          <LandingPricing />
-        </section>
-        <section
-          id="faq"
-          className="min-h-screen w-full flex items-center justify-center snap-start"
-        >
-          <LandingFAQ />
-        </section>
-        <section
-          id="footer"
-          className="h-[100px] w-full flex items-center justify-center snap-start"
-        >
-          <LandingFooter />
-        </section>
+    <div className="w-full">
+      <img
+        src={landingBackground}
+        alt="Landing Background"
+        className="fixed inset-0 w-full h-full object-cover -z-50"
+      />
+      
+      {/* Navbar */}
+      <div className="fixed top-0 left-0 w-full h-[60px] shadow-md z-50 flex items-center justify-between">
+        <LandingNav />
       </div>
+
+      {/* Spacing to account for fixed navbar */}
+      <div className="h-[60px]"/>
+
+      {/* Sections */}
+      <section id="hero" className="min-h-[700px] h-[calc(100vh-70px)] flex items-center justify-center">
+        <LandingHero />
+      </section>
+      <section id="pricing" className="min-h-[700px] h-[calc(100vh-60px)] flex items-center justify-center">
+        <LandingPricing />
+      </section>
+      <section id="faq" className="min-h-[700px] h-[calc(100vh-60px)] flex items-center justify-center">
+        <LandingFAQ />
+      </section>
+      <section id="footer" className=" w-full flex items-center justify-center">
+        <LandingFooter />
+      </section>
     </div>
+
   );
 }
 
