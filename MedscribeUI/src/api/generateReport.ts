@@ -8,6 +8,8 @@ export interface GenerateReportMetadata {
   assessmentAndPlanStyle: string;
   patientInstructionsStyle: string;
   summaryStyle: string;
+  lastVisitID: string;
+  visitContext: string;
 }
 
 export async function generateReport(

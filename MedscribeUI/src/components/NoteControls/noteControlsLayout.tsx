@@ -23,10 +23,10 @@ import { useMutation } from '@tanstack/react-query';
 import { regenerateReport, Updates } from '../../api/regenerateReport';
 import { userAtom } from '../../states/userAtom';
 import { useStreamProcessor } from '../../hooks/useStreamProcessor';
-import { UpdateReportsAtom } from '../PateintReception/derivedAtoms';
+import { UpdateReportsAtom } from '../PatientReception/derivedAtoms';
 import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
-import SearchBox from '../PatientRegistry/searchBox/searchBox';
+import { IconExternalLink } from '@tabler/icons-react';
 
 function NoteControlsLayout() {
   const [noteControls] = useAtom(NoteControlsAtom);
@@ -194,7 +194,14 @@ function NoteControlsLayout() {
       />
       <span className="block mb-2">Link Prior Visit</span>
       <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
-        <SearchBox value={visitSearchValue} classname="h-8" />
+        <Button 
+          rightSection={<IconExternalLink size={16} />}
+          variant="light"
+          color="blue"
+          fullWidth
+        >
+          {visitSearchValue ? visitSearchValue : 'Link Visit'}
+        </Button>
       </FollowUpSearchModalLayout>
       <hr className="my-4" />
 

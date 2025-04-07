@@ -13,7 +13,11 @@ import { UpdateReportsAtom, createReportAtom } from './derivedAtoms';
 
 import { useAtom } from 'jotai';
 import { useStreamProcessor } from '../../hooks/useStreamProcessor';
-import { TextInput } from '@mantine/core';
+import { Tooltip, Button } from '@mantine/core';
+import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
+import { useDebouncedNameChange } from '../../hooks/useDebounceNameChange';
+import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
+import { IconExternalLink } from '@tabler/icons-react';
 
 const PatientReception = () => {
   const [__, updateReports] = useAtom(UpdateReportsAtom);
@@ -26,6 +30,9 @@ const PatientReception = () => {
   const [patientName, setPatientName] = useState('TEMP'); // TODO: Remove 'TEMP' to ''
   const [duration, setDuration] = useState(0);
   const [pronoun, setPronoun] = useState('');
+  const [lastVisitID, setLastVisitID] = useState('');
+  const [lastVisitContext, setLastVisitContext] = useState('');
+  const [visitSearchValue, setVisitSearchValue] = useState('');
 
   const processStream = useStreamProcessor({
     attemptCreateReport,
@@ -36,6 +43,15 @@ const PatientReception = () => {
     duration,
   });
 
+  const { nameRef, nameValue, setNameValue, debouncedNameChange } =
+    useDebouncedNameChange({
+      name: patientName,
+      onChange: setPatientName,
+      handleUpdateName: () => {},
+    });
+
+  const isEmpty = !nameValue.trim();
+
   const convertBlobToFormData = (blob: Blob) => {
     const file = new File([blob], 'audio', { type: 'audio/webm' });
 
@@ -43,6 +59,12 @@ const PatientReception = () => {
     formData.append('audio', file);
 
     return formData;
+  };
+  
+  const handleVisitContextSelect = (visitContext: SearchResultItem) => {
+    setVisitSearchValue(visitContext.patientName);
+    setLastVisitID(visitContext.id);
+    setLastVisitContext(visitContext.summary);
   };
 
   const generateReportMutation = useMutation({
@@ -94,6 +116,8 @@ const PatientReception = () => {
       assessmentAndPlanStyle: provider.assessmentAndPlanStyle,
       patientInstructionsStyle: provider.patientInstructionsStyle,
       summaryStyle: provider.summaryStyle,
+      lastVisitID: lastVisitID,
+      visitContext: lastVisitContext,
     };
 
     generateReportMutation.mutate({
@@ -101,6 +125,8 @@ const PatientReception = () => {
       metadata,
     });
   };
+
+  console.log(visitSearchValue);
 
   const handleAudioCaptured = (
     blob: Blob,
@@ -117,15 +143,53 @@ const PatientReception = () => {
     handleGenerateReport(duration, timestamp, blob);
   };
 
+  
   return (
     <>
-      <TextInput
-        placeholder="Enter patient name"
-        value={patientName}
-        onChange={(event) => setPatientName(event.currentTarget.value)}
-      />
-      <PronounSelector pronoun={pronoun} setPronoun={setPronoun} />
-      <AudioControlLayout onAudioCaptured={handleAudioCaptured} />
+      <div className="flex flex-row gap-2 justify-between w-full px-8">
+        <div className="flex flex-row gap-2">
+          <Tooltip
+            label="Name field cannot be empty"
+            opened={isEmpty}
+            position="bottom"
+            withArrow
+          >
+            <input
+              type="text"
+              ref={nameRef}
+              value={nameValue}
+              onChange={e => {
+                setNameValue(e.target.value);
+                debouncedNameChange(e.target.value);
+              }}
+              placeholder="Enter patient's name"
+              required
+              className={`border-b-2 ${isEmpty ? 'border-red-500' : 'border-gray-400'} 
+                          focus:outline-none hover:border-blue-700 focus:border-blue-500 pl-0 pb-1 pt-1 text-sm bg-transparent font-bold`}
+              style={{ width: '10rem' }}
+            />
+          </Tooltip>
+
+          <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
+            <Button 
+              rightSection={<IconExternalLink size={16} />}
+              variant="light"
+              color="blue"
+              fullWidth
+              className="h-[60px]"
+            >
+              {visitSearchValue ? visitSearchValue : 'Link Visit'}
+            </Button>
+          </FollowUpSearchModalLayout>
+          
+          <PronounSelector pronoun={pronoun} setPronoun={setPronoun} />
+        </div>
+
+        
+        <AudioControlLayout onAudioCaptured={handleAudioCaptured} />
+
+        
+      </div>
 
       <WarningModal
         isOpen={warningModalOpen}

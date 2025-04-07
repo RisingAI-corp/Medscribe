@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import AudioControlLayout from './audioControlLayout';
 
 const meta: Meta<typeof AudioControlLayout> = {
-  title: 'Components/PatientReception/AudioControlLayout',
+  title: 'Components/PatientReception/AudioControl/AudioControlLayout',
   component: AudioControlLayout,
   parameters: {
     layout: 'centered',

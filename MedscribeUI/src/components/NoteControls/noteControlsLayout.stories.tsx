@@ -2,7 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react';
 import NoteControlsLayout from './noteControlsLayout';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 const NoteControlsWrapper = () => {
+  const queryClient = new QueryClient();
   const wrapperStyles = {
     display: 'flex',
     justifyContent: 'center',
@@ -20,9 +23,11 @@ const NoteControlsWrapper = () => {
   return (
     <div style={wrapperStyles}>
       <div style={innerStyles}>
-        <MantineProvider>
-          <NoteControlsLayout />
-        </MantineProvider>
+        <QueryClientProvider client={queryClient}>
+          <MantineProvider>
+            <NoteControlsLayout />
+          </MantineProvider>
+        </QueryClientProvider>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import ControlButtonGroup from './ControlButtonGroup';
 
 const meta: Meta<typeof ControlButtonGroup> = {
-  title: 'Components/AudioControl/ControlButtonGroup',
+  title: 'Components/PatientReception/AudioControl/ControlButtonGroup',
   component: ControlButtonGroup,
   parameters: {
     layout: 'centered',

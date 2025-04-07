@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { SearchResultItem } from './SearchResults/SearchResults';
-import SearchInput from '../SearchInput/SearchInput';
+import SearchInput from './SearchInput/SearchInput';
 import SearchResults from './SearchResults/SearchResults';
 import useSearch from '../../hooks/useSearch';
 import { searchVisitsAtom } from './derivedAtoms';

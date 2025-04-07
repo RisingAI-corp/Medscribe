@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import CaptureButton from './CaptureButton';
 
 const meta: Meta<typeof CaptureButton> = {
-  title: 'Components/AudioControl/CaptureButton',
+  title: 'Components/PatientReception/AudioControl/CaptureButton',
   component: CaptureButton,
   parameters: {
     layout: 'centered',

@@ -3,7 +3,7 @@ import PatientRegistryLayout from '../../components/PatientRegistry/patientRegis
 import PatientDashBoardLayout from '../../components/PaitentDashboard/patientDashBoardLayout';
 import Header from '../../components/Header/header';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
-import PatientReception from '../../components/PateintReception/patientReceptionLayout';
+import PatientReception from '../../components/PatientReception/patientReceptionLayout';
 import { useAtom } from 'jotai';
 
 function HomeScreen() {

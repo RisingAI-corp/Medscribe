@@ -32,7 +32,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   };
 
   const handleUnselectVisit = () => {
-    onSelectItem({} as SearchResultItem);
+    onSelectItem({
+      id: '',
+      patientName: '',
+      dateOfRecording: '',
+      summary: '',
+      condensedSummary: '',
+      timeOfRecording: '',
+      durationOfRecording: 0, 
+    });
   };
 
   return (

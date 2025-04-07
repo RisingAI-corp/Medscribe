@@ -17,6 +17,7 @@ const PronounSelector = ({pronoun, setPronoun}: PronounSelectorProps) => {
     <Select
       placeholder="Select pronouns"
       data={pronounOptions}
+      variant="unstyled"
       value={pronoun}
       onChange={(value) => setPronoun(value || '')}
     />

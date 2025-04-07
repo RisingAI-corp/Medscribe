@@ -18,7 +18,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   return (
     <div
-      className={` h-[60px] w-full px-4 py-2 bg-white border border-gray-300 shadow-sm hover:border-gray-400 ${className ?? ''}`}
+      className={` h-[60px] w-full px-4 py-2 bg-white border border-gray-300 shadow-sm hover:border-gray-400 rounded-t-lg ${className ?? ''}`}
     >
       <div className="flex items-center h-full">
         <svg
