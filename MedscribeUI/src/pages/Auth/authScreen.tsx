@@ -102,8 +102,11 @@ const AuthScreen = ({ isSignUpRoute }: { isSignUpRoute: boolean }) => {
     <div className="flex min-h-[700px] h-screen">
       {/* Left side - Auth Form */}
       <div className="w-1/3 px-[50px] flex flex-col min-w-[500px]">
-        <div className="mt-8 flex items-center gap-2" onClick={() => void navigate('/')}>
-          <img src={logo} alt="Medscribe Logo" className="w-16 h-16"/>
+        <div
+          className="mt-8 flex items-center gap-2"
+          onClick={() => void navigate('/')}
+        >
+          <img src={logo} alt="Medscribe Logo" className="w-16 h-16" />
           <span className="text-3xl font-semibold text-gray-800">
             Medscribe
           </span>
