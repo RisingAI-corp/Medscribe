@@ -3,7 +3,7 @@ import '@mantine/core/styles.css';
 import { IconSearch } from '@tabler/icons-react';
 interface SearchBoxProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
 }
 
 const SearchBox = ({ value = '', onChange }: SearchBoxProps) => {
@@ -15,6 +15,7 @@ const SearchBox = ({ value = '', onChange }: SearchBoxProps) => {
         type="text"
         value={value}
         onChange={e => {
+          if (!onChange) return;
           onChange(e.target.value);
         }}
         placeholder="Search for notes by name"

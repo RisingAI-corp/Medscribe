@@ -186,6 +186,11 @@ export const currentlySelectedPatientAtom = atom<string>(
   sampleCurrentlySelectedPatient,
 );
 
+export const getReportByIdAtom = atom((get, id: string) => {
+  const reports: Report[] = get(patientsAtom);
+  return reports.find(report => report.id === id);
+});
+
 export const patientsAtom = atom<Report[]>(reports);
 
 export const reportStreamingAtom = atom<Set<string>>(new Set<string>());
