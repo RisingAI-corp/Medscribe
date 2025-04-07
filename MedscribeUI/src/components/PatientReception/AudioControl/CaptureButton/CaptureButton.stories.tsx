@@ -14,4 +14,4 @@ type Story = StoryObj<typeof CaptureButton>;
 
 export const Default: Story = {
   args: {},
-}; 
+};

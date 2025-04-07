@@ -33,9 +33,9 @@ export const REPORT_CONTENT_SECTIONS = [
 export const MIME_TYPE = 'audio/webm';
 
 //notification constants
-export const NOTIFICATION_POSITION_TOP_LEFT = 'top-left';
-export const NOTIFICATION_POSITION_TOP_RIGHT = 'top-right';
-export const NOTIFICATION_POSITION_BOTTOM_LEFT = 'bottom-left';
-export const NOTIFICATION_POSITION_BOTTOM_RIGHT = 'bottom-right';
-export const NOTIFICATION_POSITION_TOP_CENTER = 'top-center';
-export const NOTIFICATION_POSITION_BOTTOM_CENTER = 'bottom-center';
+export const TOP_LEFT = 'top-left';
+export const TOP_RIGHT = 'top-right';
+export const BOTTOM_LEFT = 'bottom-left';
+export const BOTTOM_RIGHT = 'bottom-right';
+export const TOP_CENTER = 'top-center';
+export const BOTTOM_CENTER = 'bottom-center';

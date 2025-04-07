@@ -18,4 +18,4 @@ const CaptureButton: React.FC<CaptureButtonProps> = ({ onClick }) => {
   );
 };
 
-export default CaptureButton; 
+export default CaptureButton;

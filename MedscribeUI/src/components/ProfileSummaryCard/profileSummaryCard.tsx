@@ -28,25 +28,29 @@ function ProfileSummaryCard({
       <div className="flex items-center">
         <div className="relative w-full">
           <Tooltip
-            label="Name field cannot be empty"
+            key={isEmpty ? 'name-empty' : 'name-filled'} // 🔧 Force remount when state changes
+            label="Name cannot be empty"
             opened={isEmpty}
             position="top"
             withArrow
+            withinPortal={false} // ✅ prevents floating at top-left
           >
-            <input
-              type="text"
-              ref={nameRef}
-              value={nameValue}
-              onChange={e => {
-                setNameValue(e.target.value);
-                debouncedNameChange(e.target.value);
-              }}
-              placeholder="Enter patient's name"
-              required
-              className={`border-b-2 ${isEmpty ? 'border-red-500' : 'border-gray-400'} 
-                          focus:outline-none hover:border-blue-700 focus:border-blue-500 pl-0 pb-1 pt-1 text-sm bg-transparent font-bold`}
-              style={{ width: '15rem' }}
-            />
+            <div className="inline-block align-top">
+              <input
+                type="text"
+                ref={nameRef}
+                value={nameValue}
+                onChange={e => {
+                  setNameValue(e.target.value);
+                  debouncedNameChange(e.target.value);
+                }}
+                placeholder="Enter patient's name"
+                required
+                className={`border-b-2 ${isEmpty ? 'border-red-500' : 'border-gray-400'} 
+        focus:outline-none hover:border-blue-700 focus:border-blue-500 pl-0 pb-1 pt-1 text-sm bg-transparent font-bold`}
+                style={{ width: '15rem' }}
+              />
+            </div>
           </Tooltip>
         </div>
       </div>

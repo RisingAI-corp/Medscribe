@@ -4,9 +4,11 @@ import '@mantine/core/styles.css';
 import PronounSelector from './PronounSelector';
 import { useState } from 'react';
 
-const PronounSelectorWrapper = (props: React.ComponentProps<typeof PronounSelector>) => {
+const PronounSelectorWrapper = (
+  props: React.ComponentProps<typeof PronounSelector>,
+) => {
   const [pronounState, setPronounState] = useState(props.pronoun || '');
-  
+
   const handleSetPronoun = (value: string) => {
     setPronounState(value);
     props.setPronoun(value);
@@ -14,10 +16,7 @@ const PronounSelectorWrapper = (props: React.ComponentProps<typeof PronounSelect
 
   return (
     <MantineProvider>
-      <PronounSelector 
-        pronoun={pronounState} 
-        setPronoun={handleSetPronoun} 
-      />
+      <PronounSelector pronoun={pronounState} setPronoun={handleSetPronoun} />
     </MantineProvider>
   );
 };
@@ -39,7 +38,9 @@ type Story = StoryObj<typeof PronounSelectorWrapper>;
 export const Default: Story = {
   args: {
     pronoun: '',
-    setPronoun: (value: string) => console.log('Pronoun set to:', value),
+    setPronoun: (value: string) => {
+      console.log('Pronoun set to:', value);
+    },
   },
   name: 'Default',
 };
@@ -47,7 +48,9 @@ export const Default: Story = {
 export const WithValue: Story = {
   args: {
     pronoun: 'they/them',
-    setPronoun: (value: string) => console.log('Pronoun set to:', value),
+    setPronoun: (value: string) => {
+      console.log('Pronoun set to:', value);
+    },
   },
   name: 'With Selected Value',
 };

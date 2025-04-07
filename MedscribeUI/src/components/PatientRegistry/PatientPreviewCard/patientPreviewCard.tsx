@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Checkbox, Loader } from '@mantine/core';
-import { IoMdMailOpen, IoMdMailUnread } from 'react-icons/io';
+import { IoMdMailOpen, IoMdMailUnread, IoMdTrash } from 'react-icons/io';
 
 export interface PatientPreviewCardProps {
   id: string;
@@ -139,7 +139,7 @@ const PatientPreviewCard = ({
             role="button"
             aria-label="delete"
           >
-            🗑️
+            <IoMdTrash />
           </span>
         </div>
       )}

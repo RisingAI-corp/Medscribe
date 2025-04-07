@@ -7,7 +7,7 @@ const meta: Meta<typeof SearchInput> = {
   component: SearchInput,
   parameters: {
     layout: 'centered',
-  },    
+  },
 };
 
 export default meta;
@@ -16,15 +16,14 @@ type Story = StoryObj<typeof SearchInput>;
 export const Default: Story = {
   args: {
     query: '',
-    setQuery: () => {},
+    setQuery: () => {
+      console.log('nothing');
+    },
   },
   decorators: [
-    (Story) => {
+    Story => {
       const [query, setQuery] = useState('');
-      return (
-        <Story args={{ query, setQuery }} />
-      );
+      return <Story args={{ query, setQuery }} />;
     },
   ],
 };
-

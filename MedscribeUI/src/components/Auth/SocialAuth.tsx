@@ -30,4 +30,4 @@ const SocialAuth: React.FC<SocialAuthProps> = ({ isSignUp }) => {
   );
 };
 
-export default SocialAuth; 
+export default SocialAuth;

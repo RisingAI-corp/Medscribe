@@ -142,7 +142,7 @@ func main() {
 
 	db := client.Database(cfg.MongoDBName)
 	userColl := db.Collection(cfg.MongoUserCollection)
-	reportsColl := db.Collection(cfg.MongoReportTestCollection) //TODO: Change back to MongoReportCollection
+	reportsColl := db.Collection(cfg.MongoReportCollection) //TODO: Change back to MongoReportCollection
 
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)

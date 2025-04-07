@@ -6,7 +6,7 @@ import '@mantine/core/styles.css';
 const LandingLayoutWrapper = () => {
   return (
     <MantineProvider>
-        <LandingScreen />
+      <LandingScreen />
     </MantineProvider>
   );
 };

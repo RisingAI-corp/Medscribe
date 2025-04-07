@@ -24,8 +24,8 @@ export interface Report {
   finishedGenerating: boolean;
   transcript: string;
   readStatus: boolean;
-  lastVisitID: string;
-  visitContext: string;
+  lastVisitID?: string;
+  visitContext?: string;
 }
 //TODO: remove when apis are built
 const reports: Report[] = [

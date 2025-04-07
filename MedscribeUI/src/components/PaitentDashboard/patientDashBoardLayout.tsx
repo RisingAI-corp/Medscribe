@@ -10,8 +10,6 @@ import { useState } from 'react';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
 
 function PatientDashBoardLayout() {
-  const [followUpTargetVisitContent, setFollowUpTargetVisitContent] =
-    useState<SearchResultItem>();
   const [headerInformation, _] = useAtom(SelectedPatientHeaderInformationAtom);
   const [, updateHeaderInformation] = useAtom(UpdateSelectedPatientNameAtom);
   const updateNameMutation = useMutation({
