@@ -3,12 +3,11 @@ import LandingHero from '../../components/Landing/landingSections/landingHero';
 import LandingPricing from '../../components/Landing/landingSections/landingPricing';
 import LandingFAQ from '../../components/Landing/landingSections/landingFAQ';
 import LandingFooter from '../../components/Landing/landingSections/landingFooter';
-import LandingBlank from '../../components/Landing/landingSections/landingBlank';
 import landingBackground from '../../assets/landing-bg.png';
 
 function LandingLayout() {
   return (
-    <div className="w-full">
+    <div className="w-full min-w-[750px] overflow-x-auto">
       <img
         src={landingBackground}
         alt="Landing Background"
@@ -16,7 +15,7 @@ function LandingLayout() {
       />
       
       {/* Navbar */}
-      <div className="fixed top-0 left-0 w-full h-[60px] shadow-md z-50 flex items-center justify-between">
+      <div className="fixed top-0 left-0 w-full min-w-[750px] h-[60px] shadow-md z-50 flex items-center justify-between">
         <LandingNav />
       </div>
 
