@@ -60,7 +60,7 @@ const FollowUpSearchModalLayout = ({
               e.stopPropagation();
             }}
           >
-            <SearchInput query={query} />
+            <SearchInput query={query} setQuery={setQuery} />
 
             <SearchResults
               filteredResults={filteredResults}
