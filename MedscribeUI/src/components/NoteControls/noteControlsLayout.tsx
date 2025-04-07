@@ -194,7 +194,7 @@ function NoteControlsLayout() {
       />
       <span className="block mb-2">Link Prior Visit</span>
       <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
-        <Button 
+        <Button
           rightSection={<IconExternalLink size={16} />}
           variant="light"
           color="blue"

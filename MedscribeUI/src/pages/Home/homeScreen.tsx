@@ -34,7 +34,7 @@ function HomeScreen() {
             <PatientDashBoardLayout key={patientId} />
           </div>
         ) : (
-          <div className="flex-1 h-screen flex justify-center items-center">
+          <div className="flex-1 w-full min-h-screen bg-gray-50">
             <PatientReception />
           </div>
         )}

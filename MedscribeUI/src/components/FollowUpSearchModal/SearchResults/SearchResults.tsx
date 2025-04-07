@@ -39,7 +39,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       summary: '',
       condensedSummary: '',
       timeOfRecording: '',
-      durationOfRecording: 0, 
+      durationOfRecording: 0,
     });
   };
 

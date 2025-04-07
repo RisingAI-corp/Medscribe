@@ -18,6 +18,7 @@ import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModa
 import { useDebouncedNameChange } from '../../hooks/useDebounceNameChange';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
 import { IconExternalLink } from '@tabler/icons-react';
+import PatientBackgroundDetails from '../PatientBackground/PatientBackground';
 
 const PatientReception = () => {
   const [__, updateReports] = useAtom(UpdateReportsAtom);
@@ -27,11 +28,11 @@ const PatientReception = () => {
   const [timestamp, setTimeStamp] = useState<string>('');
   const [_, setPatientInfoModalOpen] = useState(false);
   const [warningModalOpen, setWarningModalOpen] = useState(false);
-  const [patientName, setPatientName] = useState('TEMP'); // TODO: Remove 'TEMP' to ''
+  const [patientName, setPatientName] = useState('');
   const [duration, setDuration] = useState(0);
   const [pronoun, setPronoun] = useState('');
   const [lastVisitID, setLastVisitID] = useState('');
-  const [lastVisitContext, setLastVisitContext] = useState('');
+  const [lastVisitContext, setLastVisitContext] = useState<SearchResultItem>();
   const [visitSearchValue, setVisitSearchValue] = useState('');
 
   const processStream = useStreamProcessor({
@@ -47,7 +48,9 @@ const PatientReception = () => {
     useDebouncedNameChange({
       name: patientName,
       onChange: setPatientName,
-      handleUpdateName: () => {},
+      handleUpdateName: () => {
+        console.log('Wha');
+      },
     });
 
   const isEmpty = !nameValue.trim();
@@ -60,11 +63,11 @@ const PatientReception = () => {
 
     return formData;
   };
-  
+
   const handleVisitContextSelect = (visitContext: SearchResultItem) => {
     setVisitSearchValue(visitContext.patientName);
     setLastVisitID(visitContext.id);
-    setLastVisitContext(visitContext.summary);
+    setLastVisitContext(visitContext);
   };
 
   const generateReportMutation = useMutation({
@@ -117,7 +120,7 @@ const PatientReception = () => {
       patientInstructionsStyle: provider.patientInstructionsStyle,
       summaryStyle: provider.summaryStyle,
       lastVisitID: lastVisitID,
-      visitContext: lastVisitContext,
+      visitContext: lastVisitContext?.summary ?? '',
     };
 
     generateReportMutation.mutate({
@@ -133,7 +136,6 @@ const PatientReception = () => {
     duration: number,
     timestamp: number,
   ) => {
-    
     if (duration < 0) {
       setWarningModalOpen(true);
       return;
@@ -143,54 +145,60 @@ const PatientReception = () => {
     handleGenerateReport(duration, timestamp, blob);
   };
 
-  
   return (
     <>
-      <div className="flex flex-row gap-2 justify-between w-full px-8">
-        <div className="flex flex-row gap-2">
-          <Tooltip
-            label="Name field cannot be empty"
-            opened={isEmpty}
-            position="bottom"
-            withArrow
-          >
-            <input
-              type="text"
-              ref={nameRef}
-              value={nameValue}
-              onChange={e => {
-                setNameValue(e.target.value);
-                debouncedNameChange(e.target.value);
-              }}
-              placeholder="Enter patient's name"
-              required
-              className={`border-b-2 ${isEmpty ? 'border-red-500' : 'border-gray-400'} 
-                          focus:outline-none hover:border-blue-700 focus:border-blue-500 pl-0 pb-1 pt-1 text-sm bg-transparent font-bold`}
-              style={{ width: '10rem' }}
-            />
-          </Tooltip>
-
-          <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
-            <Button 
-              rightSection={<IconExternalLink size={16} />}
-              variant="light"
-              color="blue"
-              fullWidth
-              className="h-[60px]"
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Left side controls */}
+          <div className="flex items-center gap-4">
+            {/* Patient name input with tooltip */}
+            <Tooltip
+              label="Name field cannot be empty"
+              opened={isEmpty}
+              position="bottom"
+              withArrow
             >
-              {visitSearchValue ? visitSearchValue : 'Link Visit'}
-            </Button>
-          </FollowUpSearchModalLayout>
-          
-          <PronounSelector pronoun={pronoun} setPronoun={setPronoun} />
+              <input
+                type="text"
+                ref={nameRef}
+                value={nameValue}
+                onChange={e => {
+                  setNameValue(e.target.value);
+                  debouncedNameChange(e.target.value);
+                }}
+                placeholder="Add or select patient"
+                required
+                className={`rounded-md px-3 py-2 text-sm font-medium border ${isEmpty ? 'border-red-500' : 'border-gray-300'} 
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+              />
+            </Tooltip>
+
+            {/* Link previous visit */}
+            <FollowUpSearchModalLayout
+              handleSelectedVisit={handleVisitContextSelect}
+            >
+              <Button
+                rightSection={<IconExternalLink size={16} />}
+                variant="light"
+                color="blue"
+                className="h-[36px] text-sm"
+              >
+                {visitSearchValue || 'Link Visit'}
+              </Button>
+            </FollowUpSearchModalLayout>
+
+            {/* Pronoun Selector */}
+            <PronounSelector pronoun={pronoun} setPronoun={setPronoun} />
+          </div>
+
+          {/* Right side - Capture button */}
+          <AudioControlLayout onAudioCaptured={handleAudioCaptured} />
         </div>
-
-        
-        <AudioControlLayout onAudioCaptured={handleAudioCaptured} />
-
-        
       </div>
 
+      {lastVisitContext && <PatientBackgroundDetails {...lastVisitContext} />}
+
+      {/* Warning Modal */}
       <WarningModal
         isOpen={warningModalOpen}
         onClose={() => {
