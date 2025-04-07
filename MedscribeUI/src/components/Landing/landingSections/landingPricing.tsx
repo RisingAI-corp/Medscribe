@@ -1,4 +1,3 @@
-import landingBackground from '../../../assets/landing-bg.png';
 import { landingContent } from '../landingContent';
 
 interface PricingCardProps {

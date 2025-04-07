@@ -9,7 +9,7 @@ const AuthLayoutWrapper = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <MantineProvider>
-        <AuthScreen />
+        <AuthScreen isSignUpRoute={true} />
       </MantineProvider>
     </QueryClientProvider>
   );
