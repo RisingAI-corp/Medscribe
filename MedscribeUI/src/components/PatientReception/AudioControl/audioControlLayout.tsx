@@ -3,7 +3,11 @@ import ControlButtonGroup from './ControlButtonGroup/ControlButtonGroup';
 import useAudioRecorder from '../../../hooks/useAudioRecorder';
 
 interface AudioControlLayoutProps {
-  onAudioCaptured?: (blob: Blob, duration: number, timestamp: number) => void | Promise<void>;
+  onAudioCaptured?: (
+    blob: Blob,
+    duration: number,
+    timestamp: number,
+  ) => void | Promise<void>;
 }
 
 const AudioControlLayout = ({ onAudioCaptured }: AudioControlLayoutProps) => {
@@ -27,27 +31,27 @@ const AudioControlLayout = ({ onAudioCaptured }: AudioControlLayoutProps) => {
       handlePauseRecording();
       return;
     }
-    
+
     await handleStopRecording();
-    
+
     if (onAudioCaptured && audioBlobRef.current) {
       await onAudioCaptured(
-        audioBlobRef.current, 
-        elapsedSeconds, 
-        recordingStartTime.current
+        audioBlobRef.current,
+        elapsedSeconds,
+        recordingStartTime.current,
       );
     }
-    
+
     handleResetMediaRecorder();
   };
 
   return (
     <div className="flex flex-col items-center">
       {!isRecording && !mediaRecorder && (
-        <CaptureButton 
+        <CaptureButton
           onClick={() => {
             void handleStartRecording();
-          }} 
+          }}
         />
       )}
 

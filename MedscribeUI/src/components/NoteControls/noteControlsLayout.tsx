@@ -26,7 +26,7 @@ import { useStreamProcessor } from '../../hooks/useStreamProcessor';
 import { UpdateReportsAtom } from '../PateintReception/derivedAtoms';
 import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
-import SearchInput from '../SearchInput/SearchInput';
+import SearchBox from '../PatientRegistry/searchBox/searchBox';
 
 function NoteControlsLayout() {
   const [noteControls] = useAtom(NoteControlsAtom);
@@ -187,14 +187,14 @@ function NoteControlsLayout() {
   return (
     <div className="relative">
       <LoadingOverlay
-        visible={visible}
+        visible={visible || !noteControls.loading}
         zIndex={1000}
         overlayProps={{ radius: 'sm', blur: 2 }}
         loaderProps={{ color: 'blue', type: 'bars' }}
       />
       <span className="block mb-2">Link Prior Visit</span>
       <FollowUpSearchModalLayout handleSelectedVisit={handleVisitContextSelect}>
-        <SearchInput query={visitSearchValue} className="h-8" />
+        <SearchBox value={visitSearchValue} classname="h-8" />
       </FollowUpSearchModalLayout>
       <hr className="my-4" />
 
