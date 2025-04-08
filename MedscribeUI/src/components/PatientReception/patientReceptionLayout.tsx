@@ -145,14 +145,14 @@ const PatientReception = () => {
     });
   };
 
-  const handleAudioCaptured = async (
+  const handleAudioCaptured = (
     blob: Blob,
     duration: number,
     timestamp: number,
   ) => {
+    console.log(blob, 'here is the blob');
     setDuration(duration);
-    await handleStopRecording();
-
+    handleResetMediaRecorder();
     handleGenerateReport(duration, timestamp, blob);
     setLastVisitContext(undefined);
   };
@@ -185,8 +185,10 @@ const PatientReception = () => {
       setWarningModalOpen(true);
       return;
     }
+    await handleStopRecording();
     if (audioBlobRef.current) {
-      await handleAudioCaptured(
+      console.log(audioBlobRef.current, 'here is the blob');
+      handleAudioCaptured(
         audioBlobRef.current,
         elapsedSeconds,
         recordingStartTime.current,

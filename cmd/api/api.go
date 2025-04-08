@@ -7,7 +7,7 @@ import (
 	"Medscribe/api/routes"
 	"Medscribe/config"
 	inferenceService "Medscribe/inference/service"
-	inferencestore "Medscribe/inference/store"
+	inferencestorre "Medscribe/inference/store"
 	"Medscribe/reports"
 	"Medscribe/transcription/azure"
 	"Medscribe/user"
@@ -97,6 +97,12 @@ func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string,
 	return sample1, nil
 }
 
+type mockInferStore struct{}
+
+func (m *mockInferStore) Query(ctx context.Context, request string, tokens int) (string, error) {
+	return "mock response", nil
+}
+
 func main() {
 	log.Println("🚀 App is starting...")
 	log.Println("⚡ ENV BEFORE .env load: PORT =", os.Getenv("PORT"))
@@ -148,7 +154,7 @@ func main() {
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
 
-	inferenceStore := inferencestore.NewInferenceStore(
+	inferenceStore := inferencestorre.NewInferenceStore(
 		cfg.OpenAIChatURL,
 		cfg.OpenAIAPIKey,
 	)
@@ -162,6 +168,7 @@ func main() {
 		reportsStore,
 		// &mockTranscriber{},
 		transcriber,
+		// &mockInferStore{},
 		inferenceStore,
 		userStore,
 	)

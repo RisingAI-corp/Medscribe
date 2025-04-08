@@ -22,6 +22,7 @@ function VisitReportLayout() {
 
   const getReportMutation = useMutation({
     mutationFn: async (props: GetReportPayload) => {
+      console.log('yoski', props);
       const report = await getReport(props);
       replaceReport(report);
       if (!report.finishedGenerating) {
@@ -67,10 +68,15 @@ function VisitReportLayout() {
   });
 
   useEffect(() => {
-    if (!reportStreaming.has(selectedPatientID) && !soapData?.loading) {
+    if (
+      selectedPatientID &&
+      !reportStreaming.has(selectedPatientID) &&
+      !soapData?.loading
+    ) {
       const payload: GetReportPayload = {
         reportID: selectedPatientID,
       };
+
       getReportMutation.mutate(payload);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

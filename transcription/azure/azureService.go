@@ -27,7 +27,9 @@ func NewAzureTranscriber(apiUrl, apiKey string) transcriberType.Transcription {
 }
 
 func (t *transcriber) Transcribe(ctx context.Context, audio []byte) (string, error) {
+	fmt.Println("entered azure transcriber")
 	if len(audio) == 0 {
+		fmt.Println("there was no audio provided")
 		return "", nil // Avoid making API calls for empty input
 	}
 

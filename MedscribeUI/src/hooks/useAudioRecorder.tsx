@@ -43,9 +43,6 @@ const useAudioRecorder = () => {
       }
 
       mediaRecorder.onpause = () => {
-        audioBlobRef.current = new Blob(audioChunksRef.current, {
-          type: MIME_TYPE,
-        });
         setIsRecording(false);
         resolve();
       };
