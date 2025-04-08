@@ -83,6 +83,7 @@ func (t *transcriber) Transcribe(ctx context.Context, audio []byte) (string, err
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
 
+	fmt.Println("this is transcript here", response.CombinedPhrases[0].Text)
 	if len(response.CombinedPhrases) > 0 {
 		return response.CombinedPhrases[0].Text, nil
 	}

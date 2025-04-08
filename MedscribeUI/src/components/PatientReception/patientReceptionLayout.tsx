@@ -80,6 +80,7 @@ const PatientReception = () => {
   };
 
   const handleVisitContextSelect = (visitContext: SearchResultItem) => {
+    setNameValue(visitContext.patientName);
     setVisitSearchValue(visitContext.patientName);
     setLastVisitID(visitContext.id);
     setLastVisitContext(visitContext);
@@ -180,7 +181,7 @@ const PatientReception = () => {
     }
 
     await handlePauseRecording();
-    if (elapsedSeconds < 30) {
+    if (elapsedSeconds < 0) {
       setWarningModalOpen(true);
       return;
     }
@@ -201,41 +202,48 @@ const PatientReception = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-between px-6 py-4">
           {/* Left side controls */}
-          <div className="flex items-center gap-4">
-            {/* Patient name input with tooltip */}
+          <div className="flex items-center gap-20">
+            {/* Group: input + or + link visit */}
+            <div className="flex items-center gap-2">
+              <div className="inline-block">
+                <input
+                  type="text"
+                  ref={nameRef}
+                  value={nameValue}
+                  onChange={e => {
+                    setNameValue(e.target.value);
+                    debouncedNameChange(e.target.value);
+                  }}
+                  placeholder="Add a New Patient"
+                  required
+                  className={`rounded-md px-3 py-2 text-sm font-medium border ${
+                    isEmpty && visibleToolTip
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
+                />
+              </div>
 
-            <div className="inline-block">
-              <input
-                type="text"
-                ref={nameRef}
-                value={nameValue}
-                onChange={e => {
-                  setNameValue(e.target.value);
-                  debouncedNameChange(e.target.value);
-                }}
-                placeholder="Add or select patient"
-                required
-                className={`rounded-md px-3 py-2 text-sm font-medium border ${isEmpty && visibleToolTip ? 'border-red-500' : 'border-gray-300'} 
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
-              />
+              <span className="text-sm text-gray-500">or</span>
+
+              <FollowUpSearchModalLayout
+                handleSelectedVisit={handleVisitContextSelect}
+              >
+                <Button
+                  rightSection={<IconExternalLink size={16} />}
+                  variant="light"
+                  color="blue"
+                  className="h-[36px] text-sm"
+                >
+                  {visitSearchValue || 'Link Visit'}
+                </Button>
+              </FollowUpSearchModalLayout>
             </div>
 
-            {/* Link previous visit */}
-            <FollowUpSearchModalLayout
-              handleSelectedVisit={handleVisitContextSelect}
-            >
-              <Button
-                rightSection={<IconExternalLink size={16} />}
-                variant="light"
-                color="blue"
-                className="h-[36px] text-sm"
-              >
-                {visitSearchValue || 'Link Visit'}
-              </Button>
-            </FollowUpSearchModalLayout>
-
-            {/* Pronoun Selector */}
-            <PronounSelector pronoun={pronoun} setPronoun={setPronoun} />
+            {/* Spacer */}
+            <div className="ml-6">
+              <PronounSelector pronoun={pronoun} setPronoun={setPronoun} />
+            </div>
           </div>
 
           {/* Right side - Capture button */}

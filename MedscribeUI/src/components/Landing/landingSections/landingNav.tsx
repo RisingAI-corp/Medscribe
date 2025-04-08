@@ -43,7 +43,9 @@ function LandingNav() {
           Pricing
         </button>
         <button
-          onClick={() => scrollToSection('faq')}
+          onClick={() => {
+            scrollToSection('faq');
+          }}
           className="text-gray-600 hover:text-gray-900"
         >
           FAQ
