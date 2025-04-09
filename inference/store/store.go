@@ -125,6 +125,7 @@ func (i *inferenceStore) Query(ctx context.Context, request string, tokens int) 
 	}
 	defer resp.Body.Close()
 
+
 	var apiResponse AzureAPIResponse
 	decoder := json.NewDecoder(resp.Body)
 	if err := decoder.Decode(&apiResponse); err != nil {

@@ -261,19 +261,20 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, reportReque
 				contentPrompt = RegenerateReportContentPrompt(content, section, style, reportRequest.Updates,reportRequest.VisitContext)
 			}
 
-			text, err := s.generateReportSection(ctx, contentPrompt, section, contentChan)
-			tokenUsage[section] = text.Usage.TotalTokens
+			queryResult, err := s.generateReportSection(ctx, contentPrompt, section, contentChan)
+			fmt.Println(queryResult.Content, "query result")
+			tokenUsage[section] = queryResult.Usage.TotalTokens
 			if err != nil {
 				return fmt.Errorf("error generating report section: %w", err)
 			}
 			if section == reports.Summary {
-				summaries, err := s.generateSummaries(text.Content, contentChan,tokenUsage)
+				summaries, err := s.generateSummaries(queryResult.Content, contentChan,tokenUsage)
 				if err != nil {
 					return fmt.Errorf("GenerateReport: error generating report sections while regenerating report: %w", err)
 				}
 				aggregateUpdates(summaries...)
 			}
-			aggregateUpdates(bson.E{Key: section, Value: bson.D{{Key: reports.ContentData, Value: text.Content}, {Key: reports.Loading, Value: false}}})
+			aggregateUpdates(bson.E{Key: section, Value: bson.D{{Key: reports.ContentData, Value: queryResult.Content}, {Key: reports.Loading, Value: false}}})
 			return nil
 		})
 	}

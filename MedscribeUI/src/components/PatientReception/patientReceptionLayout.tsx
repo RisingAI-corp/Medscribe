@@ -181,7 +181,7 @@ const PatientReception = () => {
     }
 
     await handlePauseRecording();
-    if (elapsedSeconds < 0) {
+    if (elapsedSeconds < 30) {
       setWarningModalOpen(true);
       return;
     }
