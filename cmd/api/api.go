@@ -10,6 +10,7 @@ import (
 	inferencestorre "Medscribe/inference/store"
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
+	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -599,15 +600,15 @@ func main() {
 
 	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(cfg.MongoReportTokenUsageCollection))
 
-	// transcriber := azure.NewAzureTranscriber(
-	// 	cfg.OpenAISpeechURL,
-	// 	cfg.OpenAIAPIKey,
-	// )
+	transcriber := azure.NewAzureTranscriber(
+		cfg.OpenAISpeechURL,
+		cfg.OpenAIAPIKey,
+	)
 
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
-		&mockTranscriber{},
-		// transcriber,
+		// &mockTranscriber{},
+		transcriber,
 		inferenceStore,
 		userStore,
 		reportsTokenUsage,
