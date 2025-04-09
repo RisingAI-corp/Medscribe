@@ -15,6 +15,7 @@ type Config struct {
 	MongoUserCollection       string
 	MongoReportCollection     string
 	MongoReportTestCollection string
+	MongoReportTokenUsageCollection     string
 	MongoFreedVisits          string
 	MongoDistillAnalysis      string
 	OpenAIChatURL             string
@@ -56,6 +57,12 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	mongoReportTokenUsageColl, err := getEnvStrict("MONGODB_REPORTS_TOKEN_USAGE_STORE", "")
+	if err != nil {
+		return nil, err
+	}
+
 	mongoFreedVisits, err := getEnvStrict("MONGODB_FREED_VISITS", "")
 	if err != nil {
 		return nil, err
@@ -103,6 +110,7 @@ func LoadConfig() (*Config, error) {
 		MongoDBName:               mongoDBName,
 		MongoUserCollection:       mongoUserColl,
 		MongoReportCollection:     mongoReportColl,
+		MongoReportTokenUsageCollection: mongoReportTokenUsageColl,
 		MongoReportTestCollection: mongoReportTestColl,
 		MongoFreedVisits:          mongoFreedVisits,
 		MongoDistillAnalysis:      mongoDistillAnalysis,

@@ -63,7 +63,7 @@ func TestQuery(t *testing.T) {
 			ctx := context.Background()
 			response, err := store.Query(ctx, tc.request, tc.tokens)
 			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedResultIsEmpty, len(response) == 0)
+			assert.Equal(t, tc.expectedResultIsEmpty, len(response.Content) == 0)
 		})
 	}
 }

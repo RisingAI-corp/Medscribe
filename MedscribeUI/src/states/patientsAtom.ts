@@ -25,6 +25,7 @@ export interface Report {
   readStatus: boolean;
   lastVisitID?: string;
   visitContext?: string;
+  status?: string;
 }
 // //TODO: remove when apis are built
 // const reports: Report[] = [

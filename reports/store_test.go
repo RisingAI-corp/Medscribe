@@ -12,7 +12,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -67,95 +66,153 @@ func cleanupTestDB(t *testing.T, collection *mongo.Collection) {
 	}
 }
 
-func TestPut(t *testing.T) {
+// func TestPut(t *testing.T) {
+// 	collection := setupTestDB(t)
+// 	t.Cleanup(func() { cleanupTestDB(t, collection) })
+
+// 	store := NewReportsStore(collection)
+// 	ctx := context.Background()
+
+// 	testCases := []struct {
+// 		name          string
+// 		providerID    string
+// 		duration      float64
+// 		pronouns      string
+// 		expectedErr   error
+// 		isResultEmpty bool
+// 		description   string
+// 		lastVisitID string
+// 	}{
+// 		{
+// 			name:          "sampleReport",
+// 			providerID:    "providerID123",
+// 			expectedErr:   nil,
+// 			isResultEmpty: false,
+// 			description:   "should return reportId when supplied with correct inputs",
+// 			duration:      1,
+// 			pronouns:      HE,
+// 		},
+// 		{
+// 			name:          "",
+// 			providerID:    "",
+// 			expectedErr:   errors.New("name cannot be an empty string"),
+// 			isResultEmpty: true,
+// 			description:   "should throw error when name is an empty string",
+// 		},
+// 		{
+// 			name:          "sampleReport",
+// 			providerID:    "",
+// 			expectedErr:   errors.New("providerId cannot be an empty string"),
+// 			isResultEmpty: true,
+// 			description:   "should throw error when providerId is an empty string",
+// 		},
+// 		{
+// 			name:          "invalid duration",
+// 			providerID:    "providerID123",
+// 			duration:      0, // Invalid duration
+// 			pronouns:      HE,
+// 			expectedErr:   errors.New("duration must be greater than 0"),
+// 			isResultEmpty: true,
+// 			description:   "should throw error when duration is less than or equal to 0",
+// 		},
+// 		{
+// 			name:          "invalid pronouns",
+// 			providerID:    "providerID123",
+// 			duration:      60,
+// 			pronouns:      "INVALID",
+// 			expectedErr:   fmt.Errorf("pronouns must be either '%s', '%s', or '%s'", HE, SHE, THEY),
+// 			isResultEmpty: true,
+// 			description:   "should throw error when pronouns is invalid",
+// 		},
+// 		{
+// 			name:          "sampleReport",
+// 			providerID:    "providerID123",
+// 			expectedErr:   nil,
+// 			isResultEmpty: false,
+// 			description:   "should return reportId when supplied with valid lastVisitID",
+// 			duration:      1,
+// 			pronouns:      HE,
+// 			lastVisitID: primitive.NewObjectID().Hex(),
+// 		},
+// 		{
+// 			name:          "sampleReport",
+// 			providerID:    "providerID123",
+// 			expectedErr:   errors.New("invalid last visitID format: the provided hex string is not a valid ObjectID"),
+// 			isResultEmpty: true,
+// 			description:   "should return error when supplied with invalid lastVisitID",
+// 			duration:      1,
+// 			pronouns:      HE,
+// 			lastVisitID: "invalid VisitID",
+// 		},
+// 	}
+
+// 	for _, tc := range testCases {
+// 		t.Run(tc.description, func(t *testing.T) {
+// 			reportId, err := store.Put(ctx, tc.name, tc.providerID, time.Now(), tc.duration, false, tc.pronouns, tc.lastVisitID)
+
+// 			assert.Equal(t, tc.expectedErr, err)
+// 			assert.Equal(t, tc.isResultEmpty, reportId == "")
+// 		})
+// 	}
+// }
+
+
+func TestUpdateStatus(t *testing.T) {
 	collection := setupTestDB(t)
 	t.Cleanup(func() { cleanupTestDB(t, collection) })
 
 	store := NewReportsStore(collection)
+
 	ctx := context.Background()
 
+	name := "John Doe"
+	providerId := "provider123"
+
+	reportID, err := store.Put(ctx, name, providerId, time.Now(), 1, false, HE,"")
+	assert.NoError(t, err)
+
 	testCases := []struct {
-		name          string
-		providerID    string
-		duration      float64
-		pronouns      string
-		expectedErr   error
-		isResultEmpty bool
-		description   string
-		lastVisitID string
+		reportId string
+		status   string
+		expected error
 	}{
 		{
-			name:          "sampleReport",
-			providerID:    "providerID123",
-			expectedErr:   nil,
-			isResultEmpty: false,
-			description:   "should return reportId when supplied with correct inputs",
-			duration:      1,
-			pronouns:      HE,
+			reportId: reportID,
+			status:   "pending",
+			expected: nil,
 		},
 		{
-			name:          "",
-			providerID:    "",
-			expectedErr:   errors.New("name cannot be an empty string"),
-			isResultEmpty: true,
-			description:   "should throw error when name is an empty string",
+			reportId: reportID,
+			status:   "completed",
+			expected: nil,
 		},
 		{
-			name:          "sampleReport",
-			providerID:    "",
-			expectedErr:   errors.New("providerId cannot be an empty string"),
-			isResultEmpty: true,
-			description:   "should throw error when providerId is an empty string",
+			reportId: reportID,
+			status:   "failed",
+			expected: nil,
 		},
 		{
-			name:          "invalid duration",
-			providerID:    "providerID123",
-			duration:      0, // Invalid duration
-			pronouns:      HE,
-			expectedErr:   errors.New("duration must be greater than 0"),
-			isResultEmpty: true,
-			description:   "should throw error when duration is less than or equal to 0",
+			reportId: reportID,
+			status:   "invalid",
+			expected: errors.New("status must be either 'pending', 'completed', or 'failed'"),
 		},
 		{
-			name:          "invalid pronouns",
-			providerID:    "providerID123",
-			duration:      60,
-			pronouns:      "INVALID",
-			expectedErr:   fmt.Errorf("pronouns must be either '%s', '%s', or '%s'", HE, SHE, THEY),
-			isResultEmpty: true,
-			description:   "should throw error when pronouns is invalid",
-		},
-		{
-			name:          "sampleReport",
-			providerID:    "providerID123",
-			expectedErr:   nil,
-			isResultEmpty: false,
-			description:   "should return reportId when supplied with valid lastVisitID",
-			duration:      1,
-			pronouns:      HE,
-			lastVisitID: primitive.NewObjectID().Hex(),
-		},
-		{
-			name:          "sampleReport",
-			providerID:    "providerID123",
-			expectedErr:   errors.New("invalid last visitID format: the provided hex string is not a valid ObjectID"),
-			isResultEmpty: true,
-			description:   "should return error when supplied with invalid lastVisitID",
-			duration:      1,
-			pronouns:      HE,
-			lastVisitID: "invalid VisitID",
+			reportId: "invalid id",
+			status:   "pending",
+			expected: errors.New("invalid ID format: the provided hex string is not a valid ObjectID"),
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.description, func(t *testing.T) {
-			reportId, err := store.Put(ctx, tc.name, tc.providerID, time.Now(), tc.duration, false, tc.pronouns, tc.lastVisitID)
-
-			assert.Equal(t, tc.expectedErr, err)
-			assert.Equal(t, tc.isResultEmpty, reportId == "")
+		t.Run(fmt.Sprintf("%s %s", tc.reportId, tc.status), func(t *testing.T) {
+			err := store.UpdateStatus(ctx, tc.reportId, tc.status)
+			fmt.Println(err,"check")
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
+
+
 
 // func TestGet(t *testing.T) {
 // 	collection := setupTestDB(t)

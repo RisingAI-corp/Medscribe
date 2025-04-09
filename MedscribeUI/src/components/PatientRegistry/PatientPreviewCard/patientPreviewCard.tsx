@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Checkbox, Loader } from '@mantine/core';
+import { Checkbox, Loader, Tooltip } from '@mantine/core';
 import { IoMdMailOpen, IoMdMailUnread, IoMdTrash } from 'react-icons/io';
 
 export interface PatientPreviewCardProps {
@@ -9,11 +9,12 @@ export interface PatientPreviewCardProps {
   timeOfRecording: string;
   durationOfRecording: string;
   sessionSummary: string;
-  loading: boolean;
+  status: string;
   isSelected: boolean;
   isChecked: boolean;
   selectAllToggle: boolean;
   readStatus: boolean;
+  loading: boolean;
   onClick: (id: string) => void;
   handleRemovePatient: (id: string) => void;
   handleToggleCheckbox: (id: string, checked: boolean) => void;
@@ -28,7 +29,7 @@ const PatientPreviewCard = ({
   timeOfRecording,
   durationOfRecording,
   sessionSummary,
-  loading = true,
+  status,
   isSelected,
   isChecked,
   selectAllToggle,
@@ -38,6 +39,7 @@ const PatientPreviewCard = ({
   handleMarkRead,
   handleUnMarkRead,
   readStatus,
+  loading,
 }: PatientPreviewCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -53,7 +55,7 @@ const PatientPreviewCard = ({
     handleToggleCheckbox(id, checked);
   };
 
-  console.log('new read status ', readStatus);
+  console.log('new read status ', readStatus, status);
 
   return (
     <div
@@ -93,8 +95,25 @@ const PatientPreviewCard = ({
         <div className="text-xs text-gray-500 mt-1">{sessionSummary}</div>
       </div>
 
-      {loading ? (
+      {loading && status !== 'failed' ? (
         <Loader size="sm" color="blue" />
+      ) : status === 'failed' ? (
+        <Tooltip label="Error generating report" position="right" withArrow>
+          <div className="text-red-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.597c.75 1.335-.213 2.987-1.742 2.987H3.48c-1.53 0-2.492-1.652-1.742-2.987L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-2a1 1 0 01-1-1V7a1 1 0 112 0v3a1 1 0 01-1 1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        </Tooltip>
       ) : (
         <div className="flex items-center">
           {/* Conditional Mail Log Icon (Open or Unread) */}
@@ -127,7 +146,7 @@ const PatientPreviewCard = ({
               {/* Grey color for unread mail */}
             </span>
           )}
-
+          {/* Error Icon */}
           {/* Trash Icon */}
           <span
             onClick={event => {

@@ -20,8 +20,9 @@ export const PatientRegistryAtom = atom(get =>
       durationOfRecording: durationInMinutes > 1 ? duration : '< 1 min',
       sessionSummary: patient.sessionSummary,
       finishedGenerating: patient.finishedGenerating,
-      loading: !patient.finishedGenerating,
+      status: patient.status ?? 'pending',
       readStatus: patient.readStatus,
+      loading: !patient.finishedGenerating,
     };
   }),
 );

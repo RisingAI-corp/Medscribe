@@ -22,6 +22,12 @@ func (m *MockReportsStore) Get(ctx context.Context, reportId string) (Report, er
 	return args.Get(0).(Report), args.Error(1)
 }
 
+func (m *MockReportsStore) UpdateStatus(ctx context.Context, reportId string, status string) error {
+	args := m.Called(ctx, reportId, status)
+	return args.Error(0)
+}
+
+
 func (m *MockReportsStore) GetTranscription(ctx context.Context, reportId string) (string, string, error) {
 	args := m.Called(ctx, reportId)
 	return args.String(0), args.String(1), args.Error(2)

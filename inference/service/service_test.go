@@ -3,6 +3,7 @@ package inferenceService
 import (
 	inferencestore "Medscribe/inference/store"
 	"Medscribe/reports"
+	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
 	transcriber "Medscribe/transcription"
 	"Medscribe/user"
 	"context"
@@ -58,8 +59,8 @@ func setupTestEnvironment(t *testing.T) *testEnv {
 	reportStore := new(reports.MockReportsStore)
 	inferenceStore := new(inferencestore.MockInferenceStore)
 	userStore := new(user.MockUserStore)
-
-	service := NewInferenceService(reportStore, transcriber, inferenceStore, userStore)
+	reportsTokenUsageStore := new(reportsTokenUsage.MockTokenUsageStore)
+	service := NewInferenceService(reportStore, transcriber, inferenceStore, userStore,reportsTokenUsageStore)
 
 	reportCfg := &ReportRequest{
 		AudioBytes:       []byte("dummy audio"),

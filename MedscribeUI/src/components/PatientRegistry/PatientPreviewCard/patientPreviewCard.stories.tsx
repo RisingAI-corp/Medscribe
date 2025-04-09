@@ -12,10 +12,11 @@ const samplePatientData: PatientPreviewCardProps = {
   timeOfRecording: '10:30 AM',
   durationOfRecording: '15 min',
   sessionSummary: 'Follow-up consultation for back pain.',
-  loading: false,
   isChecked: false,
   selectAllToggle: false,
   readStatus: false,
+  status: 'succeeded',
+  loading: false,
   handleMarkRead: (id: string) => {
     console.log(`Mark patient with ID: ${id} as read`);
   },

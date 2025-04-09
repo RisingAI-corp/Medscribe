@@ -3,6 +3,7 @@ package inferenceService
 import (
 	Chat "Medscribe/inference/store"
 	"Medscribe/reports"
+	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
 	Transcription "Medscribe/transcription"
 	"Medscribe/user"
 	"context"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -29,6 +31,7 @@ type inferenceService struct {
 	transcriptionService Transcription.Transcription
 	chat                 Chat.InferenceStore
 	userStore            user.UserStore
+	reportTokenUsageStore reportsTokenUsage.TokenUsageStore
 }
 
 // NewInferenceService creates a new instance of InferenceService with the provided dependencies.
@@ -41,12 +44,14 @@ type inferenceService struct {
 //
 // Returns:
 // - An instance of InferenceService initialized with the provided dependencies.
-func NewInferenceService(reportsStore reports.Reports, transcriptionService Transcription.Transcription, chat Chat.InferenceStore, userStore user.UserStore) InferenceService {
+func NewInferenceService(reportsStore reports.Reports, transcriptionService Transcription.Transcription, chat Chat.InferenceStore, userStore user.UserStore, reportTokenUsageStore reportsTokenUsage.TokenUsageStore) InferenceService {
 	return &inferenceService{
 		userStore:            userStore,
 		reportsStore:         reportsStore,
 		transcriptionService: transcriptionService,
 		chat:                 chat,
+		reportTokenUsageStore: reportTokenUsageStore,
+
 	}
 }
 
@@ -106,6 +111,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error storing report: %w", err)
 	}
+
 	contentChan <- ContentChanPayload{Key: "_id", Value: reportID}
 
 	// transcribe audio
@@ -118,7 +124,24 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *R
 	report.TranscribedAudio = transcribedAudio
 
 	//generate the report sections (subjective, objective, assessment, planning, summary)
-	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, bson.D{})
+	tokenUsage := make(map[string]int)
+
+	defer func() {
+		reportIDtoPrimitive,err := primitive.ObjectIDFromHex(reportID)
+		if err != nil {
+			return
+		}
+		tokenEntry := reportsTokenUsage.TokenUsageEntry{
+			ReportID:   reportIDtoPrimitive,
+			ProviderID: report.ProviderID,
+			Timestamp:  primitive.NewDateTimeFromTime(time.Now()),
+			TokenUsage: tokenUsage,
+		}
+		s.reportTokenUsageStore.Insert(ctx, tokenEntry)
+	}()
+
+
+	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, bson.D{},tokenUsage)
 	if err != nil {
 		return fmt.Errorf("GenerateReportPipeline: error generating report sections: %w", err)
 	}
@@ -167,7 +190,8 @@ func (s *inferenceService) RegenerateReport(
 		return fmt.Errorf("RegenerateReport: error updating loading status before report regeneration: %w", err)
 	}
 
-	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, report.Updates)
+	tokenUsage :=  make(map[string]int)
+	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, report.Updates,tokenUsage)
 	if err != nil {
 		return fmt.Errorf("RegenerateReport: error generating report sections while regenerating report: %w", err)
 	}
@@ -199,7 +223,7 @@ func (s *inferenceService) LearnStyle(ctx context.Context, providerID, contentSe
 		return fmt.Errorf("LearnStyle: error querying for style: %w", err)
 	}
 
-	if err = s.userStore.UpdateStyle(ctx, providerID, styleField, response); err != nil {
+	if err = s.userStore.UpdateStyle(ctx, providerID, styleField, response.Content); err != nil {
 		return fmt.Errorf("LearnStyle: error updating style: %w", err)
 	}
 	return nil
@@ -207,7 +231,7 @@ func (s *inferenceService) LearnStyle(ctx context.Context, providerID, contentSe
 
 // generateReportSections generates all sections of the report concurrently.
 // It serves as a helper function for both generateReportPipeline and regenerateReport.
-func (s *inferenceService) generateSoapSections(ctx context.Context, reportRequest *ReportRequest, contentChan chan ContentChanPayload, updates bson.D) (bson.D, error) {
+func (s *inferenceService) generateSoapSections(ctx context.Context, reportRequest *ReportRequest, contentChan chan ContentChanPayload, updates bson.D,tokenUsage map[string]int) (bson.D, error) {
 	g, ctx := errgroup.WithContext(ctx)
 	updatesChan := make(chan bson.E, len(contentSections))
 
@@ -238,17 +262,18 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, reportReque
 			}
 
 			text, err := s.generateReportSection(ctx, contentPrompt, section, contentChan)
+			tokenUsage[section] = text.Usage.TotalTokens
 			if err != nil {
 				return fmt.Errorf("error generating report section: %w", err)
 			}
 			if section == reports.Summary {
-				summaries, err := s.generateSummaries(text, contentChan)
+				summaries, err := s.generateSummaries(text.Content, contentChan,tokenUsage)
 				if err != nil {
 					return fmt.Errorf("GenerateReport: error generating report sections while regenerating report: %w", err)
 				}
 				aggregateUpdates(summaries...)
 			}
-			aggregateUpdates(bson.E{Key: section, Value: bson.D{{Key: reports.ContentData, Value: text}, {Key: reports.Loading, Value: false}}})
+			aggregateUpdates(bson.E{Key: section, Value: bson.D{{Key: reports.ContentData, Value: text.Content}, {Key: reports.Loading, Value: false}}})
 			return nil
 		})
 	}
@@ -262,19 +287,19 @@ func (s *inferenceService) generateSoapSections(ctx context.Context, reportReque
 }
 
 // generateReportSection generates a single section of the report.
-func (s *inferenceService) generateReportSection(ctx context.Context, queryMessage string, field string, contentChan chan ContentChanPayload) (string, error) {
+func (s *inferenceService) generateReportSection(ctx context.Context, queryMessage string, field string, contentChan chan ContentChanPayload) (Chat.InferenceResponse, error) {
 	response, err := s.chat.Query(ctx, queryMessage, Chat.MaxTokens)
 	if err != nil {
-		return "", fmt.Errorf("error generating report section: %w", err)
+		return Chat.InferenceResponse{}, fmt.Errorf("error generating report section: %w", err)
 	}
 
-	contentChan <- ContentChanPayload{Key: field, Value: response}
+	contentChan <- ContentChanPayload{Key: field, Value: response.Content}
 
 	// Send the update to the updates channel.
 	return response, nil
 }
 
-func (s *inferenceService) generateSummaries(summary string, contentChan chan ContentChanPayload) (bson.D, error) {
+func (s *inferenceService) generateSummaries(summary string, contentChan chan ContentChanPayload, tokenUsage map[string]int) (bson.D, error) {
 	condensed, err := s.chat.Query(context.Background(), fmt.Sprintf(condensedSummary, summary), Chat.MaxTokens)
 	if err != nil {
 		return bson.D{}, fmt.Errorf("error generating condensed summary: %w", err)
@@ -285,9 +310,12 @@ func (s *inferenceService) generateSummaries(summary string, contentChan chan Co
 		return bson.D{}, fmt.Errorf("error generating session summary: %w", err)
 	}
 
-	contentChan <- ContentChanPayload{Key: reports.CondensedSummary, Value: condensed}
-	contentChan <- ContentChanPayload{Key: reports.SessionSummary, Value: session}
-	return bson.D{{Key: reports.CondensedSummary, Value: condensed}, {Key: reports.SessionSummary, Value: session}}, nil
+	tokenUsage[reports.CondensedSummary] = condensed.Usage.TotalTokens
+	tokenUsage[reports.SessionSummary] = session.Usage.TotalTokens
+
+	contentChan <- ContentChanPayload{Key: reports.CondensedSummary, Value: condensed.Content}
+	contentChan <- ContentChanPayload{Key: reports.SessionSummary, Value: session.Content}
+	return bson.D{{Key: reports.CondensedSummary, Value: condensed.Content}, {Key: reports.SessionSummary, Value: session.Content}}, nil
 }
 
 // styleFromContentSection returns the style for the given content section.

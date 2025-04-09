@@ -94,6 +94,7 @@ export const SoapAtom = atom(
           },
         ],
         loading: patient.finishedGenerating,
+        status: patient.status,
         transcript: patient.transcript,
       };
     }

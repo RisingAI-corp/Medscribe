@@ -9,6 +9,7 @@ import (
 	inferenceService "Medscribe/inference/service"
 	inferencestorre "Medscribe/inference/store"
 	"Medscribe/reports"
+	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
 	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
@@ -99,8 +100,8 @@ func (m *mockTranscriber) Transcribe(ctx context.Context, audio []byte) (string,
 
 type mockInferStore struct{}
 
-func (m *mockInferStore) Query(ctx context.Context, request string, tokens int) (string, error) {
-	return "mock response", nil
+func (m *mockInferStore) Query(ctx context.Context, request string, tokens int) (inferencestorre.InferenceResponse, error) {
+	return inferencestorre.InferenceResponse{Content: "mock response"}, nil
 }
 
 func main() {
@@ -159,6 +160,8 @@ func main() {
 		cfg.OpenAIAPIKey,
 	)
 
+	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(cfg.MongoReportTokenUsageCollection))
+
 	transcriber := azure.NewAzureTranscriber(
 		cfg.OpenAISpeechURL,
 		cfg.OpenAIAPIKey,
@@ -168,10 +171,12 @@ func main() {
 		reportsStore,
 		// &mockTranscriber{},
 		transcriber,
-		// &mockInferStore{},
 		inferenceStore,
 		userStore,
+		reportsTokenUsage,
 	)
+
+
 
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
 

@@ -8,6 +8,7 @@ import (
 	inferenceService "Medscribe/inference/service"
 	inferenceStore "Medscribe/inference/store"
 	"Medscribe/reports"
+	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
 	transcriber "Medscribe/transcription"
 	"Medscribe/transcription/azure"
 	"Medscribe/user"
@@ -68,6 +69,8 @@ func SetupTestEnv() (*TestEnv, error) {
 
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
+	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(os.Getenv("MONGODB_REPORT_TOKEN_USAGE_COLLECTION_DEV")))
+
 
 	transcriber := azure.NewAzureTranscriber(
 		os.Getenv("OPENAI_API_SPEECH_URL"),
@@ -84,6 +87,7 @@ func SetupTestEnv() (*TestEnv, error) {
 		transcriber,
 		inferenceStore,
 		userStore,
+		reportsTokenUsage,
 	)
 
 	logger, err := zap.NewDevelopment()

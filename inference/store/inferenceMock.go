@@ -9,8 +9,8 @@ import (
 type MockInferenceStore struct {
 	mock.Mock
 }
-
-func (m *MockInferenceStore) Query(ctx context.Context, request string, tokens int) (string, error) {
+func (m *MockInferenceStore) Query(ctx context.Context, request string, tokens int) (InferenceResponse, error) {
 	args := m.Called(ctx, request, tokens)
-	return args.String(0), args.Error(1)
+	return args.Get(0).(InferenceResponse), args.Error(1)
 }
+

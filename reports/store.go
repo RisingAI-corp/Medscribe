@@ -70,6 +70,10 @@ const (
 	readStatus = "readstatus"
 
 	LastVisitID = "lastvisitid"
+
+	status = "status"
+
+	tokens = "tokens"
 )
 
 type ReportContent struct {
@@ -97,6 +101,7 @@ type Report struct {
 	Transcript          string             `json:"transcript"`
 	ReadStatus          bool               `json:"readStatus"`
 	LastVisitID string `json:"lastVisit"`
+	Status string `json:"status"`
 }
 
 type Reports interface {
@@ -109,6 +114,7 @@ type Reports interface {
 	GetTranscription(ctx context.Context, reportId string) (string, string, error)
 	MarkRead(ctx context.Context, reportId string) error
 	MarkUnread(ctx context.Context, reportId string) error
+	UpdateStatus(ctx context.Context, reportId string, status string) error
 }
 
 type reportsStore struct {
@@ -159,6 +165,7 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 		PatientInstructions: ReportContent{Loading: true},
 		Summary:             ReportContent{Loading: true},
 		LastVisitID: lastVisitID,
+		Status: "pending",
 	}
 
 	insertResp, err := r.client.InsertOne(ctx, report)
@@ -190,7 +197,36 @@ func (r *reportsStore) Get(ctx context.Context, reportId string) (Report, error)
 	if err != nil {
 		return Report{}, fmt.Errorf("failed to retrieve report: %v", err)
 	}
+
+	generatedTime := retrievedReport.TimeStamp.Time()
+	if time.Since(generatedTime) > 3*time.Minute {
+		update := bson.M{"$set": bson.M{status: "failed"}}
+		_, err = r.client.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return Report{}, fmt.Errorf("error marking report as failed after 3 minutes: %v", err)
+		}
+		retrievedReport.Status = "failed"
+	}
+
 	return retrievedReport, nil
+}
+
+func (r *reportsStore) UpdateStatus(ctx context.Context, reportId string, status string) error {
+	if status != "pending" && status != "completed" && status != "failed" {
+		return fmt.Errorf("status must be either 'pending', 'completed', or 'failed'")
+	}
+	objectID, err := primitive.ObjectIDFromHex(reportId)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+	filter := bson.M{ID: objectID}
+	update := bson.M{"$set": bson.M{status: status}}
+	_, err = r.client.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update report status: %v", err)
+	}
+
+	return nil
 }
 
 /* GetTranscript retrieves the transcript for a report by its unique identifier */

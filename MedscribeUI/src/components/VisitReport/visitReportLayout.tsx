@@ -25,12 +25,12 @@ function VisitReportLayout() {
       console.log('yoski', props);
       const report = await getReport(props);
       replaceReport(report);
-      if (!report.finishedGenerating) {
+      if (report.status === 'pending') {
         throw new Error('Report not finished generating yet.');
       }
       return report;
     },
-    retry: 20,
+    retry: 10,
     retryDelay: 4000,
     onSuccess: report => {
       replaceReport(report);
@@ -68,11 +68,19 @@ function VisitReportLayout() {
   });
 
   useEffect(() => {
+    console.log(soapData?.status, 'here is status');
+    console.log(
+      selectedPatientID,
+      !reportStreaming.has(selectedPatientID),
+      soapData?.status === 'pending',
+      'checking status',
+    );
     if (
       selectedPatientID &&
       !reportStreaming.has(selectedPatientID) &&
-      !soapData?.loading
+      soapData?.status === 'pending'
     ) {
+      console.log('getting report');
       const payload: GetReportPayload = {
         reportID: selectedPatientID,
       };
