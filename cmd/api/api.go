@@ -20,11 +20,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/generative-ai-go/genai"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-	"google.golang.org/api/option"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google" // For google.Credentials
+
+	// For WithCredentialsJSON
+	"google.golang.org/genai"
 )
 
 type mockTranscriber struct{}
@@ -592,12 +595,39 @@ func main() {
 	// 	cfg.OpenAIAPIKey,
 	// )
 
-	geminiClient, err := genai.NewClient(ctx, option.WithAPIKey(cfg.GeminiAPIKey))
-	if err != nil {
-		logger.Error("Failed to create genai client", zap.Error(err))
-		return
+	var geminiClient *genai.Client
+	var clientConfig *genai.ClientConfig
+	if cfg.Env == "production" {
+		gcpCreds, err := google.CredentialsFromJSON(ctx, []byte(cfg.GoogleApplicationCredentialsFileContent))
+		if err != nil {
+			log.Fatalf("Failed to create google credentials: %v", err)
+			return
+		}
+
+		// 4. Create a genai.ClientConfig
+		clientConfig = &genai.ClientConfig{
+			Project:  cfg.ProjectID,
+			Location: cfg.VertexLocation,
+			Backend:  genai.BackendVertexAI,
+			HTTPClient: &http.Client{
+				Transport: &oauth2.Transport{
+					Source: gcpCreds.TokenSource,
+				},
+			},
+		}
+	}else{
+		clientConfig = &genai.ClientConfig{
+			Project:  cfg.ProjectID,
+			Location: cfg.VertexLocation,
+			Backend:  genai.BackendVertexAI,
+		}
 	}
-	defer geminiClient.Close()
+	
+	geminiClient, err = genai.NewClient(ctx,clientConfig)
+	if err != nil {
+		logger.Fatal("❌ Failed to create gemini client", zap.Error(err))
+	}
+	
 	GeminiInferenceStore,err := inferencestorre.NewGeminiInferenceStore(
 		geminiClient,
 	)

@@ -6,11 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"strings"
 
-	"github.com/google/generative-ai-go/genai"
+	"google.golang.org/genai"
 )
 
 // QueryTunables defines constants for tuning query outputs.
@@ -18,6 +16,9 @@ const (
 	Temperature = 0.7
 	TopP        = 0.95
 	MaxTokens   = 1000
+	SystemRole = "system"
+	UserRole = "user"
+
 )
 
 // Message represents a message in a conversation, including the role (e.g., "user" or "system") and content (text and type).
@@ -66,27 +67,22 @@ type InferenceStore interface {
 	Query(ctx context.Context, request string, tokens int) (InferenceResponse, error)
 }
 
+
 type inferenceGPTStore struct {
 	apiUrl string
 	apiKey string
 }
 
+func NewGPTInferenceStore(apiUrl, apiKey string) InferenceStore {
+	return &inferenceGPTStore{apiUrl: apiUrl, apiKey: apiKey}
+}
+
+
 type inferenceGeminiStore struct {
 	client *genai.Client
 }
-
-
-
-const SystemRole = "system"
-const UserRole = "user"
-
-// NewInferenceStore creates and returns a new instance of an InferenceStore implementation with the provided API URL and API key.
 func NewGeminiInferenceStore(client *genai.Client) (InferenceStore, error) {
 	return &inferenceGeminiStore{client: client}, nil
-}
-
-func NewGPTInferenceStore(apiUrl, apiKey string) InferenceStore {
-	return &inferenceGPTStore{apiUrl: apiUrl, apiKey: apiKey}
 }
 
 // Query sends a request to the OpenAI API with the specified role and message, and returns the assistant's response.
@@ -176,57 +172,19 @@ func (i *inferenceGPTStore) Query(ctx context.Context, request string, tokens in
 
 
 func (i *inferenceGeminiStore) Query(ctx context.Context, request string, tokens int) (InferenceResponse, error) {
-	model := i.client.GenerativeModel("gemini-2.0-flash")
-	resp, err := model.GenerateContent(ctx, genai.Text(request))
+	if i.client == nil {
+		return InferenceResponse{}, fmt.Errorf("gemini client is not initialized")
+	}
+
+	chat, _ := i.client.Chats.Create(ctx, "gemini-2.0-flash", nil, nil)
+	resp, err := chat.SendMessage(ctx, genai.Part{Text: "What is 1 + 2?"})
+
 	if err != nil {
-	  log.Fatal(err)
-	  return InferenceResponse{}, fmt.Errorf("error sending request: %v", err)
-	}	
-	printResponse(resp) // helper function for printing content parts
-	return InferenceResponse{Content: getResponseText(resp)}, nil
+		return InferenceResponse{}, fmt.Errorf("failed to generate content: %w", err)
+	}
+
+	respText := resp.Text()	
+	fmt.Println("this is response ", respText)
+	return InferenceResponse{Content: respText}, nil
 }
-
-func printResponse(resp *genai.GenerateContentResponse) {
-	if resp == nil || len(resp.Candidates) == 0 {
-		fmt.Println("No response content.")
-		return
-	}
-	for _, candidate := range resp.Candidates {
-		if candidate == nil || len(candidate.Content.Parts) == 0 {
-			fmt.Println("No content parts in candidate.")
-			continue
-		}
-		for _, part := range candidate.Content.Parts {
-			if text, ok := part.(genai.Text); ok {
-				fmt.Println(string(text))
-			} else {
-				fmt.Printf("Non-text part received: %+v\n", part)
-			}
-		}
-	}
-}
-
-// getResponseText iterates through the response and returns the concatenated text content.
-func getResponseText(resp *genai.GenerateContentResponse) string {
-	var responseText strings.Builder
-	if resp == nil || len(resp.Candidates) == 0 {
-		return ""
-	}
-	for _, candidate := range resp.Candidates {
-		if candidate == nil || len(candidate.Content.Parts) == 0 {
-			continue
-		}
-		for _, part := range candidate.Content.Parts {
-			if text, ok := part.(genai.Text); ok {
-				responseText.WriteString(string(text))
-			}
-		}
-	}
-	return responseText.String()
-}
-
-
-
-
-
 

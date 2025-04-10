@@ -22,6 +22,9 @@ type Config struct {
 	OpenAISpeechURL           string
 	OpenAIAPIKey              string
 	GeminiAPIKey            string
+	VertexLocation string
+	ProjectID string
+	GoogleApplicationCredentialsFileContent string
 	DeepgramAPIKey            string
 	DeepgramAPIURL            string
 	JWTSecret                 string
@@ -89,6 +92,17 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	projectID, err := getEnvStrict("GCP_PROJECT_ID", "")
+	if err != nil {
+		return nil, err
+	}
+
+	googleApplicationCredentials := os.Getenv("CREDS")
+
+	vertexLocation, err := getEnvStrict("VERTEX_LOCATION", "")
+	if err != nil {
+		return nil, err
+	}
 	deepgramKey, err := getEnvStrict("DEEPGRAM_API_KEY", "")
 	if err != nil {
 		return nil, err
@@ -124,6 +138,9 @@ func LoadConfig() (*Config, error) {
 		OpenAISpeechURL:           openAISpeechURL,
 		OpenAIAPIKey:              openAIKey,
 		GeminiAPIKey:            geminiApiKey,
+		GoogleApplicationCredentialsFileContent: googleApplicationCredentials,
+		VertexLocation:            vertexLocation,
+		ProjectID:                 projectID,
 		DeepgramAPIKey:            deepgramKey,
 		DeepgramAPIURL:            deepgramURL,
 		JWTSecret:                 jwtSecret,

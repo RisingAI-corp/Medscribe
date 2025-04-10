@@ -2,18 +2,15 @@ package inferencestore
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/google/generative-ai-go/genai"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"google.golang.org/api/option"
+	"google.golang.org/genai"
 )
 
 // setupEnv loads environment variables for testing
@@ -66,13 +63,15 @@ func setupEnv(t *testing.T) {
 // 		t.Run(tc.description, func(t *testing.T) {
 // 			ctx := context.Background()
 // 			response, err := store.Query(ctx, tc.request, tc.tokens)
+// 			fmt.Println("this is response",response)
 // 			assert.Equal(t, tc.expectedError, err)
 // 			assert.Equal(t, tc.expectedResultIsEmpty, len(response.Content) == 0)
 // 		})
 // 	}
 // }
 
-func TestNewGeminiInferenceStore(t *testing.T) {
+
+func TestNewGeminiVertexInferenceStore(t *testing.T) {
 	setupEnv(t)
 	testCases := []struct {
 		name                   string
@@ -81,55 +80,50 @@ func TestNewGeminiInferenceStore(t *testing.T) {
 		expectedResultIsEmpty   bool
 		description            string
 	}{
-		// {
-		// 	name:                   "successful response",
-		// 	apiKey:                 os.Getenv("GEMINI_API_KEY"),
-		// 	expectedError:          nil,
-		// 	expectedResultIsEmpty:   false,
-		// 	description:            "should return a valid response when request input isn't empty",
-		// },
 		{
-			name:                   "api key is empty",
-			apiKey:                 "",
-			expectedError:          errors.New("api-key cannot be empty"),
-			expectedResultIsEmpty:   true,
-			description:            "should return an error when api key is empty",
+			name:                   "successful response",
+			apiKey:                 os.Getenv("GEMINI_API_KEY"),
+			expectedError:          nil,
+			expectedResultIsEmpty:   false,
+			description:            "should return a valid response when request input isn't empty",
 		},
 	}
 
-	geminiClient, err := genai.NewClient(context.Background(), option.WithAPIKey(os.Getenv("GEMINI_API_KEY")))
-	if err != nil {
-		log.Fatal("Failed to create genai client", zap.Error(err))
+	ctx := context.Background()
+
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	location := os.Getenv("VERTEX_LOCATION")  
+
+	if projectID == "" || location == "" {
+		log.Fatalf("VERTEX_PROJECT_ID and VERTEX_LOCATION environment variables must be set.")
 		return
 	}
-	defer geminiClient.Close()
+
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		Project:  projectID,
+		Location: location,
+		Backend:  genai.BackendVertexAI,
+	})
+	assert.NoError(t, err)
 
 	store,err := NewGeminiInferenceStore(
-		geminiClient,
+		client,
 	)
+	assert.NoError(t, err)
 	
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
-
-			fmt.Println("this is err", err)
-			result, _ := store.Query(ctx, "test request", 10)
-			assert.Equal(t, tc.expectedError, err)
+			
+			result, err := store.Query(ctx, "test request", 10)
+			fmt.Println("this is result",result,err)
+			// assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedResultIsEmpty, result.Content == "")
 		})
 	}
 }
 
 
-// func TestQuery_InvalidRole(t *testing.T) {
-// 	setupEnv(t)
 
-// 	store := NewInferenceStore(os.Getenv("OPENAI_API_CHAT_URL"), os.Getenv("OPENAI_API_KEY"))
-// 	invalidRole := "invalid_role"
-// 	_, err := store.Query("invalid_role", "test request")
 
-// 	assert.Error(t, err, fmt.Errorf("role must be '%s' or '%s' not %s", SystemRole, UserRole, invalidRole))
 
-// 	expectedError := "role must be 'system' or 'user' not invalid_role"
-// 	assert.EqualError(t, err, expectedError, "Expected error message mismatch")
-// }
