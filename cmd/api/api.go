@@ -20,9 +20,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/generative-ai-go/genai"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
+	"google.golang.org/api/option"
 )
 
 type mockTranscriber struct{}
@@ -585,10 +587,25 @@ func main() {
 	// creating stores
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
-	inferenceStore := inferencestorre.NewInferenceStore(
-		cfg.OpenAIChatURL,
-		cfg.OpenAIAPIKey,
+	// gptInferenceStore := inferencestorre.NewGPTInferenceStore(
+	// 	cfg.OpenAIChatURL,
+	// 	cfg.OpenAIAPIKey,
+	// )
+
+	geminiClient, err := genai.NewClient(ctx, option.WithAPIKey(cfg.GeminiAPIKey))
+	if err != nil {
+		logger.Error("Failed to create genai client", zap.Error(err))
+		return
+	}
+	defer geminiClient.Close()
+	GeminiInferenceStore,err := inferencestorre.NewGeminiInferenceStore(
+		geminiClient,
 	)
+	
+	if err != nil {
+		logger.Fatal("❌ Failed to create inference store", zap.Error(err))
+	}
+
 	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(cfg.MongoReportTokenUsageCollection))
 
 	//creating services
@@ -600,7 +617,8 @@ func main() {
 		reportsStore,
 		// &mockTranscriber{},
 		transcriber,
-		inferenceStore,
+		// gptInferenceStore,
+		GeminiInferenceStore,
 		userStore,
 		reportsTokenUsage,
 	)

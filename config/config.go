@@ -21,6 +21,7 @@ type Config struct {
 	OpenAIChatURL             string
 	OpenAISpeechURL           string
 	OpenAIAPIKey              string
+	GeminiAPIKey            string
 	DeepgramAPIKey            string
 	DeepgramAPIURL            string
 	JWTSecret                 string
@@ -83,6 +84,11 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	geminiApiKey, err := getEnvStrict("GEMINI_API_KEY", "")
+	if err != nil {
+		return nil, err
+	}
 	deepgramKey, err := getEnvStrict("DEEPGRAM_API_KEY", "")
 	if err != nil {
 		return nil, err
@@ -117,6 +123,7 @@ func LoadConfig() (*Config, error) {
 		OpenAIChatURL:             openAIChatURL,
 		OpenAISpeechURL:           openAISpeechURL,
 		OpenAIAPIKey:              openAIKey,
+		GeminiAPIKey:            geminiApiKey,
 		DeepgramAPIKey:            deepgramKey,
 		DeepgramAPIURL:            deepgramURL,
 		JWTSecret:                 jwtSecret,
