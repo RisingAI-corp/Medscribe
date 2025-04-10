@@ -62,6 +62,7 @@ func (s *store) Put(ctx context.Context, name, email, password string) (string, 
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	fmt.Println(string(hashedPassword))
 	if err != nil {
 		return "", fmt.Errorf("error hashing password:%v", err)
 	}
@@ -116,6 +117,7 @@ func (s *store) GetByAuth(ctx context.Context, email, password string) (User, er
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(retrievedUser.PasswordHash), []byte(password))
+
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return User{}, fmt.Errorf("incorrect authentication credentials: %v", err)

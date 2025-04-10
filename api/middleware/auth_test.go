@@ -241,7 +241,7 @@ func TestGenerateInitialTokens_Success(t *testing.T) {
 
 func TestGetProviderIDFromContext(t *testing.T) {
 	t.Run("valid user ID in context", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), UserIDKey, "userID")
+		ctx := context.WithValue(context.Background(), CtxKeyUserID, "userID")
 		userID, ok := GetProviderIDFromContext(ctx)
 		assert.True(t, ok)
 		assert.Equal(t, "userID", userID)
@@ -254,7 +254,7 @@ func TestGetProviderIDFromContext(t *testing.T) {
 	})
 
 	t.Run("invalid type in context", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), UserIDKey, 1)
+		ctx := context.WithValue(context.Background(), CtxKeyUserID, 1)
 		userID, ok := GetProviderIDFromContext(ctx)
 		assert.False(t, ok)
 		assert.Equal(t, "", userID)

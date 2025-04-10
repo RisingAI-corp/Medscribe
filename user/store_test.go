@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -68,40 +69,41 @@ func cleanupTestDB(t *testing.T, collection *mongo.Collection) {
 	}
 }
 
-// func TestPut(t *testing.T) {
-// 	collection := setupTestDB(t)
-// 	t.Cleanup(func() { cleanupTestDB(t, collection) })
-// 	store := NewUserStore(collection)
-// 	ctx := context.Background()
+func TestPut(t *testing.T) {
+	collection := setupTestDB(t)
+	t.Cleanup(func() { cleanupTestDB(t, collection) })
+	store := NewUserStore(collection)
+	ctx := context.Background()
 
-// 	testCases := []struct {
-// 		name        string
-// 		email       string
-// 		expectedErr error
-// 		isEmpty     bool
-// 	}{
-// 		{
-// 			name:        "should create new user with unique email",
-// 			email:       email,
-// 			expectedErr: nil,
-// 			isEmpty:     false,
-// 		},
-// 		{
-// 			name:        "should reject duplicate email",
-// 			email:       email,
-// 			expectedErr: fmt.Errorf("user already exists with this email: %s", email),
-// 			isEmpty:     true,
-// 		},
-// 	}
+	testCases := []struct {
+		name        string
+		email       string
+		expectedErr error
+		isEmpty     bool
+	}{
+		{
+			name:        "should create new user with unique email",
+			email:       email,
+			expectedErr: nil,
+			isEmpty:     false,
+		},
+		{
+			name:        "should reject duplicate email",
+			email:       email,
+			expectedErr: fmt.Errorf("user already exists with this email: %s", email),
+			isEmpty:     true,
+		},
+	}
 
-// 	for _, tc := range testCases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			userID, err := store.Put(ctx, "John Doe", tc.email, "password123")
-// 			assert.Equal(t, err, tc.expectedErr)
-// 			assert.Equal(t, tc.isEmpty, len(userID) == 0)
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			userID, err := store.Put(ctx, "John Doe", tc.email, "Emenike$$2002")
+
+			assert.Equal(t, err, tc.expectedErr)
+			assert.Equal(t, tc.isEmpty, len(userID) == 0)
+		})
+	}
+}
 
 // func TestGet(t *testing.T) {
 // 	collection := setupTestDB(t)

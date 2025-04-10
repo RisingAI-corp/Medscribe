@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	UserIDKey    = "userID"
 	AccessToken  = "access_token"
 	RefreshToken = "refresh_token"
 )
@@ -86,7 +85,7 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		}
 
 		am.setCookies(w, accessToken, refreshCookie.Value)
-		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
+		ctx := context.WithValue(r.Context(), CtxKeyUserID, claims.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -171,6 +170,6 @@ func (am *AuthMiddleware) setCookies(w http.ResponseWriter, accessToken, refresh
 }
 
 func GetProviderIDFromContext(ctx context.Context) (string, bool) {
-	userID, ok := ctx.Value(UserIDKey).(string)
+	userID, ok := ctx.Value(CtxKeyUserID).(string)
 	return userID, ok
 }

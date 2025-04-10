@@ -8,6 +8,7 @@ import (
 	"Medscribe/config"
 	inferenceService "Medscribe/inference/service"
 	inferencestorre "Medscribe/inference/store"
+	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
 	"Medscribe/transcription/azure"
@@ -550,21 +551,12 @@ func main() {
 		log.Fatalf("❌ Critical error loading config: %v", err)
 	}
 
-	var logger *zap.Logger
-	if cfg.Env == "development" {
-		logger, err = zap.NewDevelopment()
-	} else {
-		logger, err = zap.NewProduction()
-	}
-	if err != nil {
-		log.Fatalf("❌ Failed to initialize zap logger: %v", err)
-	}
+	logger := contextLogger.Get(cfg.Env)
 	defer func() {
 		if err := logger.Sync(); err != nil {
 			fmt.Printf("⚠️ Error syncing logger: %v\n", err)
 		}
-	}()
-
+	}()	
 	logger.Info("✅ Configuration loaded", zap.String("env", cfg.Env))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -590,21 +582,20 @@ func main() {
 	userColl := db.Collection(cfg.MongoUserCollection)
 	reportsColl := db.Collection(cfg.MongoReportCollection) //TODO: Change back to MongoReportCollection
 
+	// creating stores
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
-
 	inferenceStore := inferencestorre.NewInferenceStore(
 		cfg.OpenAIChatURL,
 		cfg.OpenAIAPIKey,
 	)
-
 	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(cfg.MongoReportTokenUsageCollection))
 
+	//creating services
 	transcriber := azure.NewAzureTranscriber(
 		cfg.OpenAISpeechURL,
 		cfg.OpenAIAPIKey,
 	)
-
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
 		// &mockTranscriber{},
@@ -614,19 +605,16 @@ func main() {
 		reportsTokenUsage,
 	)
 
-
-
+	// instantiating api
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
-
-	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleware)
+	userHandler := userhandler.NewUserHandler(userStore, reportsStore, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,
 		ReportsHandler:   reportsHandler,
 		AuthMiddleware:   authMiddleware.Middleware,
-		LoggerMiddleware: middleware.LoggingMiddleware,
-		Logger:           logger,
+		MetadataMiddleware: middleware.MetadataMiddleware,
 	})
 
 	// Ensure we're reading the PORT env var properly

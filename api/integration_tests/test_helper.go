@@ -100,15 +100,13 @@ func SetupTestEnv() (*TestEnv, error) {
 	}
 
 	authMiddleWare := middleware.NewAuthMiddleware(jwtSecret, logger, "dev")
-	userHandler := userhandler.NewUserHandler(userStore, reportsStore, logger, *authMiddleWare)
+	userHandler := userhandler.NewUserHandler(userStore, reportsStore, *authMiddleWare)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:      userHandler,
 		ReportsHandler:   reportsHandler,
 		AuthMiddleware:   authMiddleWare.Middleware,
-		LoggerMiddleware: middleware.LoggingMiddleware,
-		Logger:           logger,
 	})
 
 	return &TestEnv{
@@ -227,6 +225,6 @@ func (env *TestEnv) GenerateJWT(req *http.Request, userID string) (*http.Request
 		Path:  "/",
 	})
 
-	ctx := context.WithValue(req.Context(), middleware.UserIDKey, userID)
+	ctx := context.WithValue(req.Context(), middleware.CtxKeyUserID, userID)
 	return req.WithContext(ctx), nil
 }

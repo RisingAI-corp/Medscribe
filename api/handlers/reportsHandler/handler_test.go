@@ -66,7 +66,7 @@ func TestGenerateReport(t *testing.T) {
 		// Create request with auth context
 		req := httptest.NewRequest(http.MethodPost, "/reports", body)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 
 		contentToBeStreamed := []inferenceService.ContentChanPayload{
 			{Key: "_id", Value: testReportID},
@@ -148,7 +148,7 @@ func TestGenerateReport(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/reports", body)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 
 		// Setup mock to return error
 		mockInference.On("GenerateReportPipeline",
@@ -183,7 +183,7 @@ func TestGenerateReport(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/reports", body)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 
 		rr := httptest.NewRecorder()
 		handler.GenerateReport(rr, req)
@@ -218,7 +218,7 @@ func TestGenerateReport(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/reports", body)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 
 		rr := httptest.NewRecorder()
 		handler.GenerateReport(rr, req)
@@ -254,7 +254,7 @@ func TestRegenerateReport(t *testing.T) {
 
 		// Create request with auth context
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/regenerate", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		// Setup mock expectations
@@ -326,7 +326,7 @@ func TestRegenerateReport(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/regenerate", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.RegenerateReport(rr, req)
@@ -350,7 +350,7 @@ func TestRegenerateReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/regenerate", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -384,7 +384,7 @@ func TestRegenerateReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/regenerate", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -418,7 +418,7 @@ func TestRegenerateReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/regenerate", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -469,7 +469,7 @@ func TestGetReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodGet, "/reports/GetReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -514,7 +514,7 @@ func TestGetReport(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodGet, "/reports/GetReport", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.GetReport(rr, req)
@@ -536,7 +536,7 @@ func TestGetReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodGet, "/reports/"+testReportID, bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -568,7 +568,7 @@ func TestGetReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodGet, "/reports/"+testReportID, bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -611,7 +611,7 @@ func TestLearnStyle(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -655,7 +655,7 @@ func TestLearnStyle(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.LearnStyle(rr, req)
@@ -679,7 +679,7 @@ func TestLearnStyle(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -713,7 +713,7 @@ func TestLearnStyle(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -749,7 +749,7 @@ func TestLearnStyle(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/LearnStyle", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -792,7 +792,7 @@ func TestGetTranscript(t *testing.T) {
 		assert.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodGet, "/reports/GetTranscript", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("GetTranscription", mock.Anything, testReportID).
@@ -833,7 +833,7 @@ func TestGetTranscript(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodGet, "/reports/GetTranscript", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.GetTranscript(rr, req)
@@ -866,7 +866,7 @@ func TestChangeReportName(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -906,7 +906,7 @@ func TestChangeReportName(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.ChangeReportName(rr, req)
@@ -931,7 +931,7 @@ func TestChangeReportName(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -964,7 +964,7 @@ func TestChangeReportName(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -997,7 +997,7 @@ func TestChangeReportName(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/ChangeName", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1037,7 +1037,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/markRead", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1071,7 +1071,7 @@ func TestMarkReadAndUnread(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/markUnread", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1112,7 +1112,7 @@ func TestUpdateContentData(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/UpdateReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1150,7 +1150,7 @@ func TestUpdateContentData(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodPost, "/reports/UpdateReport", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.UpdateContentSection(rr, req)
@@ -1180,7 +1180,7 @@ func TestUpdateContentData(t *testing.T) {
 			Return(reports.Report{}, errors.New("report not found")).Once()
 
 		httpReq := httptest.NewRequest(http.MethodPost, "/reports/UpdateReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.UpdateContentSection(rr, httpReq)
@@ -1214,7 +1214,7 @@ func TestDeleteReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1253,7 +1253,7 @@ func TestDeleteReport(t *testing.T) {
 
 		invalidBody := []byte(`{"invalid json`)
 		req := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", bytes.NewBuffer(invalidBody))
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.DeleteReport(rr, req)
@@ -1275,7 +1275,7 @@ func TestDeleteReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1307,7 +1307,7 @@ func TestDeleteReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).
@@ -1339,7 +1339,7 @@ func TestDeleteReport(t *testing.T) {
 		require.NoError(t, err)
 
 		httpReq := httptest.NewRequest(http.MethodDelete, "/reports/DeleteReport", bytes.NewBuffer(body))
-		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.UserIDKey, testUserID))
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		MockReportsStore.On("Get", mock.Anything, testReportID).

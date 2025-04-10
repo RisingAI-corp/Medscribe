@@ -9,16 +9,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/cors"
-	"go.uber.org/zap"
 )
 
 // APIConfig is a struct that contains all the handlers, middleware and loggers for the API
 type APIConfig struct {
 	UserHandler      userhandler.UserHandler
 	ReportsHandler   reportsHandler.ReportsHandler
-	LoggerMiddleware func(http.Handler) http.Handler
 	AuthMiddleware   func(http.Handler) http.Handler
-	Logger           *zap.Logger
+	MetadataMiddleware func(http.Handler) http.Handler
 }
 
 func EntryRoutes(config APIConfig) *chi.Mux {
@@ -34,7 +32,7 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 
 	r := chi.NewRouter()
 
-	r.Use(config.LoggerMiddleware)
+	r.Use(config.MetadataMiddleware)
 	r.Use(corsHandler.Handler)
 
 	r.With(config.AuthMiddleware).Get("/checkAuth", config.UserHandler.GetMe)

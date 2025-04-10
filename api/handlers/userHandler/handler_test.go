@@ -50,7 +50,7 @@ func TestSignUp(t *testing.T) {
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		mockStore.On("Put", mock.Anything, testName, testEmail, testPassword).
 			Return(testUserID, nil)
@@ -95,7 +95,7 @@ func TestSignUp(t *testing.T) {
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		mockStore.On("Put", mock.Anything, testName, testEmail, testPassword).
 			Return("", fmt.Errorf("user already exists with this email: %s", testEmail))
@@ -123,7 +123,7 @@ func TestSignUp(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		req := httptest.NewRequest(http.MethodPost, "/signup", bytes.NewBufferString("invalid json"))
 		rr := httptest.NewRecorder()
@@ -149,7 +149,7 @@ func TestLogin(t *testing.T) {
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		objectID, err := primitive.ObjectIDFromHex(testUserID)
 		require.NoError(t, err)
@@ -220,7 +220,7 @@ func TestLogin(t *testing.T) {
 		MockReportsStoreStore := new(reports.MockReportsStore)
 
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		mockStore.On("GetByAuth", mock.Anything, testEmail, testPassword).
 			Return(user.User{}, fmt.Errorf("incorrect authentication credentials"))
@@ -248,7 +248,7 @@ func TestLogin(t *testing.T) {
 		MockReportsStore := new(reports.MockReportsStore)
 
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStore, *authMiddleware)
 
 		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBufferString("invalid json"))
 		rr := httptest.NewRecorder()
@@ -268,7 +268,7 @@ func TestGetMe(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		objectID, err := primitive.ObjectIDFromHex(testUserID)
 		if err != nil {
@@ -303,7 +303,7 @@ func TestGetMe(t *testing.T) {
 			Once()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, testUserID))
+		req = req.WithContext(context.WithValue(req.Context(), middleware.CtxKeyUserID, testUserID))
 		rr := httptest.NewRecorder()
 
 		handler.GetMe(rr, req)
@@ -336,7 +336,7 @@ func TestGetMe(t *testing.T) {
 		mockStore := new(user.MockUserStore)
 		MockReportsStoreStore := new(reports.MockReportsStore)
 		authMiddleware := middleware.NewAuthMiddleware("test", logger, "dev")
-		handler := NewUserHandler(mockStore, MockReportsStoreStore, logger, *authMiddleware)
+		handler := NewUserHandler(mockStore, MockReportsStoreStore, *authMiddleware)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rr := httptest.NewRecorder()
