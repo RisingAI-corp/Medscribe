@@ -598,6 +598,7 @@ func main() {
 	var geminiClient *genai.Client
 	var clientConfig *genai.ClientConfig
 	if cfg.Env == "production" {
+		logger.Info("Attempting to create google credentials with",zap.String("credentialsFile As string",cfg.GoogleApplicationCredentialsFileContent))
 		gcpCreds, err := google.CredentialsFromJSON(ctx, []byte(cfg.GoogleApplicationCredentialsFileContent))
 		if err != nil {
 			log.Fatalf("Failed to create google credentials: %v", err)
