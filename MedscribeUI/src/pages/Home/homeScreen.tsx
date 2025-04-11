@@ -9,13 +9,13 @@ import { useAtom } from 'jotai';
 function HomeScreen() {
   const [patientId, setPatientId] = useAtom(currentlySelectedPatientAtom);
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 overflow-hidden h-screen">
       <div className="min-h-[30px]">
         <Header />
       </div>
 
       <div className="flex flex-1 flex-row overflow-hidden">
-        <div className="flex flex-col w-[300px] border-r border-gray-300 h-full box-border">
+        <div className="flex flex-col w-[300px] border-r border-gray-300 h-full box-border overflow-y-auto">
           <div className="p-4 border-b border-gray-300 bg-white">
             <Button
               variant="outline"
@@ -27,13 +27,15 @@ function HomeScreen() {
               + START A VISIT
             </Button>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto">
+          <div className="flex-1 p-4">
             <PatientRegistryLayout />
           </div>
         </div>
         <div className="flex-1 h-full overflow-hidden relative">
           {/* Reception: always rendered, toggle visibility */}
-          <div className={`${patientId ? 'hidden' : 'block'} w-full h-full`}>
+          <div
+            className={`${patientId ? 'hidden' : 'block'} w-full h-full overflow-y-auto`}
+          >
             <PatientReception />
           </div>
 
