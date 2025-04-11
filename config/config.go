@@ -46,9 +46,9 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	if isProd{
-		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS","/var/run/secrets/google_application_credentials/creds.json")
-	}
+	// if isProd{
+	// 	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS","/var/run/secrets/google_application_credentials/creds.json")
+	// }
 
 	mongoDBName, err := getEnvStrict("MONGODB_DB", "")
 	if err != nil {

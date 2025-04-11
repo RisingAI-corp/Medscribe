@@ -594,17 +594,22 @@ func main() {
 	// 	cfg.OpenAIAPIKey,
 	// )
 
-	var geminiClient *genai.Client
-	var clientConfig *genai.ClientConfig
 	
+	if(cfg.Env == "production") {
+		// in production we will use the metadata server to to leverage the cloud run service account to auth with vertex ai
+		err := os.Unsetenv("GOOGLE_APPLICATION_CREDENTIALS")
+		if err != nil {
+			logger.Warn("Error unsetting GOOGLE_APPLICATION_CREDENTIALS", zap.Error(err))
+		} else {
+			logger.Info("GOOGLE_APPLICATION_CREDENTIALS unset for production")
+		}
+	}
 
-	clientConfig = &genai.ClientConfig{
+	geminiClient, err := genai.NewClient(ctx,&genai.ClientConfig{
 		Project:  cfg.ProjectID,
 		Location: cfg.VertexLocation,
 		Backend:  genai.BackendVertexAI,
-	}
-	
-	geminiClient, err = genai.NewClient(ctx,clientConfig)
+	})
 	if err != nil {
 		logger.Fatal("❌ Failed to create gemini client", zap.Error(err))
 	}
@@ -612,7 +617,6 @@ func main() {
 	GeminiInferenceStore,err := inferencestorre.NewGeminiInferenceStore(
 		geminiClient,
 	)
-	
 	if err != nil {
 		logger.Fatal("❌ Failed to create inference store", zap.Error(err))
 	}
