@@ -45,6 +45,11 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	if isProd{
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS","/var/run/secrets/google_application_credentials")
+	}
+
 	mongoDBName, err := getEnvStrict("MONGODB_DB", "")
 	if err != nil {
 		return nil, err
@@ -97,8 +102,6 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	googleApplicationCredentials := os.Getenv("CREDS")
-
 	vertexLocation, err := getEnvStrict("VERTEX_LOCATION", "")
 	if err != nil {
 		return nil, err
@@ -138,7 +141,6 @@ func LoadConfig() (*Config, error) {
 		OpenAISpeechURL:           openAISpeechURL,
 		OpenAIAPIKey:              openAIKey,
 		GeminiAPIKey:            geminiApiKey,
-		GoogleApplicationCredentialsFileContent: googleApplicationCredentials,
 		VertexLocation:            vertexLocation,
 		ProjectID:                 projectID,
 		DeepgramAPIKey:            deepgramKey,

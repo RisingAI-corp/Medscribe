@@ -177,7 +177,7 @@ func (i *inferenceGeminiStore) Query(ctx context.Context, request string, tokens
 	}
 
 	chat, _ := i.client.Chats.Create(ctx, "gemini-2.0-flash", nil, nil)
-	resp, err := chat.SendMessage(ctx, genai.Part{Text: "What is 1 + 2?"})
+	resp, err := chat.SendMessage(ctx, genai.Part{Text: request})
 
 	if err != nil {
 		return InferenceResponse{}, fmt.Errorf("failed to generate content: %w", err)

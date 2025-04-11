@@ -23,9 +23,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google" // For google.Credentials
 
+	// For google.Credentials
 	// For WithCredentialsJSON
 	"google.golang.org/genai"
 )
@@ -597,31 +596,12 @@ func main() {
 
 	var geminiClient *genai.Client
 	var clientConfig *genai.ClientConfig
-	if cfg.Env == "production" {
-		logger.Info("Attempting to create google credentials with",zap.String("credentialsFile As string",cfg.GoogleApplicationCredentialsFileContent))
-		gcpCreds, err := google.CredentialsFromJSON(ctx, []byte(cfg.GoogleApplicationCredentialsFileContent))
-		if err != nil {
-			log.Fatalf("Failed to create google credentials: %v", err)
-			return
-		}
+	
 
-		// 4. Create a genai.ClientConfig
-		clientConfig = &genai.ClientConfig{
-			Project:  cfg.ProjectID,
-			Location: cfg.VertexLocation,
-			Backend:  genai.BackendVertexAI,
-			HTTPClient: &http.Client{
-				Transport: &oauth2.Transport{
-					Source: gcpCreds.TokenSource,
-				},
-			},
-		}
-	}else{
-		clientConfig = &genai.ClientConfig{
-			Project:  cfg.ProjectID,
-			Location: cfg.VertexLocation,
-			Backend:  genai.BackendVertexAI,
-		}
+	clientConfig = &genai.ClientConfig{
+		Project:  cfg.ProjectID,
+		Location: cfg.VertexLocation,
+		Backend:  genai.BackendVertexAI,
 	}
 	
 	geminiClient, err = genai.NewClient(ctx,clientConfig)
