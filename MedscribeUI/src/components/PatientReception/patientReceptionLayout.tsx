@@ -80,6 +80,7 @@ const PatientReception = () => {
   };
 
   const handleVisitContextSelect = (visitContext: SearchResultItem) => {
+    setPatientName(visitContext.patientName);
     setNameValue(visitContext.patientName);
     setVisitSearchValue(visitContext.patientName);
     setLastVisitID(visitContext.id);
