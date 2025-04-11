@@ -79,6 +79,7 @@ func NewReportsHandler(reportsService reports.Reports, inferenceService inferenc
 func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) {
 	// Use the logger from context
 	logger := contextLogger.FromCtx(r.Context())
+	//modify this context please with a timer
 
 	// Authorization check
 	userID, ok := middleware.GetProviderIDFromContext(r.Context())

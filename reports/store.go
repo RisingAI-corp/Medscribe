@@ -71,7 +71,7 @@ const (
 
 	LastVisitID = "lastvisitid"
 
-	status = "status"
+	Status = "status"
 
 	tokens = "tokens"
 )
@@ -200,7 +200,7 @@ func (r *reportsStore) Get(ctx context.Context, reportId string) (Report, error)
 
 	generatedTime := retrievedReport.TimeStamp.Time()
 	if time.Since(generatedTime) > 3*time.Minute {
-		update := bson.M{"$set": bson.M{status: "failed"}}
+		update := bson.M{"$set": bson.M{Status: "failed"}}
 		_, err = r.client.UpdateOne(ctx, filter, update)
 		if err != nil {
 			return Report{}, fmt.Errorf("error marking report as failed after 3 minutes: %v", err)

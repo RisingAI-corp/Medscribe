@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -99,73 +98,123 @@ type ReportRequest struct {
 	VisitContext string
 }
 
-// GenerateReportPipeline is a pipeline that generates a report based on the given audio bytes and report configuration.
-// parameters:
-// - ctx: The context of the request.
-// - report: The report configuration.
-// - contentChan: A channel to send content to the frontend.
-// returns:
-// - An error if the pipeline fails.
+// CreateInitialReportEntry creates the initial report entry in the store.
+func (s *inferenceService) createInitialReportEntry(ctx context.Context, report *ReportRequest) (string, error) {
+	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, reports.THEY, report.LastVisitID)
+	if err != nil {
+		return "", fmt.Errorf("CreateInitialReportEntry: error storing report: %w", err)
+	}
+	return reportID, nil
+}
+
+// TranscribeAudio transcribes the provided audio bytes.
+func (s *inferenceService) transcribeAudio(ctx context.Context, audioBytes []byte) (string, error) {
+	logger := contextLogger.FromCtx(ctx)
+	start := time.Now()
+	transcribedAudio, err := s.transcriptionService.Transcribe(ctx, audioBytes)
+	elapsed := time.Since(start)
+	logger.Info("transcription took %s", zap.Duration("elapsed", elapsed))
+	if err != nil {
+		return "", fmt.Errorf("TranscribeAudio: error transcribing audio: %w", err)
+	}
+	return transcribedAudio, nil
+}
+
+// GenerateReportContent generates the SOAP sections and other report content.
+func (s *inferenceService) generateReportContent(ctx context.Context, report *ReportRequest, contentChan chan ContentChanPayload, tokenUsage map[string]int) (bson.D, error) {
+	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, bson.D{}, tokenUsage)
+	if err != nil {
+		return nil, fmt.Errorf("GenerateReportContent: error generating report sections: %w", err)
+	}
+	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
+	return combinedUpdates, nil
+}
+
+// RecordTokenUsage records the token usage for the report.
+func (s *inferenceService) recordTokenUsage(ctx context.Context, reportID string, providerID string, tokenUsage map[string]int) error {
+	logger := contextLogger.FromCtx(ctx)
+	reportIDtoPrimitive, err := primitive.ObjectIDFromHex(reportID)
+	if err != nil {
+		return fmt.Errorf("RecordTokenUsage: error converting reportID to primitive.ObjectID %w", err)
+	}
+	tokenEntry := reportsTokenUsage.TokenUsageEntry{
+		ReportID:   reportIDtoPrimitive,
+		ProviderID: providerID,
+		Timestamp:  primitive.NewDateTimeFromTime(time.Now()),
+		TokenUsage: tokenUsage,
+	}
+	if err := s.reportTokenUsageStore.Insert(ctx, tokenEntry); err != nil {
+		return fmt.Errorf("RecordTokenUsage: error inserting token usage entry for report %s into store: %w", reportID, err)
+	}
+	logger.Info("Token usage recorded")
+	return nil
+}
+
+// UpdateFinalReport updates the report in the store with the generated content and final status.
+func (s *inferenceService) updateFinalReport(ctx context.Context, reportID string, transcribedAudio string, combinedUpdates bson.D) error {
+	updates := append(combinedUpdates,
+		bson.E{Key: reports.FinishedGenerating, Value: true},
+		bson.E{Key: reports.Transcript, Value: transcribedAudio},
+		bson.E{Key: reports.Status, Value: "success"},
+	)
+	if err := s.reportsStore.UpdateReport(ctx, reportID, updates); err != nil {
+		return fmt.Errorf("UpdateFinalReport: error updating report: %w", err)
+	}
+	return nil
+}
 func (s *inferenceService) GenerateReportPipeline(ctx context.Context, report *ReportRequest, contentChan chan ContentChanPayload) error {
 	logger := contextLogger.FromCtx(ctx)
 	defer close(contentChan)
 
+	var skipDefer bool
+	// this will only run on failures as a less redundant way to mark a report as failed
+	defer func() {
+		if !skipDefer {
+			s.reportsStore.UpdateStatus(ctx, report.ID, "failed")
+		}
+	}()
+
 	// Stage 1: Create pre-configured report
-	logger.Info("Pipeline: creating new report entry")
-	reportID, err := s.reportsStore.Put(ctx, report.PatientName, report.ProviderID, report.Timestamp, report.Duration, false, reports.THEY, report.LastVisitID)
+	logger.Info("Starting stage 1: creating pre-configured report")
+	reportID, err := s.createInitialReportEntry(ctx, report)
 	if err != nil {
-		return fmt.Errorf("GenerateReportPipeline: error storing report: %w", err)
+		return err
 	}
 	contentChan <- ContentChanPayload{Key: "_id", Value: reportID}
 
-
 	// Stage 2: Transcribe audio
-	logger.Info("Pipeline: starting transcription")
-	start := time.Now()
-	transcribedAudio, err := s.transcriptionService.Transcribe(ctx, report.AudioBytes)
-	elapsed := time.Since(start)
-	log.Printf("transcription took %s", elapsed) // You can convert this to structured logging if preferred
+	logger.Info("Starting stage 2: transcribing audio")
+	transcribedAudio, err := s.transcribeAudio(ctx, report.AudioBytes)
 	if err != nil {
-		return fmt.Errorf("GenerateReportPipeline: error transcribing audio: %w", err)
+		return err
 	}
 	report.TranscribedAudio = transcribedAudio
 
 	// Stage 3: Generate report sections (SOAP + summary)
+	logger.Info("Starting stage 3: generating report sections")
 	tokenUsage := make(map[string]int)
-
-	defer func() {
-		reportIDtoPrimitive, err := primitive.ObjectIDFromHex(reportID)
-		if err != nil {
-			return
-		}
-		tokenEntry := reportsTokenUsage.TokenUsageEntry{
-			ReportID:   reportIDtoPrimitive,
-			ProviderID: report.ProviderID,
-			Timestamp:  primitive.NewDateTimeFromTime(time.Now()),
-			TokenUsage: tokenUsage,
-		}
-		_ = s.reportTokenUsageStore.Insert(ctx, tokenEntry)
-		logger.Info("Pipeline: token usage recorded")
-	}()
-	
-	logger.Info("Pipeline: generating report sections")
-	combinedUpdates, err := s.generateSoapSections(ctx, report, contentChan, bson.D{}, tokenUsage)
+	combinedUpdates, err := s.generateReportContent(ctx, report, contentChan, tokenUsage)
 	if err != nil {
-		return fmt.Errorf("GenerateReportPipeline: error generating report sections: %w", err)
+		return err
 	}
-	// Stage 4: Notify client report finished generating
-	contentChan <- ContentChanPayload{Key: reports.FinishedGenerating, Value: true}
+
+	// Stage 4: Record token usage
+	logger.Info("Starting stage 4: recording token usage")
+	if err := s.recordTokenUsage(ctx, reportID, report.ProviderID, tokenUsage); err != nil {
+		logger.Error("GenerateReportPipeline: error recording token usage", zap.Error(err))
+		// Decide if this error should fail the entire pipeline
+		// For now, logging and continuing
+	}
 
 	// Stage 5: Update the report with generated content
-	combinedUpdates = append(combinedUpdates, bson.E{Key: reports.FinishedGenerating, Value: true}, bson.E{Key: reports.Transcript, Value: transcribedAudio})
-	logger.Info("Pipeline: updating report in store")
-	if err := s.reportsStore.UpdateReport(ctx, reportID, combinedUpdates); err != nil {
-		return fmt.Errorf("GenerateReportPipeline: error updating report: %w", err)
+	logger.Info("Starting stage 5: updating report with generated content")
+	if err := s.updateFinalReport(ctx, reportID, transcribedAudio, combinedUpdates); err != nil {
+		return err
 	}
 
+	skipDefer = true
 	return nil
 }
-
 
 // RegenerateReport regenerates the SOAP content based on key-value updates.
 // probably will not make reportContents a pointer. it doesn't seem like it will have a high access pattern
