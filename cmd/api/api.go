@@ -548,7 +548,7 @@ func (m *mockInferStore) Query(ctx context.Context, request string, tokens int) 
 }
 
 func main() {
-	log.Println("🚀 App is starting...")
+	log.Println("🚀 Starting up application")
 	log.Println("⚡ ENV BEFORE .env load: PORT =", os.Getenv("PORT"))
 	cfg, err := config.LoadConfig()
 	if err != nil {
