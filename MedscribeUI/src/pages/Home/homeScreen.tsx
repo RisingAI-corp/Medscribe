@@ -15,7 +15,7 @@ function HomeScreen() {
       </div>
 
       <div className="flex flex-1 flex-row overflow-hidden">
-        <div className="flex flex-col w-[300px] border-r border-gray-300 h-full box-border overflow-y-auto">
+        <div className="flex flex-col w-[300px] border-r border-gray-300 h-full box-border overflow-y-hidden">
           <div className="p-4 border-b border-gray-300 bg-white">
             <Button
               variant="outline"

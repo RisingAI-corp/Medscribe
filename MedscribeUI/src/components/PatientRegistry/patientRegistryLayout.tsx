@@ -124,7 +124,7 @@ const PatientRegistryLayout = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-screen relative">
+    <div className="flex flex-col gap-4 h-screen relative overflow-hidden">
       <SearchBox value={query} onChange={setQuery} />
 
       <Checkbox
@@ -151,7 +151,7 @@ const PatientRegistryLayout = () => {
         styles={{ label: { color: 'inherit' } }}
       />
 
-      <ScrollArea className="flex-grow h-full mb-4">
+      <div className="flex-grow overflow-auto mb-4">
         <div className="pb-40">
           {filteredResults.map(patient => (
             <div className="mt-2" key={patient.id}>
@@ -170,7 +170,7 @@ const PatientRegistryLayout = () => {
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
       <Modal opened={opened} onClose={closeModal} size="auto">
         <DeleteAllNotesModalContent
