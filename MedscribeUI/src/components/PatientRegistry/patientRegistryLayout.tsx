@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Checkbox, ScrollArea } from '@mantine/core';
+import { Modal, Checkbox } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useAtom } from 'jotai';
 import SearchBox from './searchBox/searchBox';
