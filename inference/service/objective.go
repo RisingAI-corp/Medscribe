@@ -112,6 +112,100 @@ For each domain below, **eagerly extract a quote or clearly inferable behavior/c
 
 ---
 
+--- PHYSICAL EXAM INFERENCE RULES ---
+
+A physical exam can be inferred from the transcript if the clinician explicitly states:
+
+-   "I'm going to examine you."
+-   "Let's do a physical exam."
+-   Any similar phrase indicating a hands-on examination.
+
+It can also be inferred if the clinician describes multiple physical findings beyond MSE (e.g., "lungs clear," "heart sounds regular").
+
+If a physical exam is NOT inferred, omit the "PHYSICAL EXAMINATION CATEGORIES" and organize objective data as before.
+
+--- END PHYSICAL EXAM INFERENCE RULES ---
+
+${physicalExamCategories} // Include the categories here
+
+--- MSE INFERENCE STRATEGY FOR AUDIO-ONLY ---
+// ...
+
+--- MENTAL STATUS EXAMINATION (MSE STRUCTURE & STRATEGY) ---
+// ...
+
+--- VITAL SIGNS ---
+// ...
+
+--- PHYSICAL EXAMINATION ---
+
+Include this section ONLY if a physical exam is inferred from the transcript based on the "PHYSICAL EXAM INFERENCE RULES."
+
+-   **Category-Based Organization:**
+    -   Organize the extracted objective findings using the categories from the "PHYSICAL EXAM CATEGORIES" section above.
+    -   Prioritize these categories. If a finding fits into a category, use that category.
+-   **Adaptivity:**
+    -   If any objective findings do NOT fit into the provided categories, create new, relevant subheadings to document them.
+-   **Reference Exam Usage:**
+    -   The "PHYSICAL EXAM CATEGORIES" section is for organizational purposes only.
+    -   **DO NOT INCLUDE ANY OF THE CATEGORY HEADINGS VERBATIM UNLESS SUPPORTED BY THE TRANSCRIPT.**
+    -   **DO NOT INVENT FINDINGS.** Only include findings explicitly stated or clearly inferable from the transcript.
+-   **Extraction:**
+    -   Extract only audible findings (e.g., "lungs clear to auscultation," "cough noted").
+    -   Do NOT include visual findings (e.g., "skin is warm," "patient is pale") unless explicitly stated by the clinician.
+    -   Do NOT infer physical examination findings.
+-   **Formatting:**
+    -   Document findings clearly and concisely.
+-   **Example:**
+    -   "Lungs: Clear to auscultation."
+    -   "Extremities: No edema."
+    -   "Other: Gait normal."
+
+--- DIAGNOSTIC TEST RESULTS ---
+
+Include this section ONLY if any diagnostic test results are explicitly mentioned in the transcript.
+
+-   **Extraction Rules:**
+    -   **Explicit Mentions Only:** Extract test names, results, units, and dates ONLY if they are directly stated or clearly provided in a way that allows for unambiguous interpretation.
+    -   **No Inference:** Do NOT infer test results, units, or dates. If any of these are missing, handle according to the formatting rules below.
+    -   **Date Formats:** Be prepared to handle various date formats (e.g., "March 8th," "3/8," "2024-03-08"). Standardize to YYYY-MM-DD if possible, but if the year is unclear, use the format provided in the transcript.
+    -   **Range vs. Single Value:** If a result is given as a range (e.g., "120-140"), extract the entire range.
+    -   **Qualitative Results:** Extract qualitative results (e.g., "positive," "negative," "normal") verbatim.
+    -   **Test Types:** Be prepared to extract results for various test types (e.g., blood tests, imaging studies, cultures).
+
+-   **Formatting Rules:**
+    -   **Basic Format:** Format each result as: "Test Name: Result (Units) - Date"
+    -   **Units Missing:** If units are not provided, omit them. Example: "Glucose: 110 - 2024-03-08"
+    -   **Date Missing:** If the date is not provided, omit it. Example: "Sodium: 140 mEq/L"
+    -   **Result Missing:** If the result is not provided but the test name is, include the test name with "Result: Not specified". Example: "MRI: Result: Not specified"
+    -   **Result Qualitative:** If the result is qualitative, include it verbatim. Example: "COVID-19 PCR: Positive"
+    -   **Multiple Results for One Test:** If a test has multiple results (e.g., a CBC with WBC, RBC, HGB), list each result on a separate line under the test name.
+        
+        CBC:
+        -   WBC: 8.0 x 10^9/L
+        -   RBC: 4.5 x 10^12/L
+        -   HGB: 14 g/dL
+        
+    -   **Date Ambiguity:** If the date is ambiguous (e.g., "last week"), attempt to resolve it using context from the transcript. If it remains ambiguous, use the date as provided.
+
+-   **Examples:**
+    -   "Blood glucose was 110, date was 3/8."
+        -   Output: "Blood glucose: 110 mg/dL - 2024-03-08" (Assuming mg/dL is the standard unit)
+    -   "They did an MRI, but I don't know the results."
+        -   Output: "MRI: Result: Not specified"
+    -   "Sodium 140, potassium 4.0."
+        -   Output:
+            
+            Sodium: 140 mEq/L
+            Potassium: 4.0 mEq/L
+            
+            (Assuming mEq/L is the standard unit for both)
+    -   "CBC was normal."
+        -   Output: "CBC: Normal"
+    -   "The culture came back positive on the 10th."
+        -   Output: "Culture: Positive - 2025-04-10" (Assuming current year)
+
+
 ### **FINAL REVIEW CHECKLIST**:
 1. **Modality Check**: Ensure all observations are based on **audible behaviors** and **verbal communication** (audio-only modality).
 2. **Objective vs. Subjective**: Strictly maintain the distinction between **objective signs** and **subjective symptoms**.
@@ -122,3 +216,39 @@ For each domain below, **eagerly extract a quote or clearly inferable behavior/c
 ---
 
 This revised version allows for **broader flexibility** in **behavioral and verbal inferences** while maintaining **clinical relevance**. It encourages reasoning to adapt based on **transcript-specific data** and **context** while providing examples of how to structure and interpret the MSE.`
+
+
+
+const physicalExamCategories = `
+--- PHYSICAL EXAM CATEGORIES (FOR GROUNDING - USE IF APPLICABLE) ---
+
+The following categories are typical components of a physical exam. If a physical exam is documented or can be reasonably inferred from the transcript, use these categories to organize the objective findings.
+
+-   General
+-   Skin
+-   Hair
+-   Nails
+-   HEENT
+    -   Head
+    -   Eyes
+    -   Ears
+    -   Nose
+    -   Mouth
+    -   Teeth/Gums
+    -   Pharynx
+-   Neck
+-   Heart
+-   Lungs
+-   Abdomen
+-   Back
+-   Rectal
+-   Extremities
+-   Musculoskeletal
+-   Neurologic
+-   Psychiatric
+-   Pelvic
+-   Breast
+-   G/U
+
+--- END PHYSICAL EXAM CATEGORIES ---
+`;
