@@ -199,7 +199,7 @@ func (r *reportsStore) Get(ctx context.Context, reportId string) (Report, error)
 	}
 
 	generatedTime := retrievedReport.TimeStamp.Time()
-	if time.Since(generatedTime) > 3*time.Minute {
+	if time.Since(generatedTime) > 10*time.Minute {
 		update := bson.M{"$set": bson.M{Status: "failed"}}
 		_, err = r.client.UpdateOne(ctx, filter, update)
 		if err != nil {
