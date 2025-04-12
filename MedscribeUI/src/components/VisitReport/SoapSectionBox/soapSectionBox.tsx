@@ -74,7 +74,6 @@ const SoapSectionBox = ({
         defaultValue={isExpanded || text ? title : ''}
         className="shadow-lg rounded-lg overflow-hidden bg-white"
         onChange={value => {
-          console.log('Accordion value:', value);
           if (text === '' && onExpand && value === title) {
             onExpand();
           }
@@ -91,7 +90,7 @@ const SoapSectionBox = ({
               key={text}
               defaultValue={text}
               autosize={true}
-              maxRows={18}
+              maxRows={30}
               minRows={0}
               placeholder="Input Text Here"
               onChange={e => {
