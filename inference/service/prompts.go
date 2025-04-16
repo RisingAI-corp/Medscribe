@@ -1,7 +1,6 @@
 package inferenceService
 
 import (
-	transcriber "Medscribe/Transcription"
 	"Medscribe/reports"
 	"fmt"
 	"strings"
@@ -10,8 +9,6 @@ import (
 )
 type generatePromptConfig struct {
 	transcript         string
-	diarizedTranscript transcriber.TranscriptTurn
-	useDiarization     bool
 	targetSection      string
 	context            string
 	style              string
@@ -21,8 +18,6 @@ type generatePromptConfig struct {
 
 type regeneratePromptConfig struct {
 	transcript         string
-	diarizedTranscript transcriber.TranscriptTurn
-	useDiarization     bool
 	targetSection      string
 	targetContent      string
 	priorVisitContext  string
