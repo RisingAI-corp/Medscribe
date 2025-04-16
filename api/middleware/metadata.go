@@ -20,7 +20,7 @@ const (
 	ctxKeyIPAddress     ctxKey = "ip_address"
 	ctxKeyUserAgent     ctxKey = "user_agent"
 	ctxKeyReferrer      ctxKey = "referrer"
-	CtxKeyUserID       ctxKey = "user_id"
+	CtxKeyUserID        ctxKey = "user_id"
 	// Add more keys as needed.
 )
 
@@ -34,7 +34,7 @@ func MetadataMiddleware(next http.Handler) http.Handler {
 		ipAddress := getIPAddress(r)
 		userAgent := r.Header.Get("User-Agent")
 		referrer := r.Header.Get("Referer")
-		
+
 		ctx := r.Context()
 		var userID string
 		if uid, ok := ctx.Value(CtxKeyUserID).(string); ok {
@@ -44,7 +44,7 @@ func MetadataMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Prepare the context by injecting the metadata.
-		
+
 		ctx = context.WithValue(ctx, ctxKeyCorrelationID, correlationID)
 		ctx = context.WithValue(ctx, ctxKeyIPAddress, ipAddress)
 		ctx = context.WithValue(ctx, ctxKeyUserAgent, userAgent)
@@ -61,7 +61,7 @@ func MetadataMiddleware(next http.Handler) http.Handler {
 
 		//attaching logger to context and context to request
 		ctx = contextLogger.WithCtx(ctx, logger)
-		logger .Info("Incoming request",
+		logger.Info("Incoming request",
 			zap.String("method", r.Method),
 			zap.String("uri", r.RequestURI),
 			zap.Time("time", time.Now()),

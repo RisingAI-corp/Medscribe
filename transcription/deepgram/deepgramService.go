@@ -1,4 +1,4 @@
-package transcriber
+package deepgram
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	transcriberType "Medscribe/transcription"
+	transcriber "Medscribe/transcription"
 )
 
 type deepGramTranscriber struct {
@@ -26,7 +26,7 @@ type deepgramResponse struct {
 	} `json:"results"`
 }
 
-func NewDeepgramTranscriber(apiUrl, apiKey string) transcriberType.Transcription {
+func NewDeepgramTranscriber(apiUrl, apiKey string) transcriber.Transcription {
 	return &deepGramTranscriber{
 		apiKey: apiKey, apiUrl: apiUrl}
 }
@@ -66,4 +66,8 @@ func (t *deepGramTranscriber) Transcribe(ctx context.Context, audio []byte) (str
 	}
 
 	return "", fmt.Errorf("transcript not found in the response")
+}
+
+func (t *deepGramTranscriber) TranscribeWithDiarization(ctx context.Context, audio []byte) (transcriber.TranscriptTurn, error) {
+	return transcriber.TranscriptTurn{}, nil
 }

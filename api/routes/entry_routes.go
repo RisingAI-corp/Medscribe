@@ -13,9 +13,9 @@ import (
 
 // APIConfig is a struct that contains all the handlers, middleware and loggers for the API
 type APIConfig struct {
-	UserHandler      userhandler.UserHandler
-	ReportsHandler   reportsHandler.ReportsHandler
-	AuthMiddleware   func(http.Handler) http.Handler
+	UserHandler        userhandler.UserHandler
+	ReportsHandler     reportsHandler.ReportsHandler
+	AuthMiddleware     func(http.Handler) http.Handler
 	MetadataMiddleware func(http.Handler) http.Handler
 }
 

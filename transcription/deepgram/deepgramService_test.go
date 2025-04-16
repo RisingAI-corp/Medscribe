@@ -1,4 +1,4 @@
-package transcriber
+package deepgram
 
 import (
 	"context"

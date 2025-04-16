@@ -14,11 +14,11 @@ import (
 
 // TokenUsageEntry tracks the number of tokens used per section of a report
 type TokenUsageEntry struct {
-	ReportID   primitive.ObjectID `bson:"reportId"`
-	ProviderID string             `bson:"providerId"`
-	Timestamp  primitive.DateTime `bson:"timestamp"`
-	TokenUsage map[string]int     `bson:"tokenUsage"`
-	TotalTokens int             `bson:"totalTokens"`
+	ReportID    primitive.ObjectID `bson:"reportId"`
+	ProviderID  string             `bson:"providerId"`
+	Timestamp   primitive.DateTime `bson:"timestamp"`
+	TokenUsage  map[string]int     `bson:"tokenUsage"`
+	TotalTokens int                `bson:"totalTokens"`
 }
 
 type TokenUsageStore interface {
@@ -65,7 +65,7 @@ func (s *tokenUsageStore) UpdateSectionTokens(ctx context.Context, reportId prim
 
 	filter := bson.M{"reportId": reportId}
 	update := bson.M{
-		"$set": bson.M{fmt.Sprintf("tokenUsage.%s", section): tokens},
+		"$set":         bson.M{fmt.Sprintf("tokenUsage.%s", section): tokens},
 		"$setOnInsert": bson.M{"timestamp": primitive.NewDateTimeFromTime(time.Now())},
 	}
 	opts := options.Update().SetUpsert(true)

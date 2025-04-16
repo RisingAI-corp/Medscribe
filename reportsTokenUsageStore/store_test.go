@@ -59,12 +59,12 @@ func TestTokenUsageStore_InsertAndGet(t *testing.T) {
 		ProviderID: "provider-001",
 		Timestamp:  primitive.NewDateTimeFromTime(time.Now()),
 		TokenUsage: map[string]int{
-			"subjective":          100,
-			"objective":           120,
+			"subjective":            100,
+			"objective":             120,
 			"assessmentAndPlanning": 130,
-			"condensedSummary":    80,
-			"sessionSummary":      90,
-			"patientInstructions": 110,
+			"condensedSummary":      80,
+			"sessionSummary":        90,
+			"patientInstructions":   110,
 		},
 	}
 

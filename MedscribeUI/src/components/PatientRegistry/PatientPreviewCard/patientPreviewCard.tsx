@@ -14,7 +14,6 @@ export interface PatientPreviewCardProps {
   isChecked: boolean;
   selectAllToggle: boolean;
   readStatus: boolean;
-  loading: boolean;
   onClick: (id: string) => void;
   handleRemovePatient: (id: string) => void;
   handleToggleCheckbox: (id: string, checked: boolean) => void;
@@ -39,7 +38,6 @@ const PatientPreviewCard = ({
   handleMarkRead,
   handleUnMarkRead,
   readStatus,
-  loading,
 }: PatientPreviewCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -96,7 +94,7 @@ const PatientPreviewCard = ({
       <div className="flex items-center" style={{ minWidth: '60px' }}>
         {' '}
         {/* Adjust minWidth as needed */}
-        {loading && status !== 'failed' ? (
+        {status === 'pending' ? (
           <Loader size="sm" color="blue" />
         ) : status === 'failed' ? (
           <Tooltip label="Error generating report" position="right" withArrow>
@@ -152,22 +150,22 @@ const PatientPreviewCard = ({
                   <IoMdMailUnread className="text-gray-500" size={18} />
                 </span>
               )}
+              <span
+                onClick={event => {
+                  event.stopPropagation();
+                  handleRemovePatient(id);
+                }}
+                className={`cursor-pointer ml-4 ${isHovered ? 'block' : 'hidden'}`}
+                title="Delete"
+                role="button"
+                aria-label="delete"
+              >
+                <IoMdTrash />
+              </span>
             </div>
           )
         )}
         {/* Trash Icon (always render) */}
-        <span
-          onClick={event => {
-            event.stopPropagation();
-            handleRemovePatient(id);
-          }}
-          className={`cursor-pointer ml-4 ${isHovered ? 'block' : 'hidden'}`}
-          title="Delete"
-          role="button"
-          aria-label="delete"
-        >
-          <IoMdTrash />
-        </span>
       </div>
     </div>
   );

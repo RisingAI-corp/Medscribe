@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { TranscriptContainerSchema } from './serverResponseTypes';
 
 export interface GetTranscriptPayload {
   reportID: string;
@@ -22,9 +23,12 @@ export async function getTranscript(payload: GetTranscriptPayload) {
     throw new Error(`'Error authenticated user' + ${String(response.status)}`);
   }
 
-  const data = response.data as string;
-  if (typeof data !== 'string') {
-    throw new Error('Error parsing Api request: response data is not a string');
+  console.log(response.data, ' here it is');
+  const { success, data, error } = TranscriptContainerSchema.safeParse(
+    response.data,
+  );
+  if (!success) {
+    throw new Error('Error parsing Api request: ' + error.toString());
   }
   return data;
 }

@@ -13,30 +13,38 @@ function LandingLayout() {
         alt="Landing Background"
         className="fixed inset-0 w-full h-full object-cover -z-50"
       />
-      
+
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full min-w-[750px] h-[60px] shadow-md z-50 flex items-center justify-between">
         <LandingNav />
       </div>
 
       {/* Spacing to account for fixed navbar */}
-      <div className="h-[60px]"/>
+      <div className="h-[60px]" />
 
       {/* Sections */}
-      <section id="hero" className="min-h-[700px] h-[calc(100vh-70px)] flex items-center justify-center">
+      <section
+        id="hero"
+        className="min-h-[700px] h-[calc(100vh-70px)] flex items-center justify-center"
+      >
         <LandingHero />
       </section>
-      <section id="pricing" className="min-h-[700px] h-[calc(100vh-60px)] flex items-center justify-center">
+      <section
+        id="pricing"
+        className="min-h-[700px] h-[calc(100vh-60px)] flex items-center justify-center"
+      >
         <LandingPricing />
       </section>
-      <section id="faq" className="min-h-[700px] h-[calc(100vh-60px)] flex items-center justify-center">
+      <section
+        id="faq"
+        className="min-h-[700px] h-[calc(100vh-60px)] flex items-center justify-center"
+      >
         <LandingFAQ />
       </section>
       <section id="footer" className=" w-full flex items-center justify-center">
         <LandingFooter />
       </section>
     </div>
-
   );
 }
 

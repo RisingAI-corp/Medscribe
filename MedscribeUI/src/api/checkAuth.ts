@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse } from './serverResponses';
+import { AuthResponseSchema } from './serverResponseTypes';
 
 export async function checkAuth() {
   const baseURL = String(import.meta.env.VITE_MEDSCRIBE_BASE_URL);
@@ -16,7 +16,7 @@ export async function checkAuth() {
   }
 
   console.log(response.data);
-  const { success, data, error } = AuthResponse.safeParse(response.data);
+  const { success, data, error } = AuthResponseSchema.safeParse(response.data);
   if (!success) {
     throw new Error('Error parsing Api request: ' + error.toString());
   }

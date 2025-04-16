@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ReportSchema } from './serverResponses';
+import { Report, ReportSchema } from './serverResponseTypes';
 
 export interface GetReportPayload {
   reportID: string;
@@ -23,5 +23,6 @@ export async function getReport(payload: GetReportPayload) {
   if (!success) {
     throw new Error('Error parsing Api request: ' + error.toString());
   }
+  console.log(data, 'yo');
   return data;
 }

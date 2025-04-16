@@ -1,32 +1,6 @@
 import { atom } from 'jotai';
+import { Report } from '../api/serverResponseTypes';
 
-export interface ReportContent {
-  data: string;
-  loading: boolean;
-}
-export interface Report {
-  id: string;
-  providerID: string;
-  name: string;
-  timestamp: string;
-  duration: number;
-  pronouns: string;
-  isFollowUp: boolean;
-  patientOrClient: string;
-  subjective: ReportContent;
-  objective: ReportContent;
-  assessmentAndPlan: ReportContent;
-  patientInstructions: ReportContent;
-  summary: ReportContent;
-  sessionSummary: string;
-  condensedSummary: string;
-  finishedGenerating: boolean;
-  transcript: string;
-  readStatus: boolean;
-  lastVisitID?: string;
-  visitContext?: string;
-  status?: string;
-}
 // //TODO: remove when apis are built
 // const reports: Report[] = [
 //   {

@@ -30,7 +30,6 @@ func TestDeidentifyWithReplace(t *testing.T) {
 		projectID = "test-project" // Use a default for testing if env var is not set
 	}
 
-
 	textToDeidentify := `
 This email address is email@example.com and phone number is 12223334444.
 `
@@ -38,8 +37,8 @@ This email address is email@example.com and phone number is 12223334444.
 This email address is REDACTED and phone number is REDACTED.
 `
 	ctx := context.Background()
-	sanitizedResult, err := SanitizeTranscript(ctx, projectID, textToDeidentify); 
-	fmt.Println("result",sanitizedResult)
-	assert.Equal(t,expectedDeidentifiedText,sanitizedResult)
+	sanitizedResult, err := SanitizeTranscript(ctx, projectID, textToDeidentify)
+	fmt.Println("result", sanitizedResult)
+	assert.Equal(t, expectedDeidentifiedText, sanitizedResult)
 	assert.NoError(t, err)
 }

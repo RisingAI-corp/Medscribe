@@ -1,6 +1,7 @@
 package reports
 
 import (
+	transcriber "Medscribe/Transcription"
 	"context"
 	"encoding/json"
 	"errors"
@@ -41,7 +42,6 @@ const (
 	Summary             = "summary"
 	PatientInstructions = "patientInstructions"
 
-	FinishedGenerating = "finishedGenerating"
 
 	Loading = "loading"
 
@@ -65,7 +65,8 @@ const (
 	CondensedSummary = "condensedSummary"
 	SessionSummary   = "sessionSummary"
 
-	Transcript = "transcript"
+	Transcript         = "transcript"
+	DiarizedTranscript = "diarizedtranscript"
 
 	readStatus = "readstatus"
 
@@ -74,11 +75,23 @@ const (
 	Status = "status"
 
 	tokens = "tokens"
+
+	UsedDiarization = "useddiarizedtranscript"
+
 )
 
 type ReportContent struct {
 	Data    string `json:"data"`
 	Loading bool   `json:"loading"`
+}
+
+// RetrievedReportTranscripts
+// includes multiple transcripts both unformatted and formatted(diarized)
+type RetrievedReportTranscripts struct {
+	ProviderID         string `json:"providerID"`
+	Transcript string `json:"transcript"`
+	DiarizedTranscript []transcriber.TranscriptTurn `json:"diarizedTranscript"`
+	UsedDiarization bool `json:"usedDiarization"`
 }
 
 type Report struct {
@@ -97,21 +110,21 @@ type Report struct {
 	PatientInstructions ReportContent      `json:"patientInstructions"`
 	CondensedSummary    string             `json:"condensedSummary"`
 	SessionSummary      string             `json:"sessionSummary"`
-	FinishedGenerating  bool               `json:"finishedGenerating"`
 	Transcript          string             `json:"transcript"`
 	ReadStatus          bool               `json:"readStatus"`
-	LastVisitID string `json:"lastVisit"`
-	Status string `json:"status"`
+	LastVisitID         string             `json:"lastVisitID"`
+	Status              string             `json:"status"`
+	UsedDiarizedTranscript bool `json:"usedDiarizedTranscript"`
 }
 
 type Reports interface {
-	Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string) (string, error)
+	Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string, usedDiarization bool) (string, error)
 	Get(ctx context.Context, reportId string) (Report, error)
 	GetAll(ctx context.Context, userId string) ([]Report, error)
 	UpdateReport(ctx context.Context, reportId string, batchedUpdates bson.D) error
 	Validate(report *Report) error
 	Delete(ctx context.Context, reportId string) error
-	GetTranscription(ctx context.Context, reportId string) (string, string, error)
+	GetTranscription(ctx context.Context, reportId string) (RetrievedReportTranscripts, error)
 	MarkRead(ctx context.Context, reportId string) error
 	MarkUnread(ctx context.Context, reportId string) error
 	UpdateStatus(ctx context.Context, reportId string, status string) error
@@ -126,7 +139,7 @@ func NewReportsStore(collection *mongo.Collection) Reports {
 }
 
 /* Put partially filled record into reports collection */
-func (r *reportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string) (string, error) {
+func (r *reportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns string, lastVisitID string, usedDiarization bool) (string, error) {
 	if name == "" {
 		return "", errors.New("name cannot be an empty string")
 	}
@@ -146,7 +159,7 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 	if lastVisitID != "" {
 		_, err := primitive.ObjectIDFromHex(lastVisitID)
 		if err != nil {
-			return "",fmt.Errorf("invalid last visitID format: %v", err)
+			return "", fmt.Errorf("invalid last visitID format: %v", err)
 		}
 	}
 
@@ -156,7 +169,6 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 		TimeStamp:           primitive.NewDateTimeFromTime(timestamp),
 		Duration:            duration,
 		ProviderID:          providerID,
-		FinishedGenerating:  false,
 		IsFollowUp:          isFollowUp,
 		Pronouns:            THEY,
 		Subjective:          ReportContent{Loading: true},
@@ -164,8 +176,9 @@ func (r *reportsStore) Put(ctx context.Context, name, providerID string, timesta
 		AssessmentAndPlan:   ReportContent{Loading: true},
 		PatientInstructions: ReportContent{Loading: true},
 		Summary:             ReportContent{Loading: true},
-		LastVisitID: lastVisitID,
-		Status: "pending",
+		LastVisitID:         lastVisitID,
+		Status:              "pending",
+		UsedDiarizedTranscript: usedDiarization,
 	}
 
 	insertResp, err := r.client.InsertOne(ctx, report)
@@ -189,23 +202,13 @@ func (r *reportsStore) Get(ctx context.Context, reportId string) (Report, error)
 	}
 
 	filter := bson.M{ID: objectID}
-	projection := bson.M{Transcript: 0} // Exclude transcript field
+	projection := bson.M{Transcript: 0, DiarizedTranscript: 0} // Exclude transcript field
 	opts := options.FindOne().SetProjection(projection)
 
 	var retrievedReport Report
 	err = r.client.FindOne(ctx, filter, opts).Decode(&retrievedReport)
 	if err != nil {
 		return Report{}, fmt.Errorf("failed to retrieve report: %v", err)
-	}
-
-	generatedTime := retrievedReport.TimeStamp.Time()
-	if time.Since(generatedTime) > 10*time.Minute {
-		update := bson.M{"$set": bson.M{Status: "failed"}}
-		_, err = r.client.UpdateOne(ctx, filter, update)
-		if err != nil {
-			return Report{}, fmt.Errorf("error marking report as failed after 3 minutes: %v", err)
-		}
-		retrievedReport.Status = "failed"
 	}
 
 	return retrievedReport, nil
@@ -230,52 +233,73 @@ func (r *reportsStore) UpdateStatus(ctx context.Context, reportId string, status
 }
 
 /* GetTranscript retrieves the transcript for a report by its unique identifier */
-func (r *reportsStore) GetTranscription(ctx context.Context, reportId string) (string, string, error) {
+func (r *reportsStore) GetTranscription(ctx context.Context, reportId string) (RetrievedReportTranscripts, error) {
 	objectID, err := primitive.ObjectIDFromHex(reportId)
 	if err != nil {
-		return "", "", fmt.Errorf("invalid ID format: %v", err)
+		return RetrievedReportTranscripts{}, fmt.Errorf("invalid ID format: %v", err)
 	}
 
 	filter := bson.M{ID: objectID}
-	projection := bson.M{Transcript: 1, ProviderID: 1, ID: 0} // Include only transcript and providerID fields
+	projection := bson.M{Transcript: 1, ProviderID: 1, UsedDiarization: 1,ID: 0} // Include only transcript and providerID fields
 	opts := options.FindOne().SetProjection(projection)
 
-	var retrievedReport struct {
-		Transcript string `json:"transcript"`
-		ProviderID string `json:"providerid"`
+	var partialReport struct {
+		ProviderID string 
+		Transcript string
+		UsedDiarizedTranscript bool
 	}
 
-	err = r.client.FindOne(ctx, filter, opts).Decode(&retrievedReport)
+	err = r.client.FindOne(ctx, filter, opts).Decode(&partialReport)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to retrieve transcript: %v", err)
+		return RetrievedReportTranscripts{}, fmt.Errorf("failed to retrieve transcript: %v", err)
 	}
 
-	return retrievedReport.ProviderID, retrievedReport.Transcript, nil
+	var transcriptTurns []transcriber.TranscriptTurn
+	if partialReport.UsedDiarizedTranscript{
+		err = json.Unmarshal([]byte(partialReport.Transcript), &transcriptTurns)
+		if err != nil {
+			return RetrievedReportTranscripts{}, fmt.Errorf("failed to unmarshal transcript: %v", err)
+		}
+	}
+	fmt.Println("this right here is the partial report", partialReport)
+
+	retrievedTranscript := RetrievedReportTranscripts{
+		Transcript:         partialReport.Transcript,
+		DiarizedTranscript: transcriptTurns,
+		ProviderID: partialReport.ProviderID,
+		UsedDiarization: partialReport.UsedDiarizedTranscript,
+	}
+	return retrievedTranscript, nil
 }
 
 /* GetAll retrieves all the reports linked to a userId unique identifier */
 func (r *reportsStore) GetAll(ctx context.Context, providerId string) ([]Report, error) {
+    if providerId == "" {
+        return []Report{}, errors.New("missing provider ID")
+    }
 
-	if providerId == "" {
-		return []Report{}, errors.New("missing provider ID")
-	}
-	filter := bson.M{ProviderID: providerId}
+    filter := bson.M{ProviderID: providerId}
 
-	options := options.Find().SetSort(bson.M{TimeStamp: -1})
+    //  Set projection to exclude the "transcript" field.
+    projection := bson.D{
+        {Key: "transcript", Value: 0},
+    }
+    options := options.Find().SetSort(bson.M{TimeStamp: -1}).SetProjection(projection)
 
-	retrievedReports := []Report{}
+    retrievedReports := []Report{}
 
-	cursor, err := r.client.Find(ctx, filter, options)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve reports: %v", err)
-	}
+    cursor, err := r.client.Find(ctx, filter, options)
+    if err != nil {
+        return nil, fmt.Errorf("failed to retrieve reports: %v", err)
+    }
 
-	if err := cursor.All(ctx, &retrievedReports); err != nil {
-		return nil, fmt.Errorf("failed to decode reports: %v", err)
-	}
+    if err := cursor.All(ctx, &retrievedReports); err != nil {
+        return nil, fmt.Errorf("failed to decode reports: %v", err)
+    }
 
-	return retrievedReports, nil
+    return retrievedReports, nil
 }
+
 
 /* Delete removes a report by its unique identifier */
 func (r *reportsStore) Delete(ctx context.Context, reportId string) error {
@@ -377,7 +401,7 @@ func typesMatch(val1, val2 interface{}) bool {
 	return reflect.TypeOf(val1) == reflect.TypeOf(val2)
 }
 
-// Function to convert the batched updates from bson.D to map[string]interface{}
+// Function to convert the batched updates from bson.D to map[string]interface{}'
 func bsonDToStringMap(bsonD bson.D) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for _, elem := range bsonD {
@@ -398,7 +422,7 @@ func bsonDToStringMap(bsonD bson.D) (map[string]interface{}, error) {
 			}
 			result[elem.Key] = nestedMap
 		default:
-			return nil, fmt.Errorf("unsupported type for key '%s': %v", elem.Key, v)
+			return nil, fmt.Errorf("unsupported type for key '%s': %v type: %v", elem.Key,v,reflect.TypeOf(v))
 		}
 	}
 	return result, nil
@@ -467,7 +491,6 @@ func (r *reportsStore) UpdateReport(ctx context.Context, reportId string, update
 		},
 		SessionSummary:     "for validation purposes",
 		CondensedSummary:   "for validation purposes",
-		FinishedGenerating: true,
 	}
 
 	reportJSON, err := json.Marshal(&report)

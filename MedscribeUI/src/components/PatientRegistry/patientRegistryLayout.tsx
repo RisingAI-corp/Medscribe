@@ -23,10 +23,8 @@ export interface PatientPreviewRecord {
   timeOfRecording: string;
   durationOfRecording: string;
   sessionSummary: string;
-  finishedGenerating: boolean;
   status: string;
   readStatus: boolean;
-  loading: boolean;
 }
 
 const PatientRegistryLayout = () => {

@@ -156,7 +156,6 @@ func cleanupTestDB(t *testing.T, collection *mongo.Collection) {
 // 	}
 // }
 
-
 func TestUpdateStatus(t *testing.T) {
 	collection := setupTestDB(t)
 	t.Cleanup(func() { cleanupTestDB(t, collection) })
@@ -168,7 +167,7 @@ func TestUpdateStatus(t *testing.T) {
 	name := "John Doe"
 	providerId := "provider123"
 
-	reportID, err := store.Put(ctx, name, providerId, time.Now(), 1, false, HE,"")
+	reportID, err := store.Put(ctx, name, providerId, time.Now(), 1, false, HE, "",true)
 	assert.NoError(t, err)
 
 	testCases := []struct {
@@ -206,13 +205,11 @@ func TestUpdateStatus(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%s %s", tc.reportId, tc.status), func(t *testing.T) {
 			err := store.UpdateStatus(ctx, tc.reportId, tc.status)
-			fmt.Println(err,"check")
+			fmt.Println(err, "check")
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
-
-
 
 // func TestGet(t *testing.T) {
 // 	collection := setupTestDB(t)
@@ -335,7 +332,6 @@ func TestUpdateStatus(t *testing.T) {
 // 		assert.Contains(t, err.Error(), "invalid ID format")
 // 	})
 // }
-
 
 // func TestMarkReadAndUnread(t *testing.T) {
 // 	collection := setupTestDB(t)

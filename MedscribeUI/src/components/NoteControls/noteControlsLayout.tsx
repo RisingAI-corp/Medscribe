@@ -187,7 +187,7 @@ function NoteControlsLayout() {
   return (
     <div className="relative">
       <LoadingOverlay
-        visible={visible || !noteControls.loading}
+        visible={visible || noteControls.status === 'pending'}
         zIndex={1000}
         overlayProps={{ radius: 'sm', blur: 2 }}
         loaderProps={{ color: 'blue', type: 'bars' }}

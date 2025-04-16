@@ -11,7 +11,6 @@ type MockTokenUsageStore struct {
 	mock.Mock
 }
 
-
 func (m *MockTokenUsageStore) Insert(ctx context.Context, entry TokenUsageEntry) error {
 	args := m.Called(ctx, entry)
 	return args.Error(0)

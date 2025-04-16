@@ -12,7 +12,7 @@ type MockReportsStore struct {
 	mock.Mock
 }
 
-func (m *MockReportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns, lastVisitID string) (string, error) {
+func (m *MockReportsStore) Put(ctx context.Context, name, providerID string, timestamp time.Time, duration float64, isFollowUp bool, pronouns, lastVisitID string, usedDiarization bool) (string, error) {
 	args := m.Called(ctx, name, providerID, timestamp, duration, isFollowUp, pronouns)
 	return args.String(0), args.Error(1)
 }
@@ -27,10 +27,9 @@ func (m *MockReportsStore) UpdateStatus(ctx context.Context, reportId string, st
 	return args.Error(0)
 }
 
-
-func (m *MockReportsStore) GetTranscription(ctx context.Context, reportId string) (string, string, error) {
+func (m *MockReportsStore) GetTranscription(ctx context.Context, reportId string) (RetrievedReportTranscripts, error) {
 	args := m.Called(ctx, reportId)
-	return args.String(0), args.String(1), args.Error(2)
+	return args.Get(0).(RetrievedReportTranscripts), args.Error(1)
 }
 
 func (m *MockReportsStore) GetAll(ctx context.Context, userId string) ([]Report, error) {

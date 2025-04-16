@@ -2,7 +2,7 @@ import { useState } from 'react';
 import landingBg from '../../assets/hero-image.png';
 import { loginProvider } from '../../api/login';
 import { createProvider } from '../../api/signUp';
-import { AuthResponse } from '../../api/serverResponses';
+import { AuthResponse } from '../../api/serverResponseTypes';
 import { useMutation } from '@tanstack/react-query';
 import { isAuthenticatedAtom, userAtom } from '../../states/userAtom';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +48,17 @@ const AuthScreen = ({ isSignUpRoute }: { isSignUpRoute: boolean }) => {
     });
     setIsAuthenticated(true);
     if (data.reports.length > 0) {
-      setPatients(data.reports);
+      setPatients(
+        data.reports.map(report => ({
+          ...report,
+          transcript: {
+            transcript: '',
+            diarizedTranscript: [],
+            providerID: report.providerID,
+            usedDiarization: false,
+          },
+        })),
+      );
       setCurrentlySelectedPatient(data.reports[0].id);
     } else {
       setCurrentlySelectedPatient('');

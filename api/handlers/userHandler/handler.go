@@ -101,11 +101,11 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(AuthResponse{
-		ID:          ProviderID,
-		Name:        req.Name,
-		Email:       req.Email,
-		UserID:      ProviderID,
-		Reports:     []reports.Report{},
+		ID:      ProviderID,
+		Name:    req.Name,
+		Email:   req.Email,
+		UserID:  ProviderID,
+		Reports: []reports.Report{},
 	}); err != nil {
 		logger.Error("failed to encode auth response", zap.Error(err))
 		http.Error(w, "error encoding auth response", http.StatusInternalServerError)
@@ -170,7 +170,7 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Reports:                  reports,
 		SubjectiveStyle:          user.SubjectiveStyle,
 		ObjectiveStyle:           user.ObjectiveStyle,
-		AssessmentAndPlanStyle:   user.AssessmentAndPlanStyle,
+	AssessmentAndPlanStyle:   user.AssessmentAndPlanStyle,
 		PatientInstructionsStyle: user.PatientInstructionsStyle,
 		SummaryStyle:             user.SummaryStyle,
 		UserID:                   userID,

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse } from './serverResponses';
+import { AuthResponseSchema } from './serverResponseTypes';
 
 interface LoginProps {
   email: string;
@@ -18,7 +18,7 @@ export async function loginProvider({ email, password }: LoginProps) {
   );
 
   console.log(response.data, ' here it is');
-  const { success, data, error } = AuthResponse.safeParse(response.data);
+  const { success, data, error } = AuthResponseSchema.safeParse(response.data);
   if (!success) {
     throw new Error('Error parsing Api request: ' + error.toString());
   }

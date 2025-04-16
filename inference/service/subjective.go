@@ -335,4 +335,4 @@ FINAL REVIEW STEP (Mental Check Before Outputting):
 5.  POV/Format Check: Third-person? Plain text? Starts directly with HPI? Correct bulleting?
 
 REMEMBER CORE REQUIREMENTS: Plain text. Omit empty sections/details silently. Maximize detail/quotes. Include all specified med metadata (except inferred purpose). Structure includes Medical, Surgical, Meds, Social, Family History sections if applicable. Ensure ALL mentioned current AND relevant discontinued/implied medications/supplements are listed. Use third-person POV. Apply inference rules for Medical History. Capture specific social details concisely, including the Social History section if any relevant details are present. Capture Surgical History if mentioned.
-`;
+`

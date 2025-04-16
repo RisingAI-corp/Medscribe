@@ -11,14 +11,14 @@ import { reportStreamingAtom } from '../../states/patientsAtom';
 import { learnStyle } from '../../api/learnStyle';
 import { updateContentSection } from '../../api/updateContentSection';
 import { getTranscript } from '../../api/getTranscript';
+import TranscriptAccordion from './SoapSectionBox/transcriptAccordian';
 
 function VisitReportLayout() {
   const [soapData, updateSoapData] = useAtom(SoapAtom);
-
   const [selectedPatientID, _] = useAtom(currentlySelectedPatientAtom);
   const [__, replaceReport] = useAtom(replaceReportAtom);
   const [reportStreaming, ___] = useAtom(reportStreamingAtom);
-  const [____, updateTranscript] = useAtom(updateTranscriptAtom);
+  const [, updateTranscript] = useAtom(updateTranscriptAtom); // Renamed for clarity
 
   const getReportMutation = useMutation({
     mutationFn: async (props: GetReportPayload) => {
@@ -49,7 +49,6 @@ function VisitReportLayout() {
 
   const updateContentSectionMutation = useMutation({
     mutationFn: updateContentSection,
-
     onError: error => {
       console.error('Error updating content section:', error);
     },
@@ -57,11 +56,14 @@ function VisitReportLayout() {
 
   const fetchTranscriptMutation = useMutation({
     mutationFn: getTranscript,
-
-    onSuccess: transcript => {
-      updateTranscript({ id: selectedPatientID, transcript: transcript });
+    onSuccess: transcriptContainer => {
+      console.log('fetched transcript', transcriptContainer);
+      updateTranscript({
+        id: selectedPatientID,
+        transcriptContainer: transcriptContainer, // Assuming the API returns the DiarizedTranscript array directly
+      });
+      console.log(transcriptContainer, 'success here is transcript');
     },
-
     onError: error => {
       console.error('Error getting transcripts:', error);
     },
@@ -71,7 +73,7 @@ function VisitReportLayout() {
     console.log(soapData?.status, 'here is status');
     console.log(
       selectedPatientID,
-      !reportStreaming.has(selectedPatientID),
+      !reportStreaming.has(selectedPatientID), // if its not streaming
       soapData?.status === 'pending',
       'checking status',
     );
@@ -84,12 +86,11 @@ function VisitReportLayout() {
       const payload: GetReportPayload = {
         reportID: selectedPatientID,
       };
-
       getReportMutation.mutate(payload);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  console.log(soapData, 'here is soap data');
   const handleSoapDataUpdate = (
     field: string,
     newData: string,
@@ -119,9 +120,10 @@ function VisitReportLayout() {
   const handleGetTranscript = () => {
     fetchTranscriptMutation.mutate({ reportID: selectedPatientID });
   };
+
   const { isPending, isSuccess } = fetchTranscriptMutation;
   const { variables } = updateContentSectionMutation;
-  console.log(variables?.ContentSection, 'here here');
+
   return (
     <>
       {soapData && (
@@ -153,20 +155,33 @@ function VisitReportLayout() {
               }
             />
           ))}
-          {soapData.loading && (
-            <SoapSectionBox
-              key={`${selectedPatientID}-${soapData.transcript}`}
-              reportID={selectedPatientID}
-              title={'Full Transcript'}
-              text={soapData.transcript}
-              isLoading={isPending}
-              onExpand={() => {
-                handleGetTranscript();
-              }}
-              isExpanded={isPending || isSuccess}
-              readonly={true}
-            />
-          )}
+          {soapData.status === 'success' &&
+            (soapData.transcriptContainer.usedDiarization ? (
+              <TranscriptAccordion
+                reportID={selectedPatientID}
+                title={'Full Transcript'}
+                transcriptTurns={
+                  soapData.transcriptContainer.diarizedTranscript
+                }
+                isLoading={isPending}
+                onExpand={handleGetTranscript}
+                isExpanded={isPending || isSuccess}
+                readonly={true}
+              />
+            ) : (
+              <SoapSectionBox
+                key={`${selectedPatientID}-Full Transcript`}
+                reportID={selectedPatientID}
+                title={'Full Transcript'}
+                text={soapData.transcriptContainer.transcript}
+                isLoading={isPending}
+                onExpand={() => {
+                  handleGetTranscript();
+                }}
+                isExpanded={isPending || isSuccess}
+                readonly={true}
+              />
+            ))}
         </Flex>
       )}
     </>

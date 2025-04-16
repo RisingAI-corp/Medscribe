@@ -9,35 +9,42 @@ import (
 )
 
 type Config struct {
-	Env                       string
-	MongoURI                  string
-	MongoDBName               string
-	MongoUserCollection       string
-	MongoReportCollection     string
-	MongoReportTestCollection string
-	MongoReportTokenUsageCollection     string
-	MongoFreedVisits          string
-	MongoDistillAnalysis      string
-	OpenAIChatURL             string
-	OpenAISpeechURL           string
-	OpenAIAPIKey              string
-	GeminiAPIKey            string
-	VertexLocation string
-	ProjectID string
+	Env                                     string
+	MongoURI                                string
+	MongoDBName                             string
+	MongoUserCollection                     string
+	MongoReportCollection                   string
+	MongoReportTestCollection               string
+	MongoReportTokenUsageCollection         string
+	MongoFreedVisits                        string
+	MongoDistillAnalysis                    string
+	OpenAIChatURL                           string
+	OpenAISpeechURL                         string
+	OpenAIAPIKey                            string
+	OpenAIDiarizationSpeechURL             string
+	GeminiAPIKey                            string
+	VertexLocation                          string
+	ProjectID                               string
 	GoogleApplicationCredentialsFileContent string
-	DeepgramAPIKey            string
-	DeepgramAPIURL            string
-	JWTSecret                 string
-	FreedAuthToken            string
-	Port                      string
+	DeepgramAPIKey                          string
+	DeepgramAPIURL                          string
+	JWTSecret                               string
+	FreedAuthToken                          string
+	Port                                    string
 }
 
-func LoadConfig() (*Config, error) {
+func LoadConfig(testEnv string) (*Config, error) {
 	_ = godotenv.Load(".env")
 
-	env, err := getEnvStrict("ENVIRONMENT", "development")
-	if err != nil {
-		return nil, err
+	var env string
+	if testEnv != "" {
+		env = testEnv
+	} else {
+		detectedEnv, err := getEnvStrict("ENVIRONMENT", "development")
+		if err != nil {
+			return nil, err
+		}
+		env = detectedEnv
 	}
 	isProd := strings.ToLower(env) == "production"
 
@@ -88,6 +95,11 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	openAISpeechURLDiarization, err := getEnvStrict("OPENAI_API_DIARIZATION_SPEECH_URL", "")
+	if err != nil {
+		return nil, err
+	}
+
 	openAIKey, err := getEnvStrict("OPENAI_API_KEY", "")
 	if err != nil {
 		return nil, err
@@ -128,26 +140,27 @@ func LoadConfig() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Env:                       env,
-		MongoURI:                  mongoURI,
-		MongoDBName:               mongoDBName,
-		MongoUserCollection:       mongoUserColl,
-		MongoReportCollection:     mongoReportColl,
+		Env:                             env,
+		MongoURI:                        mongoURI,
+		MongoDBName:                     mongoDBName,
+		MongoUserCollection:             mongoUserColl,
+		MongoReportCollection:           mongoReportColl,
 		MongoReportTokenUsageCollection: mongoReportTokenUsageColl,
-		MongoReportTestCollection: mongoReportTestColl,
-		MongoFreedVisits:          mongoFreedVisits,
-		MongoDistillAnalysis:      mongoDistillAnalysis,
-		OpenAIChatURL:             openAIChatURL,
-		OpenAISpeechURL:           openAISpeechURL,
-		OpenAIAPIKey:              openAIKey,
-		GeminiAPIKey:            geminiApiKey,
-		VertexLocation:            vertexLocation,
-		ProjectID:                 projectID,
-		DeepgramAPIKey:            deepgramKey,
-		DeepgramAPIURL:            deepgramURL,
-		JWTSecret:                 jwtSecret,
-		FreedAuthToken:            freedToken,
-		Port:                      port,
+		MongoReportTestCollection:       mongoReportTestColl,
+		MongoFreedVisits:                mongoFreedVisits,
+		MongoDistillAnalysis:            mongoDistillAnalysis,
+		OpenAIChatURL:                   openAIChatURL,
+		OpenAISpeechURL:                 openAISpeechURL,
+		OpenAIDiarizationSpeechURL:      openAISpeechURLDiarization,
+		OpenAIAPIKey:                    openAIKey,
+		GeminiAPIKey:                    geminiApiKey,
+		VertexLocation:                  vertexLocation,
+		ProjectID:                       projectID,
+		DeepgramAPIKey:                  deepgramKey,
+		DeepgramAPIURL:                  deepgramURL,
+		JWTSecret:                       jwtSecret,
+		FreedAuthToken:                  freedToken,
+		Port:                            port,
 	}
 
 	return cfg, nil

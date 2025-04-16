@@ -17,7 +17,7 @@ import { Button } from '@mantine/core';
 import FollowUpSearchModalLayout from '../FollowUpSearchModal/FollowUpSearchModalLayout';
 import { useDebouncedNameChange } from '../../hooks/useDebounceNameChange';
 import { SearchResultItem } from '../FollowUpSearchModal/SearchResults/SearchResults';
-import { IconExternalLink, IconX } from '@tabler/icons-react';
+import { IconAlertCircle, IconExternalLink } from '@tabler/icons-react';
 import PatientBackgroundDetails from '../PatientBackground/PatientBackground';
 import useAudioRecorder from '../../hooks/useAudioRecorder';
 import { TOP_CENTER } from '../../constants';
@@ -36,7 +36,7 @@ const PatientReception = () => {
   const [lastVisitID, setLastVisitID] = useState('');
   const [lastVisitContext, setLastVisitContext] = useState<SearchResultItem>();
   const [visitSearchValue, setVisitSearchValue] = useState('');
-  const [visibleToolTip, setVisibleToolTip] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
 
   const processStream = useStreamProcessor({
     attemptCreateReport,
@@ -59,16 +59,13 @@ const PatientReception = () => {
     handleResetMediaRecorder,
   } = useAudioRecorder();
 
-  const { nameRef, nameValue, setNameValue, debouncedNameChange } =
-    useDebouncedNameChange({
-      name: patientName,
-      onChange: setPatientName,
-      handleUpdateName: () => {
-        console.log('Wha');
-      },
-    });
-
-  const isEmpty = !nameValue.trim();
+  const { nameRef, debouncedNameChange } = useDebouncedNameChange({
+    name: patientName,
+    onChange: setPatientName,
+    handleUpdateName: () => {
+      console.log('Wha');
+    },
+  });
 
   const convertBlobToFormData = (blob: Blob) => {
     const file = new File([blob], 'audio', { type: 'audio/webm' });
@@ -81,7 +78,6 @@ const PatientReception = () => {
 
   const handleVisitContextSelect = (visitContext: SearchResultItem) => {
     setPatientName(visitContext.patientName);
-    setNameValue(visitContext.patientName);
     setVisitSearchValue(visitContext.patientName);
     setLastVisitID(visitContext.id);
     setLastVisitContext(visitContext);
@@ -162,15 +158,20 @@ const PatientReception = () => {
     if (!recordingStartTime.current) return;
     if (patientName === '') {
       console.log('Patient name is empty');
-      setVisibleToolTip(true);
       await handlePauseRecording();
       notifications.show({
-        title: `Cannot Generate Report Yet`,
-        message: `Please include patient name`,
+        title: `Oops! looks like you didn't include patient name`,
+        message: `Please include patient name in order to generate report`,
         position: TOP_CENTER,
-        color: 'red',
-        icon: <IconX />,
-        autoClose: 1000,
+        color: 'yellow',
+        icon: <IconAlertCircle />,
+        onOpen: () => {
+          setShowWarning(true);
+        },
+        onClose: () => {
+          setShowWarning(false);
+        },
+        autoClose: 3000,
       });
       return;
     }
@@ -198,8 +199,6 @@ const PatientReception = () => {
     handleResetMediaRecorder();
   };
 
-  console.log('tool', visibleToolTip);
-
   return (
     <>
       <div className="bg-white border-b border-gray-200 shadow-sm">
@@ -212,17 +211,15 @@ const PatientReception = () => {
                 <input
                   type="text"
                   ref={nameRef}
-                  value={nameValue}
+                  value={patientName}
                   onChange={e => {
-                    setNameValue(e.target.value);
+                    setPatientName(e.target.value);
                     debouncedNameChange(e.target.value);
                   }}
                   placeholder="Add a New Patient"
                   required
                   className={`rounded-md px-3 py-2 text-sm font-medium border ${
-                    isEmpty && visibleToolTip
-                      ? 'border-red-500'
-                      : 'border-gray-300'
+                    showWarning ? 'border-red-500' : 'border-gray-300'
                   } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition`}
                 />
               </div>

@@ -1,5 +1,6 @@
 import { atom } from 'jotai';
-import { patientsAtom, Report } from '../../states/patientsAtom';
+import { patientsAtom } from '../../states/patientsAtom';
+import { Report } from '../../api/serverResponseTypes';
 import { REPORT_CONTENT_SECTIONS } from '../../constants';
 
 export interface UpdateProps {
@@ -71,11 +72,15 @@ export const createReportAtom = atom(
       summary: { data: '', loading: true },
       sessionSummary: '',
       condensedSummary: '',
-      finishedGenerating: false,
-      transcript: '',
+      transcriptContainer: {
+        transcript: '',
+        diarizedTranscript: [],
+        providerID: '',
+        usedDiarization: false,
+      },
       readStatus: false,
+      status: 'pending',
       lastVisitID: '',
-      visitContext: '',
     };
     set(patientsAtom, [newReport, ...reports]);
   },

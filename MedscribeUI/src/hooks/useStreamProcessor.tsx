@@ -3,13 +3,13 @@ import {
   CreateReportProps,
   UpdateProps,
 } from '../components/PatientReception/derivedAtoms';
-import { UpdateResponse } from '../api/serverResponses';
 import {
   setReportStreamStatusAtom,
   unsetReportStreamStatusAtom,
 } from '../states/patientsAtom';
 
 import { useAtom } from 'jotai';
+import { UpdateResponseSchema } from '../api/serverResponseTypes';
 
 export interface UseStreamProcessorOptions {
   attemptCreateReport?: (report: CreateReportProps) => void;
@@ -45,7 +45,8 @@ export function useStreamProcessor({
           // Process any remaining data in the buffer
           if (buffer.trim()) {
             try {
-              const { success, data, error } = UpdateResponse.safeParse(buffer);
+              const { success, data, error } =
+                UpdateResponseSchema.safeParse(buffer);
               if (!success) {
                 throw new Error(
                   'Error parsing API request: ' + error.toString(),
@@ -75,13 +76,13 @@ export function useStreamProcessor({
           const trimmedLine = line.trim();
           if (!trimmedLine) continue;
           try {
-            const { success, data, error } = UpdateResponse.safeParse(
+            const { success, data, error } = UpdateResponseSchema.safeParse(
               JSON.parse(trimmedLine),
             );
             if (!success) {
               throw new Error('Error parsing API request: ' + error.toString());
             }
-            console.log(data);
+            console.log(data, 'tagging');
             if (data.Key === '_id') {
               if (typeof data.Value === 'string' && attemptCreateReport) {
                 // eslint-disable-next-line react-hooks/exhaustive-deps

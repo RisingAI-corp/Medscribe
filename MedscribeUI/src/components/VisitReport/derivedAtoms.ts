@@ -10,7 +10,7 @@ import {
   REPORT_CONTENT_TYPE_SUBJECTIVE,
   REPORT_CONTENT_TYPE_SUMMARY,
 } from '../../constants';
-import { Report } from '../../states/patientsAtom';
+import { Report, TranscriptContainer } from '../../api/serverResponseTypes';
 
 export const replaceReportAtom = atom(null, (get, set, newReport: Report) => {
   const reports = get(patientsAtom);
@@ -27,7 +27,14 @@ export const replaceReportAtom = atom(null, (get, set, newReport: Report) => {
 
 export const updateTranscriptAtom = atom(
   null,
-  (get, set, { id, transcript }: { id: string; transcript: string }) => {
+  (
+    get,
+    set,
+    {
+      id,
+      transcriptContainer,
+    }: { id: string; transcriptContainer: TranscriptContainer },
+  ) => {
     const reports = get(patientsAtom);
     set(
       patientsAtom,
@@ -35,7 +42,7 @@ export const updateTranscriptAtom = atom(
         if (report.id == id) {
           return {
             ...report,
-            transcript,
+            transcriptContainer: transcriptContainer,
           };
         }
         return report;
@@ -93,9 +100,8 @@ export const SoapAtom = atom(
             },
           },
         ],
-        loading: patient.finishedGenerating,
         status: patient.status,
-        transcript: patient.transcript,
+        transcriptContainer: patient.transcriptContainer,
       };
     }
 
@@ -127,29 +133,46 @@ function updateReportContent(
   field: string,
   newData: string,
 ): Report {
-  switch (field) {
-    case REPORT_CONTENT_TYPE_SUBJECTIVE:
-      return { ...report, subjective: { ...report.subjective, data: newData } };
-    case REPORT_CONTENT_TYPE_OBJECTIVE:
-      return { ...report, objective: { ...report.objective, data: newData } };
-    case REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN:
-      return {
-        ...report,
-        assessmentAndPlan: { ...report.assessmentAndPlan, data: newData },
-      };
-    case REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS:
-      return {
-        ...report,
-        patientInstructions: { ...report.patientInstructions, data: newData },
-      };
-    case REPORT_CONTENT_TYPE_SUMMARY:
-      return { ...report, summary: { ...report.summary, data: newData } };
-    case REPORT_CONTENT_TYPE_CONDENSED_SUMMARY:
-      return { ...report, condensedSummary: newData };
-    case REPORT_CONTENT_TYPE_SESSION_SUMMARY:
-      return { ...report, sessionSummary: newData };
-    default:
-      console.error(`Unknown report content type: ${field}`);
-      return report; // Return the original report if the field is unknown
+  try {
+    switch (field) {
+      case REPORT_CONTENT_TYPE_SUBJECTIVE:
+        return {
+          ...report,
+          subjective: { ...report.subjective, data: newData },
+        };
+      case REPORT_CONTENT_TYPE_OBJECTIVE:
+        return { ...report, objective: { ...report.objective, data: newData } };
+      case REPORT_CONTENT_TYPE_ASSESSMENT_AND_PLAN:
+        return {
+          ...report,
+          assessmentAndPlan: { ...report.assessmentAndPlan, data: newData },
+        };
+      case REPORT_CONTENT_TYPE_PATIENT_INSTRUCTIONS:
+        return {
+          ...report,
+          patientInstructions: { ...report.patientInstructions, data: newData },
+        };
+      case REPORT_CONTENT_TYPE_SUMMARY:
+        return { ...report, summary: { ...report.summary, data: newData } };
+      case REPORT_CONTENT_TYPE_CONDENSED_SUMMARY:
+        return { ...report, condensedSummary: newData };
+      case REPORT_CONTENT_TYPE_SESSION_SUMMARY:
+        return { ...report, sessionSummary: newData };
+      default:
+        console.error(`Unknown report content type: ${field}`);
+        return report; // Return the original report if the field is unknown
+    }
+  } catch (error) {
+    // Handle the error here.  What you do depends on the needs of your application.
+    console.error(`Error updating report content for field "${field}":`, error);
+    //  Possible error handling strategies:
+    //  1.  Return a specific error value:
+    //      return { ...report, error: 'Failed to update content' }; // If your Report type has an error field
+    //  2.  Throw the error to be caught by the caller:
+    //      throw error;
+    //  3.  Return the original report (as you were doing):
+    return report;
+    //  4.  Return a report with the newData and an error flag
+    //       return {...report, [field]: {data: newData, error: true}
   }
 }

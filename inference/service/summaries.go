@@ -32,8 +32,6 @@ Briefly describe the patient's condition or main concern, including relevant det
 
 `
 
-
-
 const sessionSummary = `
 You are an AI medical assistant tasked with generating a short description of the main topic or focus of a clinical session. 
 The description should be concise and capture the key focus of the session in **a few words** (e.g., "Anxiety and medication discussion", "Follow-up on treatment plan").

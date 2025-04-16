@@ -6,6 +6,7 @@ import (
 	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	"Medscribe/user"
+	"Medscribe/utils"
 	"context"
 
 	"encoding/json"
@@ -76,6 +77,7 @@ func NewReportsHandler(reportsService reports.Reports, inferenceService inferenc
 	}
 }
 
+
 func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) {
 	// Use the logger from context
 	logger := contextLogger.FromCtx(r.Context())
@@ -133,43 +135,12 @@ func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	// Create channels for content and errors
-	contentChan := make(chan inferenceService.ContentChanPayload)
-	errChan := make(chan error)
-
+	
 	// Start the report generation pipeline in a goroutine
-	go func() {
-		// Log pipeline start
-		logger.Info("Report generation pipeline started", zap.String("UserID", userID))
-		if err := h.inferenceService.GenerateReportPipeline(r.Context(), &req, contentChan); err != nil {
-			logger.Error("Error during report generation pipeline", zap.Error(err))
-			errChan <- err
-			return
-		}
-		errChan <- nil
-	}()
-
-	// Assert that the ResponseWriter supports streaming
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "streaming not supported", http.StatusInternalServerError)
-		return
-	}
-
-	// Stream the content as it's received from the content channel
-	for content := range contentChan {
-		if err := json.NewEncoder(w).Encode(content); err != nil {
-			logger.Error("Error writing response", zap.Error(err))
-			http.Error(w, "error writing response", http.StatusInternalServerError)
-			return
-		}
-		flusher.Flush()
-	}
-
-	// Check for errors from the pipeline
-	if err := <-errChan; err != nil {
-		logger.Error("Error generating report", zap.Error(err))
-		http.Error(w, "error generating report", http.StatusInternalServerError)
+	// Log pipeline start
+	logger.Info("Report generation pipeline started", zap.String("UserID", userID))
+	if err := h.inferenceService.GenerateReportPipeline(r.Context(), &req,&utils.SafeResponseWriter{ResponseWriter: w}); err != nil {
+		logger.Error("Error during report generation pipeline", zap.Error(err))
 		return
 	}
 
@@ -219,7 +190,7 @@ func (h *reportsHandler) RegenerateReport(w http.ResponseWriter, r *http.Request
 	errChan := make(chan error)
 	go func() {
 		logger.Info("Regeneration pipeline started", zap.String("UserID", userID), zap.String("ReportID", req.ID))
-		if err := h.inferenceService.RegenerateReport(r.Context(), contentChan, &req); err != nil {
+		if err := h.inferenceService.RegenerateReport(r.Context(), &req, &utils.SafeResponseWriter{ResponseWriter: w}); err != nil {
 			logger.Error("Error during report regeneration pipeline", zap.Error(err))
 			errChan <- err
 			return
@@ -473,19 +444,20 @@ func (h *reportsHandler) GetTranscript(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info("Attempting to get transcript", zap.String("UserID", userID), zap.String("ReportID", req.ReportID))
 
-	providerID, transcript, err := h.reportsService.GetTranscription(r.Context(), req.ReportID)
+	retrievedReportTranscripts, err := h.reportsService.GetTranscription(r.Context(), req.ReportID)
 	if err != nil {
 		logger.Error("Error fetching report transcript", zap.Error(err))
 		http.Error(w, "error fetching report", http.StatusInternalServerError)
 		return
 	}
-	if providerID != userID {
+	if retrievedReportTranscripts.ProviderID != userID {
 		logger.Error("Unauthorized access to report", zap.String("UserID", userID), zap.String("ReportID", req.ReportID))
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(transcript); err != nil {
+	fmt.Println(retrievedReportTranscripts, "marked")
+	if err := json.NewEncoder(w).Encode(retrievedReportTranscripts); err != nil {
 		logger.Error("Error encoding transcript", zap.Error(err))
 		http.Error(w, "error encoding transcript", http.StatusInternalServerError)
 		return

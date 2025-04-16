@@ -78,4 +78,3 @@ GENERAL FORMATTING AND RULES:
 - DO NOT INCLUDE A TITLE. Start directly with the first heading.
 - CRITICAL OMISSION RULE: No placeholders. Omit entire themes or bullets if no relevant data exists.
 `
-

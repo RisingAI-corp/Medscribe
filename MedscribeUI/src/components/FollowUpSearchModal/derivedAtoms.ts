@@ -4,8 +4,8 @@ import {
   patientsAtom,
 } from '../../states/patientsAtom';
 import { format } from 'date-fns';
-import { Report } from '../../states/patientsAtom';
 import { SearchResultItem } from './SearchResults/SearchResults';
+import { Report } from '../../api/serverResponseTypes';
 
 export const searchVisitsAtom = atom<SearchResultItem[]>(get => {
   const allVisits = get(patientsAtom);

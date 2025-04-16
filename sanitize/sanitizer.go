@@ -11,27 +11,27 @@ import (
 )
 
 var infoTypesToRedact = []string{
-	"SOCIAL_SECURITY_NUMBER", // Social Security numbers
-	"PHONE_NUMBER",          // Telephone numbers
-	"US_LICENSE_NUMBER",     // Certificate or license numbers (US specific - may need others)
-	"MEDICAL_RECORD_NUMBER", // Medical record numbers
-	"ACCOUNT_NUMBER",        // Account numbers
+	"SOCIAL_SECURITY_NUMBER",         // Social Security numbers
+	"PHONE_NUMBER",                   // Telephone numbers
+	"US_LICENSE_NUMBER",              // Certificate or license numbers (US specific - may need others)
+	"MEDICAL_RECORD_NUMBER",          // Medical record numbers
+	"ACCOUNT_NUMBER",                 // Account numbers
 	"HEALTH_PLAN_BENEFICIARY_NUMBER", // Health plan beneficiary numbers
-	"PERSON_NAME",           // Names (Patient names)
-	"BIOMETRIC_ID",          // Biometric elements / identifiers
-	"DEVICE_SERIAL_NUMBER",  // Device identifiers and serial numbers
-	"EMAIL_ADDRESS",         // Email addresses
-	"FAX_NUMBER",            // Fax numbers
-	"VEHICLE_IDENTIFICATION_NUMBER", // Vehicle id and serial numbers / Vehicle identifiers
-	"IP_ADDRESS",            // Internet protocol (ip) address numbers / IP addresses
-	"URL",                   // Web universal resource locators (urls) / URLs
+	"PERSON_NAME",                    // Names (Patient names)
+	"BIOMETRIC_ID",                   // Biometric elements / identifiers
+	"DEVICE_SERIAL_NUMBER",           // Device identifiers and serial numbers
+	"EMAIL_ADDRESS",                  // Email addresses
+	"FAX_NUMBER",                     // Fax numbers
+	"VEHICLE_IDENTIFICATION_NUMBER",  // Vehicle id and serial numbers / Vehicle identifiers
+	"IP_ADDRESS",                     // Internet protocol (ip) address numbers / IP addresses
+	"URL",                            // Web universal resource locators (urls) / URLs
 	// "UNIQUE_IDENTIFIER",   // For "Any other unique identifying number" - this is broad,
-	                           // you might need to define custom InfoTypes for specific ones
-	"FULL_FACE_IMAGE",       // Full face photographs and comparable images (DLP might have limited support)
+	// you might need to define custom InfoTypes for specific ones
+	"FULL_FACE_IMAGE", // Full face photographs and comparable images (DLP might have limited support)
 	// Consider these as well based on previous discussion:
-	"DATE",                  // Dates (can be identifying in context)
+	"DATE", // Dates (can be identifying in context)
 	"DATE_OF_BIRTH",
-	"AGE",                   // If specific and potentially identifying
+	"AGE", // If specific and potentially identifying
 	"STREET_ADDRESS",
 	"ZIP_CODE",              // Depending on context
 	"GEOGRAPHIC_COORDINATE", // If present and precise
@@ -53,7 +53,7 @@ func SanitizeTranscript(ctx context.Context, projectID, inputString string) (str
 	// Define the InfoTypes to redact for HIPAA compliance.
 	// This list is based on the discussion and should be reviewed
 	// against your specific data and HIPAA requirements.
-	
+
 	// Construct inspect configuration.
 	var inspectInfoTypes []*dlppb.InfoType
 	for _, it := range infoTypesToRedact {
@@ -89,10 +89,10 @@ func SanitizeTranscript(ctx context.Context, projectID, inputString string) (str
 
 	// Call the API.
 	req := &dlppb.DeidentifyContentRequest{
-		Parent:            parent,
-		DeidentifyConfig:  deidentifyConfig,
-		InspectConfig:     inspectConfig,
-		Item:              item,
+		Parent:           parent,
+		DeidentifyConfig: deidentifyConfig,
+		InspectConfig:    inspectConfig,
+		Item:             item,
 	}
 
 	resp, err := client.DeidentifyContent(ctx, req)

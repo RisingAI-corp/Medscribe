@@ -71,7 +71,6 @@ func SetupTestEnv() (*TestEnv, error) {
 	reportsStore := reports.NewReportsStore(reportsColl)
 	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(os.Getenv("MONGODB_REPORT_TOKEN_USAGE_COLLECTION_DEV")))
 
-
 	transcriber := azure.NewAzureTranscriber(
 		os.Getenv("OPENAI_API_SPEECH_URL"),
 		os.Getenv("OPENAI_API_KEY"),
@@ -104,9 +103,9 @@ func SetupTestEnv() (*TestEnv, error) {
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
-		UserHandler:      userHandler,
-		ReportsHandler:   reportsHandler,
-		AuthMiddleware:   authMiddleWare.Middleware,
+		UserHandler:    userHandler,
+		ReportsHandler: reportsHandler,
+		AuthMiddleware: authMiddleWare.Middleware,
 	})
 
 	return &TestEnv{
@@ -158,7 +157,7 @@ func (env *TestEnv) CreateTestUser(name, email, password string) (string, error)
 // Helper function to create a test report
 func (env *TestEnv) CreateTestReport(providerID string) (string, error) {
 	ctx := context.Background()
-	return env.ReportsStore.Put(ctx, "Test Report", providerID, time.Now(), 30, false, "HE","")
+	return env.ReportsStore.Put(ctx, "Test Report", providerID, time.Now(), 30, false, "HE", "")
 }
 
 // GetTestUser fetches a user by ID

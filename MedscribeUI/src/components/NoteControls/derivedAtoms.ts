@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
-import { patientsAtom, ReportContent } from '../../states/patientsAtom';
+import { patientsAtom } from '../../states/patientsAtom';
 import { currentlySelectedPatientAtom } from '../../states/patientsAtom';
-import { Report } from '../../states/patientsAtom';
+import { Report, ReportContent } from '../../api/serverResponseTypes';
 
 export const NoteControlsAtom = atom(get => {
   const currentlySelectedPatient = get(currentlySelectedPatientAtom);
@@ -12,8 +12,8 @@ export const NoteControlsAtom = atom(get => {
       pronouns: patient.pronouns,
       visitType: patient.isFollowUp,
       patientOrClient: patient.patientOrClient,
-      visitContext: patient.visitContext,
-      loading: patient.finishedGenerating,
+      visitContext: '',
+      status: patient.status,
     };
   }
   return {
@@ -21,15 +21,18 @@ export const NoteControlsAtom = atom(get => {
     visitType: false,
     patientOrClient: '',
     visitContext: '',
-    loading: false,
+    status: 'pending',
   };
 });
 
 export interface noteControlEditsProps {
   id: string;
-  changes: Partial<
-    Pick<Report, 'patientOrClient' | 'pronouns' | 'isFollowUp' | 'visitContext'>
-  >;
+  changes: Partial<{
+    patientOrClient?: Report['patientOrClient'];
+    pronouns?: Report['pronouns'];
+    isFollowUp?: Report['isFollowUp'];
+    visitContext?: string; // Or whatever the type of visitContext is
+  }>;
 }
 
 export const editPatientVisitAtom = atom(

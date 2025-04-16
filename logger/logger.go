@@ -75,13 +75,12 @@ func Get(env string) *zap.Logger {
 	return loggerInstance
 }
 
-
 // FromCtx retrieves the *zap.Logger associated with the provided context.
 // If no logger is found, it returns the global logger (or a no-op logger if neither exists).
 func FromCtx(ctx context.Context) *zap.Logger {
 	if l, ok := ctx.Value(ctxKey{}).(*zap.Logger); ok {
 		return l
-	} else{
+	} else {
 		log.Error().Msg("No logger found in context, using nil logger")
 		return zap.NewNop()
 	}

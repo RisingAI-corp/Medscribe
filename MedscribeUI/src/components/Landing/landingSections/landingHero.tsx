@@ -5,7 +5,6 @@ import { Button } from '@mantine/core';
 import LandingCarousel from './landingCarousel';
 import { useNavigate } from 'react-router-dom';
 
-
 function LandingHero() {
   const navigate = useNavigate();
   return (
@@ -13,11 +12,12 @@ function LandingHero() {
       <div className="flex h-full w-full">
         <div className="flex flex-col h-full w-1/2 justify-center">
           <div className="flex flex-col gap-[30px] pl-[50px] pr-[100px]">
-          
             <span className="lg:text-3xl text-2xl font-bold bg-gradient-to-r from-[#0772BA] to-[#0493B3] bg-clip-text text-transparent leading-relaxed">
               {landingContent.hero.title}
             </span>
-            <span className="lg:text-2xl text-lg">{landingContent.hero.subtitle}</span>
+            <span className="lg:text-2xl text-lg">
+              {landingContent.hero.subtitle}
+            </span>
             <div className="flex items-center gap-4">
               <Button
                 variant="filled"
@@ -29,7 +29,7 @@ function LandingHero() {
                 Start for Free
               </Button>
             </div>
-            <img src={hippaImage} alt="HIPPA" className="w-1/5"/>
+            <img src={hippaImage} alt="HIPPA" className="w-1/5" />
           </div>
         </div>
         <div className="flex h-full w-1/2 justify-center items-center">
