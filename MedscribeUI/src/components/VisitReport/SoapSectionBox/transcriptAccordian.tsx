@@ -1,6 +1,5 @@
 // TranscriptAccordion.tsx
 import { Accordion, Text, ScrollArea, Box } from '@mantine/core';
-import { useState } from 'react';
 import { DiarizedTranscript } from '../../../api/serverResponseTypes';
 
 interface TranscriptAccordionProps {
@@ -20,24 +19,7 @@ const TranscriptAccordion = ({
   onExpand,
   isExpanded,
 }: TranscriptAccordionProps) => {
-  const [expanded, setExpanded] = useState(isExpanded);
-
   console.log('accordain expanded');
-
-  const handleToggle = () => {
-    setExpanded(!expanded);
-    if (!expanded && onExpand) {
-      onExpand();
-    }
-  };
-
-  const formatTime = (timeInSeconds: number): string => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = Math.floor(timeInSeconds % 60)
-      .toString()
-      .padStart(2, '0');
-    return `${String(minutes)}:${String(seconds)}`;
-  };
 
   return (
     <div className="relative">

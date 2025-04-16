@@ -16,7 +16,6 @@ const samplePatientData: PatientPreviewCardProps = {
   selectAllToggle: false,
   readStatus: false,
   status: 'succeeded',
-  loading: false,
   handleMarkRead: (id: string) => {
     console.log(`Mark patient with ID: ${id} as read`);
   },

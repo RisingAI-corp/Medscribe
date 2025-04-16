@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Report, ReportSchema } from './serverResponseTypes';
+import { ReportSchema } from './serverResponseTypes';
 
 export interface GetReportPayload {
   reportID: string;

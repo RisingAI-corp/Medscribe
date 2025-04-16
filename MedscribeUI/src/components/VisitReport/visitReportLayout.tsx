@@ -122,7 +122,6 @@ function VisitReportLayout() {
   };
 
   const { isPending, isSuccess } = fetchTranscriptMutation;
-  const { variables } = updateContentSectionMutation;
 
   return (
     <>
