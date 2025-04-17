@@ -127,7 +127,7 @@ func main() {
 		// &mockInferStore{},
 		userStore,
 		reportsTokenUsage,
-		true,
+		false,
 	)
 
 	// instantiating api
