@@ -11,6 +11,7 @@ import (
 	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
+	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -115,7 +116,7 @@ func main() {
 	reportsTokenUsage := reportsTokenUsage.NewTokenUsageStore(db.Collection(cfg.MongoReportTokenUsageCollection))
 
 	//creating services
-	// azureTranscriber := azure.NewAzureTranscriber(cfg.OpenAISpeechURL, cfg.OpenAIDiarizationSpeechURL, cfg.OpenAIAPIKey)
+	azureTranscriber := azure.NewAzureTranscriber(cfg.OpenAISpeechURL, cfg.OpenAIDiarizationSpeechURL, cfg.OpenAIAPIKey)
 	// geminiTranscriber := geminiTranscriber.NewGeminiTranscriberStore(geminiClient)
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
