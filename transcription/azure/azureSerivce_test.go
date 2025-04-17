@@ -1,7 +1,7 @@
 package azure
 
 import (
-	transcriber "Medscribe/Transcription"
+	transcriber "Medscribe/transcription"
 	"os"
 	"testing"
 

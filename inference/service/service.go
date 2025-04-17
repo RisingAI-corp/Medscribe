@@ -1,11 +1,11 @@
 package inferenceService
 
 import (
-	transcriber "Medscribe/Transcription"
 	Chat "Medscribe/inference/store"
 	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
+	transcriber "Medscribe/transcription"
 	"Medscribe/user"
 	"Medscribe/utils"
 	"context"

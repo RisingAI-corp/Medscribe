@@ -1,7 +1,7 @@
 package reports
 
 import (
-	transcriber "Medscribe/Transcription"
+	transcriber "Medscribe/transcription"
 	"context"
 	"encoding/json"
 	"errors"

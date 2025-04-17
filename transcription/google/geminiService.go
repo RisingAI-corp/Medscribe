@@ -1,7 +1,7 @@
 package geminiTranscriber
 
 import (
-	transcriber "Medscribe/Transcription"
+	transcriber "Medscribe/transcription"
 	"context"
 	"encoding/json"
 	"fmt"
