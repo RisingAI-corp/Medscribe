@@ -33,7 +33,7 @@ COPY go.mod go.sum ./
 RUN go mod tidy
 
 # Copy the entire backend source code
-COPY . .
+COPY ./ .
 
 # Build a statically compiled Go binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app cmd/api/api.go
