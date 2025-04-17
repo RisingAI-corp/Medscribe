@@ -11,7 +11,6 @@ import (
 	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
-	geminiTranscriber "Medscribe/transcription/google"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -117,12 +116,12 @@ func main() {
 
 	//creating services
 	// azureTranscriber := azure.NewAzureTranscriber(cfg.OpenAISpeechURL, cfg.OpenAIDiarizationSpeechURL, cfg.OpenAIAPIKey)
-	geminiTranscriber := geminiTranscriber.NewGeminiTranscriberStore(geminiClient)
+	// geminiTranscriber := geminiTranscriber.NewGeminiTranscriberStore(geminiClient)
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
 		// &mockTranscriber{},
-		geminiTranscriber,
-		// azureTranscriber,
+		// geminiTranscriber,
+		azureTranscriber,
 		GeminiInferenceStore,
 		// &mockInferStore{},
 		userStore,
