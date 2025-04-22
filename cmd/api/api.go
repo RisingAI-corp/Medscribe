@@ -142,8 +142,8 @@ func main() {
 		MetadataMiddleware: middleware.MetadataMiddleware,
 	})
 
-	
-	logger.Info("✅ Ready to start HTTP server", zap.String("port", cfg.Port))
+
+	logger.Info("✅ starting up HTTP server", zap.String("port", cfg.Port))
 
 	fullAddr := ":" + cfg.Port
 	logger.Info("🌍 Binding to", zap.String("addr", fullAddr))
