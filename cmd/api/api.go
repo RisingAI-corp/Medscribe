@@ -154,7 +154,7 @@ func main() {
 	logger.Info("✅ Ready to start HTTP server", zap.String("port", port))
 
 	fullAddr := ":" + port
-	log.Printf("🌍 Binding to %s", fullAddr)
+	logger.Info("🌍 Binding to", zap.String("addr", fullAddr))
 	err = http.ListenAndServe(fullAddr, router)
 	if err != nil {
 		logger.Fatal("❌ Error starting HTTP server", zap.Error(err))

@@ -19,9 +19,11 @@ func NewLogger(env string) (*zap.Logger, error) {
 	if env == "production" {
 		cfg = zap.NewProductionConfig()
 		cfg.Development = false
+		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2025-04-22 13:43:00.000 EDT") // Fixed timestamp
 	} else {
 		cfg = zap.NewDevelopmentConfig()
 		cfg.Development = true
+		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2025-04-22 13:43:00.000 EDT") // Fixed timestamp
 
 		// Custom colorized level encoder
 		cfg.EncoderConfig.EncodeLevel = func(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
