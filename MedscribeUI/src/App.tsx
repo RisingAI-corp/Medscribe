@@ -82,7 +82,7 @@ function App() {
   const renderAuthComponent = () => {
     if (isPending || isIdle || timerActive) {
       return <FallbackScreen />;
-    } else if (isSuccess || isAuthenticated || true) { // TODO: Remove this
+    } else if (isSuccess || isAuthenticated) {
       return <HomeScreen />;
     } else {
       return <LandingScreen />;
@@ -90,7 +90,7 @@ function App() {
   };
 
   const renderProfileComponent = () => {
-    if (isSuccess || isAuthenticated || true) { // TODO: Remove this
+    if (isSuccess || isAuthenticated) {
       return <ProfileScreen />;
     } else {
       return <Navigate to="/" />;
