@@ -142,18 +142,10 @@ func main() {
 		MetadataMiddleware: middleware.MetadataMiddleware,
 	})
 
-	// Ensure we're reading the PORT env var properly
-	port := cfg.Port
-	if port == "" {
-		port = os.Getenv("PORT")
-	}
-	if port == "" {
-		port = "8080"
-		logger.Warn("PORT not set; defaulting to 8080")
-	}
-	logger.Info("✅ Ready to start HTTP server", zap.String("port", port))
+	
+	logger.Info("✅ Ready to start HTTP server", zap.String("port", cfg.Port))
 
-	fullAddr := ":" + port
+	fullAddr := ":" + cfg.Port
 	logger.Info("🌍 Binding to", zap.String("addr", fullAddr))
 	err = http.ListenAndServe(fullAddr, router)
 	if err != nil {
