@@ -16,8 +16,18 @@ RUN yarn install
 # Copy the rest of the frontend code
 COPY MedscribeUI/ .
 
-# Build the application
-RUN yarn build --mode production
+# Determine build mode based on service name build argument
+ARG _SERVICE_NAME
+RUN if [ "$_SERVICE_NAME" = "medscribe-prod" ]; then \
+    echo "Building for Production (Service Name: $_SERVICE_NAME)"; \
+    yarn build --mode production; \
+elif [ "$_SERVICE_NAME" = "medscribe-dev" ]; then \
+    echo "Building for Development (Service Name: $_SERVICE_NAME)"; \
+    yarn build --mode development; \
+else \
+    echo "Building for local or other environment (Development build)"; \
+    yarn build --mode test; \
+fi
 
 # ===========================
 # Stage 2: Build the Go Backend
@@ -50,7 +60,7 @@ FROM alpine:latest
 WORKDIR /app
 
 # Copy the .env file into /app
-COPY .env . 
+COPY .env .
 
 # Copy only the compiled Go binary from the previous stage
 COPY --from=builder /app/app .
