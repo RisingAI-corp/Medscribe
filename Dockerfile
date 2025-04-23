@@ -25,7 +25,7 @@ elif [ "$_SERVICE_NAME" = "medscribe-dev" ]; then \
     echo "Building for Development (Service Name: $_SERVICE_NAME)"; \
     yarn build --mode development; \
 else \
-    echo "Building for local or other environment (Development build)"; \
+    echo "Building for local or other environment (Service Name: $_SERVICE_NAME)"; \
     yarn build --mode test; \
 fi
 
