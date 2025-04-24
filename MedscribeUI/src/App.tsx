@@ -12,8 +12,9 @@ import { checkAuth } from './api/checkAuth';
 import AuthScreen from './pages/Auth/authScreen';
 import FallbackScreen from './pages/Fallback/fallbackScreen';
 import LandingScreen from './pages/Landing/landingScreen';
+import ProfileScreen from './pages/Profile/profileScreen';
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
   const [timerActive, setTimerActive] = useState(true);
@@ -88,12 +89,21 @@ function App() {
     }
   };
 
+  const renderProfileComponent = () => {
+    if (isAuthenticated) {
+      return <ProfileScreen />;
+    } else {
+      return <Navigate to="/" />;
+    }
+  };
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={renderAuthComponent()} />
         <Route path="/SignUp" element={<AuthScreen isSignUpRoute={true} />} />
         <Route path="/SignIn" element={<AuthScreen isSignUpRoute={false} />} />
+        <Route path="/Profile" element={renderProfileComponent()} />
       </Routes>
     </BrowserRouter>
   );
