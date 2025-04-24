@@ -481,7 +481,7 @@ func (s *inferenceService) generateSoapSections(
 			reportRequest.SubjectiveContent,
 			reportRequest.Updates,
 		)
-		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(SubjectiveSystemPrompt), contentPrompt, reports.Subjective, tokenUsage, aggregateUpdates, w)
+		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(subjectiveTaskDescription), contentPrompt, reports.Subjective, tokenUsage, aggregateUpdates, w)
 		if err != nil {
 			return fmt.Errorf("error generating report section: %w", err)
 		}
