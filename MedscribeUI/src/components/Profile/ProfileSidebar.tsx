@@ -1,15 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { IconArrowBackUp, IconLogout2} from '@tabler/icons-react';
 
+export type ProfileTabType = 'settings' | 'affiliates' | 'subscriptions';
 
 interface ProfileSidebarProps {
-  onNavChange: (tab: 'settings' | 'affiliates' | 'subscriptions') => void;
-  activeTab: 'settings' | 'affiliates' | 'subscriptions';
+  onNavChange: (tab: ProfileTabType) => void;
+  activeTab: ProfileTabType;
 }
 
 const ProfileSidebar = ({ onNavChange, activeTab }: ProfileSidebarProps) => {
   const navigate = useNavigate();
-  const navItems = [
+  const navItems: Array<{ id: ProfileTabType; label: string }> = [
     { id: 'settings', label: 'Settings' },
     { id: 'affiliates', label: 'Affiliates' },
     { id: 'subscriptions', label: 'Subscriptions' },
@@ -32,7 +33,7 @@ const ProfileSidebar = ({ onNavChange, activeTab }: ProfileSidebarProps) => {
           {navItems.map((item) => (
             <li key={item.id}>
               <button
-                onClick={() => onNavChange(item.id as any)}
+                onClick={() => onNavChange(item.id)}
                 className={`w-full text-left px-4 py-2 rounded-md transition ${
                   activeTab === item.id
                     ? 'bg-blue-100 text-blue-700 font-medium'

@@ -90,7 +90,7 @@ function App() {
   };
 
   const renderProfileComponent = () => {
-    if (isSuccess || isAuthenticated) {
+    if (isAuthenticated) {
       return <ProfileScreen />;
     } else {
       return <Navigate to="/" />;
