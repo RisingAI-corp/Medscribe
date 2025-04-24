@@ -63,7 +63,7 @@ type InferenceResponse struct {
 
 // InferenceStore defines the interface for querying the chat models, requiring a Query method to send requests and return responses.
 type InferenceStore interface {
-	Query(ctx context.Context, request string, tokens int) (InferenceResponse, error)
+	Query(ctx context.Context, systemPrompt, request string, tokens int) (InferenceResponse, error)
 }
 
 type inferenceGPTStore struct {
@@ -85,9 +85,9 @@ func NewGeminiInferenceStore(client *genai.Client) (InferenceStore, error) {
 
 // Query sends a request to the OpenAI API with the specified role and message, and returns the assistant's response.
 // Query sends a request to the OpenAI API with the specified role and message, and returns the assistant's response.
-func (i *inferenceGPTStore) Query(ctx context.Context, request string, tokens int) (InferenceResponse, error) {
+func (i *inferenceGPTStore) Query(ctx context.Context, systemPrompt, task string, tokens int) (InferenceResponse, error) {
 
-	if request == "" {
+	if task == "" {
 		return InferenceResponse{}, errors.New("request cannot be empty")
 	}
 
@@ -103,7 +103,7 @@ func (i *inferenceGPTStore) Query(ctx context.Context, request string, tokens in
 					Type string `json:"type"`
 					Text string `json:"text"`
 				}{
-					{Type: "text", Text: request},
+					{Type: "text", Text: task},
 				},
 			},
 		},
@@ -168,12 +168,18 @@ func (i *inferenceGPTStore) Query(ctx context.Context, request string, tokens in
 	}
 }
 
-func (i *inferenceGeminiStore) Query(ctx context.Context, request string, tokens int) (InferenceResponse, error) {
+func (i *inferenceGeminiStore) Query(ctx context.Context, systemPrompt, task string, tokens int) (InferenceResponse, error) {
+	if task == "" {
+		return InferenceResponse{}, errors.New("request cannot be empty")
+	}
 	if i.client == nil {
 		return InferenceResponse{}, fmt.Errorf("gemini client is not initialized")
 	}
-
-	resp, err := i.client.Models.GenerateContent(ctx, "gemini-2.0-flash", genai.Text(request), nil)
+	systemInstruction := &genai.GenerateContentConfig{}
+	if systemPrompt != "" {
+		systemInstruction.SystemInstruction = &genai.Content{Parts: []*genai.Part{{Text: systemPrompt}}}
+	}
+	resp, err := i.client.Models.GenerateContent(ctx, "gemini-2.0-flash", genai.Text(task), systemInstruction)
 	if err != nil {
 		return InferenceResponse{}, fmt.Errorf("failed to generate content: %w", err)
 	}

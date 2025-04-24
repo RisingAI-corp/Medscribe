@@ -64,7 +64,7 @@ func TestNewGeminiVertexInferenceStore(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.Background()
 
-			result, err := store.Query(ctx, "test request", 10)
+			result, err := store.Query(ctx, "","test request", 10)
 			fmt.Println("this is result", result, err)
 			// assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedResultIsEmpty, result.Content == "")

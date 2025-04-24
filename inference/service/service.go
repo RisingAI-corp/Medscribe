@@ -349,7 +349,7 @@ func (s *inferenceService) LearnStyle(ctx context.Context, providerID, contentSe
 
 	logger.Info("LearnStyle: generating learning prompt and querying chat model")
 	learnStylePrompt := GenerateLearnStylePrompt(contentSection, previous, current)
-	response, err := s.chat.Query(ctx, learnStylePrompt, 100)
+	response, err := s.chat.Query(ctx, "", learnStylePrompt, 100)
 	if err != nil {
 		return fmt.Errorf("LearnStyle: error querying for style: %w", err)
 	}
@@ -397,7 +397,8 @@ func contentPromptFunc(
 
 func (s *inferenceService) generateSectionPipeline(
 	ctx context.Context,
-	queryMessage string, 
+	systemPrompt,
+	queryMessage, 
 	field string,
 	tokenUsage *utils.SafeMap[int],
 	aggregator func(...bson.E),
@@ -407,7 +408,7 @@ func (s *inferenceService) generateSectionPipeline(
 
 	// Stage 1: Query chat model
 	logger.Info("generateReportSection: querying chat model", zap.String("Section", field))
-	response, err := s.chat.Query(ctx, queryMessage, Chat.MaxTokens)
+	response, err := s.chat.Query(ctx, systemPrompt, queryMessage, Chat.MaxTokens)
 	if err != nil {
 		return fmt.Errorf("error generating report section: %w", err)
 	}
@@ -464,6 +465,10 @@ func (s *inferenceService) generateSoapSections(
 		m.Unlock()
 	}
 
+	stitchSystemPrompt := func (subSystemPrompt string) string{
+		return fmt.Sprintf("%s\n%s\n%s\n%s", baseSystemPrompt, subSystemPrompt,defaultReturnFormatSystemPrompt, defaultWarningsSystemPrompt)
+	}
+
 	// Generate Subjective Section
 	g.Go(func() error {
 		contentPrompt := contentPromptFunc(
@@ -476,7 +481,7 @@ func (s *inferenceService) generateSoapSections(
 			reportRequest.SubjectiveContent,
 			reportRequest.Updates,
 		)
-		err := s.generateSectionPipeline(ctx, contentPrompt, reports.Subjective, tokenUsage, aggregateUpdates, w)
+		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(SubjectiveSystemPrompt), contentPrompt, reports.Subjective, tokenUsage, aggregateUpdates, w)
 		if err != nil {
 			return fmt.Errorf("error generating report section: %w", err)
 		}
@@ -495,7 +500,7 @@ func (s *inferenceService) generateSoapSections(
 			reportRequest.ObjectiveContent,
 			reportRequest.Updates,
 		)
-		err := s.generateSectionPipeline(ctx, contentPrompt, reports.Objective, tokenUsage, aggregateUpdates, w)
+		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(objectiveTaskDescription), contentPrompt, reports.Objective, tokenUsage, aggregateUpdates, w)
 		if err != nil {
 			return fmt.Errorf("error generating report section: %w", err)
 		}
@@ -514,7 +519,7 @@ func (s *inferenceService) generateSoapSections(
 			reportRequest.AssessmentAndPlanContent,
 			reportRequest.Updates,
 		)
-		err := s.generateSectionPipeline(ctx, contentPrompt, reports.AssessmentAndPlan, tokenUsage, aggregateUpdates, w)
+		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(assessmentAndPlanTaskDescription),contentPrompt, reports.AssessmentAndPlan, tokenUsage, aggregateUpdates, w)
 		if err != nil {
 			return fmt.Errorf("error generating report section: %w", err)
 		}
@@ -533,7 +538,7 @@ func (s *inferenceService) generateSoapSections(
 			reportRequest.PatientInstructionContent,
 			reportRequest.Updates,
 		)
-		err := s.generateSectionPipeline(ctx, contentPrompt, reports.PatientInstructions, tokenUsage, aggregateUpdates, w)
+		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(patientInstruction),contentPrompt, reports.PatientInstructions, tokenUsage, aggregateUpdates, w)
 		if err != nil {
 			return fmt.Errorf("error generating report section: %w", err)
 		}
@@ -553,7 +558,7 @@ func (s *inferenceService) generateSoapSections(
 			reportRequest.SummaryContent,
 			reportRequest.Updates,
 		)
-		err := s.generateSectionPipeline(ctx, contentPrompt, reports.Summary, tokenUsage, aggregateUpdates, w)
+		err := s.generateSectionPipeline(ctx, stitchSystemPrompt(summaryTaskDescription),contentPrompt, reports.Summary, tokenUsage, aggregateUpdates, w)
 		if err != nil {
 			return fmt.Errorf("error generating report section: %w", err)
 		}
@@ -593,14 +598,14 @@ func (s *inferenceService) generateSummaries(
 
 	// Generate condensed summary
 	logger.Info("generateSummaries: generating condensed summary")
-	condensed, err := s.chat.Query(ctx, fmt.Sprintf(condensedSummary, summary), Chat.MaxTokens)
+	condensed, err := s.chat.Query(ctx, condensedSummary, summary, Chat.MaxTokens)
 	if err != nil {
 		return fmt.Errorf("error generating condensed summary: %w", err)
 	}
 
 	// Generate session summary
 	logger.Info("generateSummaries: generating session summary")
-	session, err := s.chat.Query(ctx, fmt.Sprintf(sessionSummary, summary), Chat.MaxTokens)
+	session, err := s.chat.Query(ctx, sessionSummary, summary, Chat.MaxTokens)
 	if err != nil {
 		return fmt.Errorf("error generating session summary: %w", err)
 	}

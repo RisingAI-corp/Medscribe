@@ -3,6 +3,7 @@ package routes
 import (
 	"Medscribe/api/handlers/reportsHandler"
 	userhandler "Medscribe/api/handlers/userHandler"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -19,34 +20,26 @@ type APIConfig struct {
 	MetadataMiddleware func(http.Handler) http.Handler
 }
 
-func EntryRoutes(config APIConfig) *chi.Mux {
-	userSubRoutes := UserRoutes(config.UserHandler)
-	reportsSubRoutes := ReportRoutes(config.ReportsHandler)
-
-	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro","https://dev.medscribe.pro"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		AllowCredentials: true,
-	})
-
+func mountRoutes(config APIConfig) *chi.Mux {
 	r := chi.NewRouter()
 
+	// Core middlewares
 	r.Use(config.MetadataMiddleware)
-	r.Use(corsHandler.Handler)
 
+	// Public + auth health check
 	r.With(config.AuthMiddleware).Get("/checkAuth", config.UserHandler.GetMe)
 
+	// Mount user and report subroutes
 	r.Route("/user", func(r chi.Router) {
-		r.Mount("/", userSubRoutes)
+		r.Mount("/", UserRoutes(config.UserHandler))
 	})
 
 	r.Route("/report", func(r chi.Router) {
 		r.Use(config.AuthMiddleware)
-		r.Mount("/", reportsSubRoutes)
+		r.Mount("/", ReportRoutes(config.ReportsHandler))
 	})
 
-	// Serve SPA frontend with static + fallback logic
+	// Static frontend fallback
 	r.Handle("/*", spaHandler{
 		staticPath: "./MedscribeUI/dist",
 		indexPath:  "index.html",
@@ -54,6 +47,50 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 
 	return r
 }
+
+func getCORSHandler() func(http.Handler) http.Handler {
+	return cors.New(cors.Options{
+		AllowedOrigins:   []string{
+			"http://localhost:3000",
+			"http://localhost:6006",
+			"http://localhost:8080",
+			"https://medscribe.pro",
+			"https://www.medscribe.pro",
+			"https://dev.medscribe.pro",
+		},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}).Handler
+}
+
+func EntryRoutes(config APIConfig) http.Handler {
+	router := mountRoutes(config)
+	corsMiddleware := getCORSHandler()
+
+	// Wrap the router in a logging wrapper so we can see the actual CORS headers
+	return corsMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("checking in")
+		rw := &responseLogger{ResponseWriter: w}
+		fmt.Println(">>> CORS Headers:")
+		fmt.Println("    Origin:", r.Header.Get("Origin"))
+		fmt.Println("    Access-Control-Allow-Origin:", rw.Header().Get("Access-Control-Allow-Origin"))
+		fmt.Println("    Access-Control-Allow-Credentials:", rw.Header().Get("Access-Control-Allow-Credentials"))
+		router.ServeHTTP(w, r)
+
+	}))
+}
+
+type responseLogger struct {
+	http.ResponseWriter
+}
+
+func (w *responseLogger) WriteHeader(statusCode int) {
+	// Let the headers be written but intercept for inspection
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+
 
 type spaHandler struct {
 	staticPath string
