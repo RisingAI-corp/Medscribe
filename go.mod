@@ -16,6 +16,7 @@ require (
 require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/stripe/stripe-go/v74 v74.30.0 // indirect
 )
 
 require (

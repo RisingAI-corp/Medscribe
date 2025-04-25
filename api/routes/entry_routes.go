@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"Medscribe/api/handlers/paymentHandler"
 	"Medscribe/api/handlers/reportsHandler"
 	userhandler "Medscribe/api/handlers/userHandler"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 type APIConfig struct {
 	UserHandler        userhandler.UserHandler
 	ReportsHandler     reportsHandler.ReportsHandler
+	PaymentHandler     paymentHandler.PaymentHandler
 	AuthMiddleware     func(http.Handler) http.Handler
 	MetadataMiddleware func(http.Handler) http.Handler
 }
@@ -22,9 +24,10 @@ type APIConfig struct {
 func EntryRoutes(config APIConfig) *chi.Mux {
 	userSubRoutes := UserRoutes(config.UserHandler)
 	reportsSubRoutes := ReportRoutes(config.ReportsHandler)
+	paymentSubRoutes := PaymentRoutes(config.PaymentHandler)
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro","https://medscribe-dev-402133475168.us-central1.run.app"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro", "https://medscribe-dev-402133475168.us-central1.run.app"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -44,6 +47,11 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 	r.Route("/report", func(r chi.Router) {
 		r.Use(config.AuthMiddleware)
 		r.Mount("/", reportsSubRoutes)
+	})
+
+	r.Route("/payment", func(r chi.Router) {
+		r.Use(config.AuthMiddleware)
+		r.Mount("/", paymentSubRoutes)
 	})
 
 	// Serve SPA frontend with static + fallback logic

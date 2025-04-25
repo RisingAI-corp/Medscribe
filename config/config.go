@@ -21,7 +21,7 @@ type Config struct {
 	OpenAIChatURL                           string
 	OpenAISpeechURL                         string
 	OpenAIAPIKey                            string
-	OpenAIDiarizationSpeechURL             string
+	OpenAIDiarizationSpeechURL              string
 	GeminiAPIKey                            string
 	VertexLocation                          string
 	ProjectID                               string
@@ -30,6 +30,8 @@ type Config struct {
 	DeepgramAPIURL                          string
 	JWTSecret                               string
 	FreedAuthToken                          string
+	StripeAPIKey                            string
+	StripeWebhookSecret                     string
 	Port                                    string
 }
 
@@ -138,6 +140,14 @@ func LoadConfig(testEnv string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	stripeApiKey, err := getEnvStrict("STRIPE_API_KEY", "")
+	if err != nil {
+		return nil, err
+	}
+	stripeWebhookSecret, err := getEnvStrict("STRIPE_WEBHOOK_SECRET", "")
+	if err != nil {
+		return nil, err
+	}
 
 	cfg := &Config{
 		Env:                             env,
@@ -160,6 +170,8 @@ func LoadConfig(testEnv string) (*Config, error) {
 		DeepgramAPIURL:                  deepgramURL,
 		JWTSecret:                       jwtSecret,
 		FreedAuthToken:                  freedToken,
+		StripeAPIKey:                    stripeApiKey,
+		StripeWebhookSecret:             stripeWebhookSecret,
 		Port:                            port,
 	}
 

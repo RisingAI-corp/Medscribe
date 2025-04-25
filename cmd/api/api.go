@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Medscribe/api/handlers/paymentHandler"
 	"Medscribe/api/handlers/reportsHandler"
 	userhandler "Medscribe/api/handlers/userHandler"
 	"Medscribe/api/middleware"
@@ -82,22 +83,22 @@ func main() {
 	}()
 
 	db := client.Database(cfg.MongoDBName)
-	userColl := db.Collection(cfg.MongoUserCollection)
+	userColl := db.Collection(cfg.MongoUserCollection)      //TODO: Change back to MongoUserCollection
 	reportsColl := db.Collection(cfg.MongoReportCollection) //TODO: Change back to MongoReportCollection
 
 	// creating stores
 	userStore := user.NewUserStore(userColl)
 	reportsStore := reports.NewReportsStore(reportsColl)
 
-	if cfg.Env == "production" {
-		// in production we will use the metadata server to to leverage the cloud run service account to auth with vertex ai
-		err := os.Unsetenv("GOOGLE_APPLICATION_CREDENTIALS")
-		if err != nil {
-			logger.Warn("Error unsetting GOOGLE_APPLICATION_CREDENTIALS", zap.Error(err))
-		} else {
-			logger.Info("GOOGLE_APPLICATION_CREDENTIALS unset for production")
-		}
-	}
+	// if cfg.Env == "production" {
+	// 	// in production we will use the metadata server to to leverage the cloud run service account to auth with vertex ai
+	// 	err := os.Unsetenv("GOOGLE_APPLICATION_CREDENTIALS")
+	// 	if err != nil {
+	// 		logger.Warn("Error unsetting GOOGLE_APPLICATION_CREDENTIALS", zap.Error(err))
+	// 	} else {
+	// 		logger.Info("GOOGLE_APPLICATION_CREDENTIALS unset for production")
+	// 	}
+	// }
 
 	geminiClient, err := genai.NewClient(ctx, &genai.ClientConfig{
 		Project:  cfg.ProjectID,
@@ -134,10 +135,12 @@ func main() {
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
+	paymentHandler := paymentHandler.NewPaymentHandler(cfg.StripeAPIKey, cfg.StripeWebhookSecret, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:        userHandler,
 		ReportsHandler:     reportsHandler,
+		PaymentHandler:     paymentHandler,
 		AuthMiddleware:     authMiddleware.Middleware,
 		MetadataMiddleware: middleware.MetadataMiddleware,
 	})

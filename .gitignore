@@ -16,3 +16,5 @@ MedscribeUI/yarn-error.log
 MedscribeUI/src/adHocComponents
 
 creds.json
+
+.env
