@@ -27,7 +27,7 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 	paymentSubRoutes := PaymentRoutes(config.PaymentHandler)
 
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro", "https://medscribe-dev-402133475168.us-central1.run.app"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:6006", "http://localhost:8080", "https://medscribe.pro", "https://www.medscribe.pro"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -49,7 +49,7 @@ func EntryRoutes(config APIConfig) *chi.Mux {
 		r.Mount("/", reportsSubRoutes)
 	})
 
-	r.Route("/payment", func(r chi.Router) {
+	r.Route("/billing", func(r chi.Router) {
 		r.Use(config.AuthMiddleware)
 		r.Mount("/", paymentSubRoutes)
 	})

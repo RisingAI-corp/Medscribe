@@ -191,3 +191,5 @@ func (s *store) UpdateStyle(ctx context.Context, providerID, styleField, newStyl
 
 	return nil
 }
+
+//TODO: Add a function to update the user's subscription status

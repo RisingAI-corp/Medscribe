@@ -77,7 +77,6 @@ func NewReportsHandler(reportsService reports.Reports, inferenceService inferenc
 	}
 }
 
-
 func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) {
 	// Use the logger from context
 	logger := contextLogger.FromCtx(r.Context())
@@ -135,11 +134,10 @@ func (h *reportsHandler) GenerateReport(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	
 	// Start the report generation pipeline in a goroutine
 	// Log pipeline start
 	logger.Info("Report generation pipeline started", zap.String("UserID", userID))
-	if err := h.inferenceService.GenerateReportPipeline(r.Context(), &req,&utils.SafeResponseWriter{ResponseWriter: w}); err != nil {
+	if err := h.inferenceService.GenerateReportPipeline(r.Context(), &req, &utils.SafeResponseWriter{ResponseWriter: w}); err != nil {
 		logger.Error("Error during report generation pipeline", zap.Error(err))
 		return
 	}
