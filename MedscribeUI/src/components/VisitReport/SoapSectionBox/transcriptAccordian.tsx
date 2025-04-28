@@ -1,5 +1,5 @@
 // TranscriptAccordion.tsx
-import { Accordion, Text, ScrollArea, Box } from '@mantine/core';
+import { Accordion, Text, Box } from '@mantine/core';
 import { DiarizedTranscript } from '../../../api/serverResponseTypes';
 
 interface TranscriptAccordionProps {
