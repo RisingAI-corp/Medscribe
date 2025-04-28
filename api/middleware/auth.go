@@ -51,7 +51,7 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 
 		claims, err := am.verifyToken(refreshCookie.Value)
 		if err != nil {
-			am.logger.Error("Invalid refresh token",
+			am.logger.Debug("Invalid refresh token",
 				zap.Error(err),
 				zap.String("method", r.Method),
 				zap.String("url", r.URL.Path),

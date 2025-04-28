@@ -77,6 +77,8 @@ const (
 	tokens = "tokens"
 
 	UsedDiarization = "useddiarizedtranscript"
+	UsedDiarizationUpdateKey = "usedDiarizedTranscript"
+
 
 )
 
@@ -261,8 +263,6 @@ func (r *reportsStore) GetTranscription(ctx context.Context, reportId string) (R
 			return RetrievedReportTranscripts{}, fmt.Errorf("failed to unmarshal transcript: %v", err)
 		}
 	}
-	fmt.Println("this right here is the partial report", partialReport)
-
 	retrievedTranscript := RetrievedReportTranscripts{
 		Transcript:         partialReport.Transcript,
 		DiarizedTranscript: transcriptTurns,
@@ -329,11 +329,10 @@ func (r *reportsStore) MarkRead(ctx context.Context, reportId string) error {
 	filter := bson.M{ID: objectID}
 	update := bson.M{"$set": bson.M{readStatus: true}}
 
-	result, err := r.client.UpdateOne(ctx, filter, update)
+	_, err = r.client.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to mark report as read: %v", err)
 	}
-	fmt.Println(result.ModifiedCount, "modified count")
 	return nil
 }
 

@@ -51,9 +51,10 @@ const TranscriptAccordion = ({
           </Accordion.Control>
           <Accordion.Panel>
             {transcriptTurns && transcriptTurns.length > 0 ? (
-              <ScrollArea
+              <div
                 style={{
-                  maxHeight: 300,
+                  maxHeight: 800,
+                  overflowY: 'scroll',
                   border: '1px solid #ccc',
                   padding: 10,
                   backgroundColor: '#f5f5f5', // Add background color here as well for the scrollable area
@@ -86,7 +87,7 @@ const TranscriptAccordion = ({
                     <br />
                   </Box>
                 ))}
-              </ScrollArea>
+              </div>
             ) : (
               <Text c="dimmed">No transcript available.</Text>
             )}

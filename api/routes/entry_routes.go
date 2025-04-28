@@ -3,7 +3,6 @@ package routes
 import (
 	"Medscribe/api/handlers/reportsHandler"
 	userhandler "Medscribe/api/handlers/userHandler"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,9 +28,10 @@ func mountRoutes(config APIConfig) *chi.Mux {
 	// Public + auth health check
 	r.With(config.AuthMiddleware).Get("/checkAuth", config.UserHandler.GetMe)
 
+
 	// Mount user and report subroutes
 	r.Route("/user", func(r chi.Router) {
-		r.Mount("/", UserRoutes(config.UserHandler))
+		r.Mount("/", UserRoutes(config.UserHandler, config.AuthMiddleware))
 	})
 
 	r.Route("/report", func(r chi.Router) {
@@ -67,18 +67,7 @@ func getCORSHandler() func(http.Handler) http.Handler {
 func EntryRoutes(config APIConfig) http.Handler {
 	router := mountRoutes(config)
 	corsMiddleware := getCORSHandler()
-
-	// Wrap the router in a logging wrapper so we can see the actual CORS headers
-	return corsMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("checking in")
-		rw := &responseLogger{ResponseWriter: w}
-		fmt.Println(">>> CORS Headers:")
-		fmt.Println("    Origin:", r.Header.Get("Origin"))
-		fmt.Println("    Access-Control-Allow-Origin:", rw.Header().Get("Access-Control-Allow-Origin"))
-		fmt.Println("    Access-Control-Allow-Credentials:", rw.Header().Get("Access-Control-Allow-Credentials"))
-		router.ServeHTTP(w, r)
-
-	}))
+	return corsMiddleware(router)
 }
 
 type responseLogger struct {

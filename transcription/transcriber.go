@@ -41,7 +41,6 @@ func CompressDiarizedText(transcript string) (string, error) {
 		return "", fmt.Errorf("empty transcript provided")
 	}
 
-	fmt.Println("compressing",transcript)
 	transcriptTurns, err := UnmarshalTranscript([]byte(transcript))
 	if err != nil {
 		return "", fmt.Errorf("failed to unmarshal transcript: %w", err)

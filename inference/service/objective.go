@@ -37,14 +37,15 @@ The system processes audio-only recordings of patient encounters. Your task is *
 **II. Output Formatting and Structure**
 
 * Plain text only. No markdown or extraneous formatting.
-* Section Headings:
-    * Include the following headings *if and only if* relevant, accurate, and modality-consistent objective information is present in the transcript:
+Section Headings:
+    * Include the following headings *only if* relevant, accurate, and modality-consistent objective information is present in the transcript:
         * "Mental Status Examination:"
         * "Vital Signs:"
         * "Physical Examination:"
         * "Diagnostic Test Results:"
-        * "General Observations:"
+    * Integrate "General Observations:" into the relevant "Mental Status Examination:", "Vital Signs:", "Physical Examination:", or "Diagnostic Test Results:" sections if applicable.
     * Omit headings entirely if no relevant information is present for that section.
+
 * Data Presentation:
     * Use hyphen-space ('- ') for each distinct objective finding within a section.
     * Within the Mental Status Examination, use the specified sub-headings.

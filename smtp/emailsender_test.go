@@ -15,7 +15,7 @@ func TestSendEmailSuccess(t *testing.T) {
 	from := "dev@medscribe.pro"                // REPLACE WITH YOUR ACTUAL EMAIL
 	fromName := "Medscribe Team"                   // Optional sender name
 	to := []string{"emenikeani3@gmail.com","shahsatya25@gmail.com"}      // REPLACE WITH A VALID RECIPIENT FOR TESTING!
-	subject := "Test Email from Go"
+	subject := "Test Email How do you do my guy"
 	body := "satya emenike medscribe"
 	htmlBody := ""
 

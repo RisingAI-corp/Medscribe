@@ -143,7 +143,6 @@ func (i *inferenceGPTStore) Query(ctx context.Context, systemPrompt, task string
 		if err := decoder.Decode(&apiResponse); err != nil {
 			return InferenceResponse{}, fmt.Errorf("error decoding response: %v", err)
 		}
-		fmt.Println("this is the response from the API", apiResponse)
 		if len(apiResponse.Choices) == 0 {
 			return InferenceResponse{}, errors.New("no choices found in the response")
 		}

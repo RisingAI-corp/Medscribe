@@ -456,7 +456,6 @@ func (h *reportsHandler) GetTranscript(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(retrievedReportTranscripts, "marked")
 	if err := json.NewEncoder(w).Encode(retrievedReportTranscripts); err != nil {
 		logger.Error("Error encoding transcript", zap.Error(err))
 		http.Error(w, "error encoding transcript", http.StatusInternalServerError)

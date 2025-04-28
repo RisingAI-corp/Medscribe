@@ -41,6 +41,8 @@ type UserStore interface {
 	GetByAuth(ctx context.Context, email, password string) (User, error)
 	GetStyleField(ctx context.Context, userID, styleField string) (string, error)
 	UpdateStyle(ctx context.Context, providerID, contentType, newStyle string) error
+	UpdateProfileSettings(ctx context.Context, userID string, name string, currentPassword string, newPassword string) error 
+
 }
 
 func NewUserStore(client *mongo.Collection) UserStore {
@@ -62,7 +64,6 @@ func (s *store) Put(ctx context.Context, name, email, password string) (string, 
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	fmt.Println(string(hashedPassword))
 	if err != nil {
 		return "", fmt.Errorf("error hashing password:%v", err)
 	}
@@ -168,7 +169,6 @@ func (s *store) GetStyleField(ctx context.Context, userID, styleField string) (s
 }
 
 func (s *store) UpdateStyle(ctx context.Context, providerID, styleField, newStyle string) error {
-
 	objectID, err := primitive.ObjectIDFromHex(providerID)
 	if err != nil {
 		return fmt.Errorf("invalid ID format: %v", err)
@@ -191,3 +191,55 @@ func (s *store) UpdateStyle(ctx context.Context, providerID, styleField, newStyl
 
 	return nil
 }
+
+
+func (s *store) UpdateProfileSettings(ctx context.Context, userID string, name string, currentPassword string, newPassword string) error {
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := bson.M{"_id": objectID}
+	var existingUser User
+	err = s.client.FindOne(ctx, filter).Decode(&existingUser)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New("user not found")
+		}
+		return fmt.Errorf("failed to retrieve user: %v", err)
+	}
+
+	update := bson.M{}
+
+	if name != existingUser.Name {
+		update["name"] = name
+	}
+
+	if newPassword != "" {
+
+		if currentPassword == newPassword{
+			return errors.New("new password cannot be the same as current password")
+		}
+
+		err := bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(currentPassword))
+		if err != nil {
+			return errors.New("invalid current password")
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("error hashing new password: %v", err)
+		}
+		update["passwordHash"] = string(hashedPassword)
+	}
+
+	if len(update) > 0 {
+		_, err = s.client.UpdateOne(ctx, filter, bson.M{"$set": update})
+		if err != nil {
+			return fmt.Errorf("failed to update user profile: %v", err)
+		}
+	}
+
+	return nil
+}
+

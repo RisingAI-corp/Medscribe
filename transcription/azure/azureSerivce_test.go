@@ -2,6 +2,8 @@ package azure
 
 import (
 	transcriber "Medscribe/transcription"
+	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -76,33 +78,53 @@ func loadAudioFile(t *testing.T, filePath string) []byte {
 // }
 
 func TestTranscribeWithDiarization(t *testing.T) {
-	// setupEnv(t)
+	setupEnv(t)
 
-	// apiURL := os.Getenv("OPENAI_API_SPEECH_URL")
-	// apiDiarizationURL := os.Getenv("OPENAI_API_DIARIZATION_SPEECH_URL")
-	// apiKey := os.Getenv("OPENAI_API_KEY")
+	apiURL := os.Getenv("OPENAI_API_SPEECH_URL")
+	apiDiarizationURL := os.Getenv("OPENAI_API_DIARIZATION_SPEECH_URL")
+	apiKey := os.Getenv("OPENAI_API_KEY")
 
-	// assert.NotEmpty(t, apiURL, "OPENAI_API_SPEECH_URL should not be empty")
-	// assert.NotEmpty(t, apiDiarizationURL, "OPENAI_API_DIARIZATION_SPEECH_URL should not be empty")
-	// assert.NotEmpty(t, apiKey, "OPENAI_API_KEY should not be empty")
+	assert.NotEmpty(t, apiURL, "OPENAI_API_SPEECH_URL should not be empty")
+	assert.NotEmpty(t, apiDiarizationURL, "OPENAI_API_DIARIZATION_SPEECH_URL should not be empty")
+	assert.NotEmpty(t, apiKey, "OPENAI_API_KEY should not be empty")
 
-	// ctx := context.Background()
-	// txn := NewAzureTranscriber(apiURL, apiDiarizationURL, apiKey)
-	// audioData := loadAudioFile(t, "../../testdata/sample1.wav")
+	ctx := context.Background()
+	txn := NewAzureTranscriber(apiURL, apiDiarizationURL, apiKey)
+	audioData := loadAudioFile(t, "../../testdata/sample1.wav")
 
-	// transcript, err := txn.TranscribeWithDiarization(ctx, audioData)
-	// assert.NoError(t, err)
-	// assert.NotEmpty(t, transcript, "Transcript should not be empty")
+	transcript, err := txn.TranscribeWithDiarization(ctx, audioData)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, transcript, "Transcript should not be empty")
 
-	// turnsString, err := transcriber.DiarizedTranscriptToString(transcript)
-	// assert.NoError(t, err)
-	// assert.NotEmpty(t, turnsString, "Diarized transcript should not be empty")
+	turnsString, err := transcriber.DiarizedTranscriptToString(transcript)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, turnsString, "Diarized transcript should not be empty")
 
-	// turns, err := transcriber.StringToDiarizedTranscript(turnsString)
-	// assert.NoError(t, err)
-	// assert.NotEmpty(t, turns, "Diarized transcript should not be empty")
+	fmt.Println("\n\n\nTranscript:")
+	fmt.Println("------------------------------------------------")
+	fmt.Println(transcript)
+	fmt.Println("------------------------------------------------")
+
+	fmt.Println("\n\nTurnsString:")
+	fmt.Println("------------------------------------------------")
+	fmt.Println(turnsString)
+	fmt.Println("------------------------------------------------")
+
+	turns, err := transcriber.StringToDiarizedTranscript(turnsString)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, turns, "Diarized transcript should not be empty")
+
+	fmt.Println("\n\nTurns:")
+	fmt.Println("------------------------------------------------")
+	fmt.Println(turns)
+	fmt.Println("------------------------------------------------")
 
 	compressedDiarizedText, err := transcriber.CompressDiarizedText(`[{"speaker":"provider","startTime":0,"endTime":0,"text":"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"}]`)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, compressedDiarizedText, "Compressed diarized transcript should not be empty")
+
+	fmt.Println("\n\nCompressedDiarizedText:")
+	fmt.Println("------------------------------------------------")
+	fmt.Println(compressedDiarizedText)
+	fmt.Println("------------------------------------------------")
 }

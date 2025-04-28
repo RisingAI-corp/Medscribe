@@ -12,6 +12,7 @@ import (
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
 	transcriber "Medscribe/transcription"
+	geminiTranscriber "Medscribe/transcription/google"
 	"Medscribe/user"
 	"context"
 	"fmt"
@@ -543,17 +544,17 @@ func main() {
 
 	//creating services
 	// azureTranscriber := azure.NewAzureTranscriber(cfg.OpenAISpeechURL, cfg.OpenAIDiarizationSpeechURL, cfg.OpenAIAPIKey)
-	// geminiTranscriber := geminiTranscriber.NewGeminiTranscriberStore(geminiClient)
+	geminiTranscriber := geminiTranscriber.NewGeminiTranscriberStore(geminiClient)
 	inferenceService := inferenceService.NewInferenceService(
 		reportsStore,
-		&mockTranscriber{},
-		// geminiTranscriber,
+		// &mockTranscriber{},
+		geminiTranscriber,
 		// azureTranscriber,
 		GeminiInferenceStore,
 		// &mockInferStore{},
 		userStore,
 		reportsTokenUsage,
-		false,
+		true,
 	)
 
 	// instantiating api

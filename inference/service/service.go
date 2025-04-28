@@ -122,12 +122,14 @@ func (s *inferenceService) processWithDiarization(ctx context.Context, reportReq
 		return "", fmt.Errorf("error creating diarized transcript: %w", err)
 	}
 
+	logger := contextLogger.FromCtx(ctx)
+	logger.Info("Generated Diarized transcript", zap.Any("diarizedTranscript", diarizedTranscript))
+
 	diarizedTranscriptString,err := transcriber.DiarizedTranscriptToString(diarizedTranscript)
 	if err != nil {
 		return "", fmt.Errorf("error creating diarized transcript: %w", err)
 	}
-	fmt.Println("this is the diarized transcript:", diarizedTranscriptString)
-	diarizedToString, err := transcriber.CompressDiarizedText(`[{"speaker":"provider","startTime":0,"endTime":0,"text":"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"}]`)
+	diarizedToString, err := transcriber.CompressDiarizedText(diarizedTranscriptString)
 	if err != nil {
 		return "", fmt.Errorf("error compressing diarized Transcript: %w", err)
 	}
@@ -170,7 +172,6 @@ func (s *inferenceService) updateFinalReport(ctx context.Context, reportID strin
 		bson.E{Key: reports.Status, Value: "success"},
 	)
 	if err := s.reportsStore.UpdateReport(ctx, reportID, updates); err != nil {
-		fmt.Println("these are updates ", updates)
 		return fmt.Errorf("UpdateFinalReport: error updating report: %w", err)
 	}
 	return nil
@@ -227,6 +228,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, reportReq
 
 	if s.diarization {
 		diarizedTurns, err = transcriber.StringToDiarizedTranscript(rawTranscript)
+		logger.Info("Diarized Turns Generated Transcript", zap.Any("diarizedTurns", diarizedTurns))
 		if err != nil {
 			return fmt.Errorf("GenerateReportPipeline: error unmarshaling diarized transcript: %w", err)
 		}
@@ -247,6 +249,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, reportReq
 
 	combinedUpdates := bson.D{
 		{Key: reports.Transcript, Value: rawTranscript},
+		{Key:reports.UsedDiarizationUpdateKey, Value: s.diarization},
 	}
 
 	// Stage 3: Generate report sections (SOAP + summary + patient Instructions)
@@ -254,7 +257,7 @@ func (s *inferenceService) GenerateReportPipeline(ctx context.Context, reportReq
 	tokenUsage := utils.NewSafeMap[int]()
 	contentUpdates, err := s.generateSoapSections(ctx, reportRequest, w,tokenUsage)
 	if err != nil {
-		return err
+		return fmt.Errorf("GenerateReportPipeline: error generating report sections: %w", err)
 	}
 
 	combinedUpdates = append(combinedUpdates, contentUpdates...)

@@ -82,7 +82,7 @@ function App() {
   const renderAuthComponent = () => {
     if (isPending || isIdle || timerActive) {
       return <FallbackScreen />;
-    } else if (isSuccess || isAuthenticated) {
+    } else if (isSuccess && isAuthenticated) {
       return <HomeScreen />;
     } else {
       return <LandingScreen />;

@@ -68,6 +68,6 @@ func (t *deepGramTranscriber) Transcribe(ctx context.Context, audio []byte) (str
 	return "", fmt.Errorf("transcript not found in the response")
 }
 
-func (t *deepGramTranscriber) TranscribeWithDiarization(ctx context.Context, audio []byte) (transcriber.TranscriptTurn, error) {
-	return transcriber.TranscriptTurn{}, nil
+func (t *deepGramTranscriber) TranscribeWithDiarization(ctx context.Context, audio []byte) ([]transcriber.TranscriptTurn, error) {
+	return nil, nil
 }

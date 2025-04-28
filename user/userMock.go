@@ -40,3 +40,9 @@ func (m *MockUserStore) UpdateStyle(ctx context.Context, providerID, contentType
 	args := m.Called(ctx, providerID, contentType, newStyle)
 	return args.Error(0)
 }
+
+func (s *MockUserStore) UpdateProfileSettings(ctx context.Context, userID string, name string, currentPassword string, newPassword string) error {
+	args := s.Called(ctx, userID, name, currentPassword, newPassword)
+	return args.Error(0)
+}
+

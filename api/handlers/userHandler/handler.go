@@ -36,11 +36,18 @@ type AuthResponse struct {
 	SummaryStyle             string           `json:"summaryStyle"`
 	UserID                   string           `json:"userID"`
 }
+type UpdateProfileSettingsRequest struct {
+	Name                     string `json:"name" validate:"required"`
+	CurrentPassword          string `json:"currentPassword" validate:"required"`
+	NewPassword              string `json:"newPassword" validate:"required"`
+}
 
 type UserHandler interface {
 	SignUp(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	GetMe(w http.ResponseWriter, r *http.Request)
+	UpdateProfileSettings(w http.ResponseWriter, r *http.Request)
+	Logout(w http.ResponseWriter, r *http.Request)
 }
 
 type userHandler struct {
@@ -239,4 +246,74 @@ func (h *userHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		zap.String("email", user.Email),
 		zap.Int("report_count", len(reports)),
 	)
+}
+
+func (h *userHandler) UpdateProfileSettings(w http.ResponseWriter, r *http.Request) {
+	logger := contextLogger.FromCtx(r.Context())
+	ProviderID, ok := middleware.GetProviderIDFromContext(r.Context())
+	userIDStr := fmt.Sprint(ProviderID)
+	if !ok {
+		logger.Warn("unauthorized access attempt to update user profile settings")
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	var req UpdateProfileSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode update profile settings request", zap.Error(err))
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	logger.Info("updating user profile settings",
+		zap.String("user_id", userIDStr),
+
+	)
+	err := h.userStore.UpdateProfileSettings(r.Context(), userIDStr, req.Name, req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		if err.Error() == "invalid current password" {
+			logger.Warn("invalid current password provided",
+				zap.String("user_id", userIDStr),
+			)
+			http.Error(w, "invalid current password", http.StatusPreconditionFailed)
+			return
+		}
+		logger.Error("failed to update user profile settings", zap.Error(err))
+	http.Error(w, "failed to update user profile settings", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+}
+
+
+func (h *userHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	logger := contextLogger.FromCtx(r.Context())
+	logger.Info("handling user logout")
+
+	// Clear the access token cookie
+	accessTokenCookie := &http.Cookie{
+		Name:     middleware.AccessToken,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1, // Expire immediately
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, accessTokenCookie)
+
+	// Clear the refresh token cookie
+	refreshTokenCookie := &http.Cookie{
+		Name:     middleware.RefreshToken,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1, // Expire immediately
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, refreshTokenCookie)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	logger.Info("user logout successful")
 }
