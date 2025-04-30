@@ -19,9 +19,9 @@ const ProfileSidebar = ({ onNavChange, activeTab }: ProfileSidebarProps) => {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   const navItems = [
-    { id: 'settings', label: 'settings' },
-    { id: 'affiliates', label: 'Affiliates' },
+    { id: 'settings', label: 'Settings' },
     { id: 'subscriptions', label: 'Subscriptions' },
+    { id: 'affiliates', label: 'Affiliates' },
   ] as const;
 
   const logoutMutation = {
