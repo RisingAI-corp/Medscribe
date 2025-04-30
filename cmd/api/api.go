@@ -12,6 +12,7 @@ import (
 	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	reportsTokenUsage "Medscribe/reportsTokenUsageStore"
+	"Medscribe/stripe"
 	"Medscribe/transcription/azure"
 	"Medscribe/user"
 	"context"
@@ -135,7 +136,9 @@ func main() {
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
 	userHandler := userhandler.NewUserHandler(userStore, reportsStore, *authMiddleware)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
-	paymentHandler := paymentHandler.NewPaymentHandler(cfg.StripeAPIKey, cfg.StripeWebhookSecret, logger)
+
+	stripeClient := stripe.NewStripeClient(cfg.StripeAPIKey, cfg.StripeWebhookSecret, logger)
+	paymentHandler := paymentHandler.NewPaymentHandler(stripeClient, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
 		UserHandler:        userHandler,

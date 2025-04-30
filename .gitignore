@@ -18,3 +18,7 @@ MedscribeUI/src/adHocComponents
 creds.json
 
 .env
+
+cmd/billing
+test.py
+.gitignore

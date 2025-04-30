@@ -1,18 +1,18 @@
 package paymentHandler
 
 import (
+	"Medscribe/stripe"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/stripe/stripe-go/v74"
+	stripeGo "github.com/stripe/stripe-go/v74"
 
 	"go.uber.org/zap"
 )
 
 const (
-	checkoutSessionCompleted             = "checkout.session.completed"
-	checkoutSessionAsyncPaymentSucceeded = "checkout.session.async_payment_succeeded"
+	checkoutSessionCompleted = "checkout.session.completed"
 )
 
 // PaymentHandler defines the interface for payment processing handlers
@@ -47,20 +47,12 @@ type CheckoutSessionResponse struct {
 }
 
 type paymentHandler struct {
-	stripeClient Stripe
+	stripeClient stripe.Stripe
 	logger       *zap.Logger
 }
 
-// Stripe defines the interface for stripe operations used by the handler
-type Stripe interface {
-	CreateCustomer(name, email string) (*stripe.Customer, error)
-	CreateCheckoutSession(customerID string) (*stripe.CheckoutSession, error)
-	ConstructWebhookEvent(payload []byte, signature string) (stripe.Event, error)
-	FulfillCheckout(sessionID string) error
-}
-
 // NewPaymentHandler creates a new payment handler
-func NewPaymentHandler(stripeClient Stripe, logger *zap.Logger) PaymentHandler {
+func NewPaymentHandler(stripeClient stripe.Stripe, logger *zap.Logger) PaymentHandler {
 	return &paymentHandler{
 		stripeClient: stripeClient,
 		logger:       logger,
@@ -69,19 +61,38 @@ func NewPaymentHandler(stripeClient Stripe, logger *zap.Logger) PaymentHandler {
 
 // CreateCustomer handles HTTP requests to create a Stripe customer
 func (h *paymentHandler) CreateCustomer(w http.ResponseWriter, r *http.Request) {
+	h.logger.Info("Received request to create customer")
+
 	// Parse request body
 	var req CreateCustomerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("Failed to decode request body", zap.Error(err))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
+	h.logger.Info("Creating customer with provided details",
+		zap.String("name", req.Name),
+		zap.String("email", req.Email),
+	)
+
 	// Call Stripe API to create customer
 	customer, err := h.stripeClient.CreateCustomer(req.Name, req.Email)
 	if err != nil {
+		h.logger.Error("Failed to create customer via Stripe",
+			zap.String("name", req.Name),
+			zap.String("email", req.Email),
+			zap.Error(err),
+		)
 		http.Error(w, "Failed to create customer: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	h.logger.Info("Successfully created customer",
+		zap.String("customerID", customer.ID),
+		zap.String("name", customer.Name),
+		zap.String("email", customer.Email),
+	)
 
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
@@ -100,6 +111,7 @@ func (h *paymentHandler) CreateCheckoutSession(w http.ResponseWriter, r *http.Re
 	// Parse request body
 	var req CheckoutSessionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error("Failed to decode request body", zap.Error(err))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -124,6 +136,8 @@ func (h *paymentHandler) CreateCheckoutSession(w http.ResponseWriter, r *http.Re
 }
 
 func (h *paymentHandler) Webhook(w http.ResponseWriter, req *http.Request) {
+	h.logger.Info("Received Stripe webhook request")
+
 	req.Body = http.MaxBytesReader(w, req.Body, 65536)
 
 	body, err := ioutil.ReadAll(req.Body)
@@ -133,27 +147,59 @@ func (h *paymentHandler) Webhook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	h.logger.Debug("Received webhook payload",
+		zap.String("signature", req.Header.Get("Stripe-Signature")),
+		zap.String("body", string(body)),
+	)
+
 	// Pass the request body and Stripe-Signature header to ConstructEvent
 	event, err := h.stripeClient.ConstructWebhookEvent(body, req.Header.Get("Stripe-Signature"))
 	if err != nil {
-		h.logger.Error("Error verifying webhook signature", zap.Error(err))
-		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
+		h.logger.Error("Error verifying webhook signature",
+			zap.Error(err),
+			zap.String("signature", req.Header.Get("Stripe-Signature")),
+		)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if event.Type == checkoutSessionCompleted ||
-		event.Type == checkoutSessionAsyncPaymentSucceeded {
-		var cs stripe.CheckoutSession
+	h.logger.Info("Processing Stripe webhook event",
+		zap.String("eventType", event.Type),
+		zap.String("eventID", event.ID),
+	)
+
+	if event.Type == checkoutSessionCompleted {
+		var cs *stripeGo.CheckoutSession
 		err := json.Unmarshal(event.Data.Raw, &cs)
 		if err != nil {
-			h.logger.Error("Error parsing webhook JSON", zap.Error(err))
+			h.logger.Error("Error parsing webhook JSON",
+				zap.String("eventType", event.Type),
+				zap.String("eventID", event.ID),
+				zap.Error(err),
+				zap.String("rawData", string(event.Data.Raw)),
+			)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
+		h.logger.Info("Processing checkout session",
+			zap.String("sessionID", cs.ID),
+			zap.String("customerID", cs.Customer.ID),
+			zap.String("paymentStatus", string(cs.Status)),
+		)
+
 		if err := h.stripeClient.FulfillCheckout(cs.ID); err != nil {
-			h.logger.Error("Error fulfilling checkout", zap.String("sessionID", cs.ID), zap.Error(err))
+			h.logger.Error("Error fulfilling checkout",
+				zap.String("sessionID", cs.ID),
+				zap.String("customerID", cs.Customer.ID),
+				zap.Error(err),
+			)
 			// We still return 200 to Stripe to avoid repeated webhook calls
+		} else {
+			h.logger.Info("Successfully fulfilled checkout",
+				zap.String("sessionID", cs.ID),
+				zap.String("customerID", cs.Customer.ID),
+			)
 		}
 	}
 

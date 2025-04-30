@@ -5,7 +5,6 @@ import (
 	"github.com/stripe/stripe-go/v74/checkout/session"
 	"github.com/stripe/stripe-go/v74/customer"
 	"github.com/stripe/stripe-go/v74/webhook"
-
 	"go.uber.org/zap"
 )
 
@@ -25,7 +24,7 @@ type stripeStore struct {
 }
 
 // NewStripeStore creates a new Stripe client with the provided credentials
-func NewStripeStore(apiKey, webhookSecret string, logger *zap.Logger) Stripe {
+func NewStripeStore(apiKey string, webhookSecret string, logger *zap.Logger) Stripe {
 	// Set the global Stripe API key
 	stripe.Key = apiKey
 
@@ -38,29 +37,69 @@ func NewStripeStore(apiKey, webhookSecret string, logger *zap.Logger) Stripe {
 
 // CreateCustomer creates a new Stripe customer with the given name and email
 func (s *stripeStore) CreateCustomer(name, email string) (*stripe.Customer, error) {
+	s.logger.Info("Creating new Stripe customer",
+		zap.String("name", name),
+		zap.String("email", email),
+	)
+
 	params := &stripe.CustomerParams{
 		Name:  stripe.String(name),
 		Email: stripe.String(email),
 	}
 
-	return customer.New(params)
+	customer, err := customer.New(params)
+	if err != nil {
+		s.logger.Error("Failed to create Stripe customer",
+			zap.String("name", name),
+			zap.String("email", email),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	s.logger.Info("Successfully created Stripe customer",
+		zap.String("customerID", customer.ID),
+		zap.String("name", name),
+		zap.String("email", email),
+	)
+
+	return customer, nil
 }
 
 // CreateCheckoutSession creates a new Stripe checkout session for a customer
 func (s *stripeStore) CreateCheckoutSession(customerID string) (*stripe.CheckoutSession, error) {
+	s.logger.Info("Creating new checkout session",
+		zap.String("customerID", customerID),
+	)
+
 	params := &stripe.CheckoutSessionParams{
 		Customer:   stripe.String(customerID),
-		SuccessURL: stripe.String("https://example.com/success"),
+		SuccessURL: stripe.String("https://localhost:3000/Profile"),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price:    stripe.String("price_1RHckAPMOCbWba8pYYUTOdgG"),
+				Price:    stripe.String("price_1RGQ9NFmFJe4gD9zFGwaqhMU"),
 				Quantity: stripe.Int64(1),
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
 
-	return session.New(params)
+	session, err := session.New(params)
+	if err != nil {
+		s.logger.Error("Failed to create checkout session",
+			zap.String("customerID", customerID),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	s.logger.Info("Successfully created checkout session",
+		zap.String("sessionID", session.ID),
+		zap.String("customerID", customerID),
+		zap.String("url", session.URL),
+	)
+
+	return session, nil
 }
 
 // ConstructWebhookEvent validates and constructs a webhook event from a request payload
@@ -78,6 +117,11 @@ func (s *stripeStore) ConstructWebhookEvent(payload []byte, signature string) (s
 // FulfillCheckout fulfills a Stripe checkout session
 func (s *stripeStore) FulfillCheckout(sessionID string) error {
 	s.logger.Info("Fulfilling Checkout Session", zap.String("sessionID", sessionID))
+	// TODO: Make this function safe to run multiple times,
+	// even concurrently, with the same session ID
+
+	// TODO: Make sure fulfillment hasn't already been
+	// performed for this Checkout Session
 
 	// Retrieve the Checkout Session from the API with line_items expanded
 	params := &stripe.CheckoutSessionParams{}
@@ -85,20 +129,14 @@ func (s *stripeStore) FulfillCheckout(sessionID string) error {
 
 	cs, err := session.Get(sessionID, params)
 	if err != nil {
-		s.logger.Error("Failed to retrieve checkout session", zap.String("sessionID", sessionID), zap.Error(err))
+		s.logger.Error("Failed to retrieve checkout session", zap.Error(err))
 		return err
 	}
 
-	// Check the Checkout Session's payment_status property
-	// to determine if fulfillment should be performed
-	if cs.PaymentStatus != stripe.CheckoutSessionPaymentStatusUnpaid {
-		s.logger.Info("Processing paid checkout session",
-			zap.String("sessionID", sessionID),
-			zap.String("customerID", cs.Customer.ID),
-		)
-		// TODO: Perform fulfillment of the line items
-		// TODO: Record/save fulfillment status for this Checkout Session
-	}
+	// TODO: Change the Plan Type to Pro for the Customer in the DB
+	s.logger.Info("Checkout Session",
+		zap.String("customerID", cs.Customer.ID),
+	)
 
 	return nil
 }
