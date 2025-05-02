@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,6 +21,8 @@ const (
 	SummaryStyleField             = "summaryStyle"
 	PatientInstructionsStyleField = "patientInstructionsStyle"
 )
+
+var EmailAlreadyExistsError = errors.New("email already exists")
 
 const EmailField = "email"
 
@@ -42,27 +45,68 @@ type UserStore interface {
 	GetStyleField(ctx context.Context, userID, styleField string) (string, error)
 	UpdateStyle(ctx context.Context, providerID, contentType, newStyle string) error
 	UpdateProfileSettings(ctx context.Context, userID string, name string, currentPassword string, newPassword string) error 
+	CheckEmailExistence(ctx context.Context, email string) (bool, error)
 
-}
-
-func NewUserStore(client *mongo.Collection) UserStore {
-	return &store{client: client}
 }
 
 type store struct {
 	client *mongo.Collection
 }
 
-func (s *store) Put(ctx context.Context, name, email, password string) (string, error) {
+func NewUserStore(client *mongo.Collection) UserStore {
+	// Create a unique index on the email field
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	indexExists, err := indexExists(ctx, client.Indexes(), EmailField)
+	if err != nil {
+		panic(fmt.Errorf("error checking if index on email field already exists: %v", err))
+	}
+	if !indexExists {
+		model := mongo.IndexModel{
+			Keys:    bson.D{{Key: EmailField, Value: 1}},
+			Options: options.Index().SetUnique(true),
+		}
+		_, err := client.Indexes().CreateOne(ctx, model)
+		if err != nil {
+			panic(fmt.Errorf("error creating unique index on email field: %v", err))
+		}
+	}
+	return &store{client: client}
+}
+
+func indexExists(ctx context.Context, indexView mongo.IndexView, fieldName string) (bool, error) {
+	cursor, err := indexView.List(ctx)
+	if err != nil {
+		return false, fmt.Errorf("error listing indexes: %v", err)
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var indexInfo bson.M
+		if err := cursor.Decode(&indexInfo); err != nil {
+			return false, fmt.Errorf("error decoding index info: %v", err)
+		}
+		if name, ok := indexInfo["name"].(string); ok && name == fieldName {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (s *store) CheckEmailExistence(ctx context.Context, email string) (bool, error) {
 	filter := bson.M{EmailField: email}
 	var existingUser User
 	err := s.client.FindOne(ctx, filter).Decode(&existingUser)
-	if err == nil {
-		return "", fmt.Errorf("user already exists with this email: %s", email)
-	} else if err != mongo.ErrNoDocuments {
-		return "", fmt.Errorf("failed to check for existing user: %v", err)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, fmt.Errorf("error occurred while checking for email existence : %v", err)
 	}
+	return false, EmailAlreadyExistsError
+}
 
+func (s *store) Put(ctx context.Context, name, email, password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("error hashing password:%v", err)

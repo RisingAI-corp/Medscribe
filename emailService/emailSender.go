@@ -20,15 +20,19 @@ type emailSenderStore struct {
 
 // EmailSender defines the interface for sending emails.
 type EmailSender interface {
-	SendEmail(to []string, subject, body, htmlBody string) error
+	SendEmail(to, subject, body, htmlBody string) error
 }
-
-// Ensure emailSenderStore implements the EmailSender interface.
-var _ EmailSender = (*emailSenderStore)(nil)
 
 // newEmailSenderStore creates a new email sender store with default values
 // and returns an EmailSender interface.
-func NewEmailSenderStore(server string, port int, username, password, fromEmail, fromName string) EmailSender {
+func NewEmailSenderStore(server string, port int, username, password, fromEmail, fromName string, skipTLS bool) EmailSender {
+	tlsConfig := &tls.Config{}
+	if skipTLS {
+		tlsConfig.InsecureSkipVerify = true // Allow self-signed or untrusted certificates
+	}else{
+		tlsConfig.InsecureSkipVerify = false // Enforce TLS verification
+	}
+	tlsConfig.ServerName = server
 	return &emailSenderStore{
 		smtpServer: server,
 		smtpPort:   port,
@@ -36,17 +40,17 @@ func NewEmailSenderStore(server string, port int, username, password, fromEmail,
 		password:   password,
 		fromEmail:  fromEmail,
 		fromName:   fromName,
-		tlsConfig: &tls.Config{
-			InsecureSkipVerify: false, // Default to secure verification
-		},
+		tlsConfig:  tlsConfig,
 	}
 }
 
+
 // SendEmail sends an email using the configuration in the emailSenderStore.
-func (s *emailSenderStore) SendEmail(to []string, subject, body, htmlBody string) error {
+func (s *emailSenderStore) SendEmail(to, subject, body, htmlBody string) error {
+	fmt.Println("Sending email to:", to)
 	m := gomail.NewMessage()
 	m.SetAddressHeader("From", s.fromEmail, s.fromName)
-	m.SetHeader("To", to...)
+	m.SetHeader("To", to)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/plain", body)
 	if htmlBody != "" {

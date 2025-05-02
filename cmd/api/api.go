@@ -6,6 +6,7 @@ import (
 	"Medscribe/api/middleware"
 	"Medscribe/api/routes"
 	"Medscribe/config"
+	emailsender "Medscribe/emailService"
 	inferenceService "Medscribe/inference/service"
 	inferencestorre "Medscribe/inference/store"
 	contextLogger "Medscribe/logger"
@@ -14,6 +15,7 @@ import (
 	transcriber "Medscribe/transcription"
 	geminiTranscriber "Medscribe/transcription/google"
 	"Medscribe/user"
+	verificationStore "Medscribe/verificationTokenStore"
 	"context"
 	"fmt"
 	"log"
@@ -511,6 +513,7 @@ func main() {
 	db := client.Database(cfg.MongoDBName)
 	userColl := db.Collection(cfg.MongoUserCollection)
 	reportsColl := db.Collection(cfg.MongoReportCollection) //TODO: Change back to MongoReportCollection
+	verificationColl := db.Collection(cfg.MongoVerificationTokenCollection)
 
 	// creating stores
 	userStore := user.NewUserStore(userColl)
@@ -557,9 +560,17 @@ func main() {
 		true,
 	)
 
+	verificationStore, err := verificationStore.NewVerificationStore(ctx, verificationColl, int32(cfg.VerificationTokenTTL))
+	if err != nil {
+		logger.Fatal("❌ Failed to create verification store", zap.Error(err))
+	}
+
+	fmt.Printf("Email Configuration:\nSMTP Server: %s\nSMTP Port: %d\nEmail Username: %s\nEmail Password: %s\nEmail From: %s\nEmail From Name: %s\n", cfg.SMTPServer, cfg.SMTPPort, cfg.EmailUsername, cfg.EmailPassword, cfg.EmailFrom, cfg.EmailFromName)
+	emailSenderService := emailsender.NewEmailSenderStore(cfg.SMTPServer, cfg.SMTPPort, cfg.EmailUsername, cfg.EmailPassword, cfg.EmailFrom, cfg.EmailFromName,cfg.EMAILskipTLS)
+
 	// instantiating api
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, logger, cfg.Env)
-	userHandler := userhandler.NewUserHandler(userStore, reportsStore, *authMiddleware)
+	userHandler := userhandler.NewUserHandler(userStore, reportsStore, *authMiddleware, verificationStore, emailSenderService)
 	reportsHandler := reportsHandler.NewReportsHandler(reportsStore, inferenceService, userStore, logger)
 
 	router := routes.EntryRoutes(routes.APIConfig{
@@ -567,6 +578,7 @@ func main() {
 		ReportsHandler:     reportsHandler,
 		AuthMiddleware:     authMiddleware.Middleware,
 		MetadataMiddleware: middleware.MetadataMiddleware,
+		
 	})
 
 

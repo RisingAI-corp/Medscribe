@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -18,10 +19,19 @@ type Config struct {
 	MongoReportTokenUsageCollection         string
 	MongoFreedVisits                        string
 	MongoDistillAnalysis                    string
+	MongoVerificationTokenCollection        string
+	VerificationTokenTTL int
 	OpenAIChatURL                           string
 	OpenAISpeechURL                         string
 	OpenAIAPIKey                            string
 	OpenAIDiarizationSpeechURL             string
+	EMAILskipTLS bool
+	SMTPServer                              string
+	SMTPPort                                int
+	EmailUsername                           string
+	EmailPassword                           string
+	EmailFrom                               string
+	EmailFromName                           string
 	GeminiAPIKey                            string
 	VertexLocation                          string
 	ProjectID                               string
@@ -87,6 +97,10 @@ func LoadConfig(testEnv string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	mongoVerificationTokenColl, err := getEnvStrict("MONGODB_VERIFICATION_COLLECTION", "")
+	if err != nil {
+		return nil, err
+	}
 	openAIChatURL, err := getEnvStrict("OPENAI_API_CHAT_URL", "")
 	if err != nil {
 		return nil, err
@@ -134,6 +148,41 @@ func LoadConfig(testEnv string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	var emailSkipTLS bool
+	if !isProd{
+		emailSkipTLS = true
+	}
+	smtpServer, err := getEnvStrict("SMTP_SERVER", "smtp-relay.brevo.com")
+	if err != nil {
+		return nil, err
+	}
+	smtpPortString, err := getEnvStrict("SMTP_PORT", "587")
+	if err != nil {
+		return nil, err
+	}
+	smtpPort, err := strconv.Atoi(smtpPortString)
+	if err != nil {
+		return nil, err
+	}
+
+	emailUsername, err := getEnvStrict("EMAIL_USERNAME", "8b7a41001@smtp-brevo.com")
+	if err != nil {
+		return nil, err
+	}
+	emailPassword, err := getEnvStrict("EMAIL_PASSWORD", "Kx13NYGCRnTQ6mOU")
+	if err != nil {
+		return nil, err
+	}
+	emailFrom, err := getEnvStrict("EMAIL_FROM", "dev@medscribe.pro")
+	if err != nil {
+		return nil, err
+	}
+	emailFromName, err := getEnvStrict("EMAIL_FROM_NAME", "Medscribe Team")
+	if err != nil {
+		return nil, err
+	}
+
 	port, err := getEnvStrict("PORT", "8080")
 	if err != nil {
 		return nil, err
@@ -148,6 +197,8 @@ func LoadConfig(testEnv string) (*Config, error) {
 		MongoReportTokenUsageCollection: mongoReportTokenUsageColl,
 		MongoReportTestCollection:       mongoReportTestColl,
 		MongoFreedVisits:                mongoFreedVisits,
+		MongoVerificationTokenCollection: mongoVerificationTokenColl,
+		VerificationTokenTTL: 	 120,
 		MongoDistillAnalysis:            mongoDistillAnalysis,
 		OpenAIChatURL:                   openAIChatURL,
 		OpenAISpeechURL:                 openAISpeechURL,
@@ -160,6 +211,13 @@ func LoadConfig(testEnv string) (*Config, error) {
 		DeepgramAPIURL:                  deepgramURL,
 		JWTSecret:                       jwtSecret,
 		FreedAuthToken:                  freedToken,
+		EMAILskipTLS: 				emailSkipTLS,
+		SMTPServer: 				   smtpServer,
+		SMTPPort:                        int(smtpPort),
+		EmailUsername:                   emailUsername,
+		EmailPassword:                   emailPassword,
+		EmailFrom:                       emailFrom,
+		EmailFromName:                   emailFromName,
 		Port:                            port,
 	}
 

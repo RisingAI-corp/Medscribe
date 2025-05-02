@@ -2,9 +2,11 @@ package userhandler
 
 import (
 	"Medscribe/api/middleware"
+	emailsender "Medscribe/emailService"
 	contextLogger "Medscribe/logger"
 	"Medscribe/reports"
 	"Medscribe/user"
+	verificationStore "Medscribe/verificationTokenStore"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,15 +14,23 @@ import (
 	"go.uber.org/zap"
 )
 
-type SignUpRequest struct {
+type InitializingSignUpRequest struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required, password"`
 }
 
+type FinalizeSignUpRequest struct {
+	Token  string `json:"token" validate:"required"`
+}
+
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
+}
+type InitializeForgotPasswordRequest struct {
+	Token string `json:"token" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type AuthResponse struct {
@@ -43,7 +53,8 @@ type UpdateProfileSettingsRequest struct {
 }
 
 type UserHandler interface {
-	SignUp(w http.ResponseWriter, r *http.Request)
+	InitializeSighUp(w http.ResponseWriter, r *http.Request)
+	FinalizeSignUp(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	GetMe(w http.ResponseWriter, r *http.Request)
 	UpdateProfileSettings(w http.ResponseWriter, r *http.Request)
@@ -54,36 +65,119 @@ type userHandler struct {
 	userStore      user.UserStore
 	reports        reports.Reports
 	authMiddleware middleware.AuthMiddleware
+	verificationStore verificationStore.VerificationStore
+	emailSender 	emailsender.EmailSender
 }
 
-func NewUserHandler(userStore user.UserStore, reports reports.Reports, authMiddleware middleware.AuthMiddleware) UserHandler {
+func NewUserHandler(userStore user.UserStore, reports reports.Reports, authMiddleware middleware.AuthMiddleware, verificationStore verificationStore.VerificationStore ,emailSender emailsender.EmailSender) UserHandler {
 	return &userHandler{
 		userStore:      userStore,
 		reports:        reports,
 		authMiddleware: authMiddleware,
+		verificationStore: verificationStore,
+		emailSender: 	emailSender,
 	}
 }
-func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+
+func (h *userHandler) InitializeSighUp(w http.ResponseWriter, r *http.Request) {
 	logger := contextLogger.FromCtx(r.Context())
-	var req SignUpRequest
+	logger.Info("initializing signup process")
+	w.Header().Set("Content-Type", "application/json")
+
+	var req InitializingSignUpRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode signup initialization request", zap.Error(err))
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	doesEmailExist, err := h.userStore.CheckEmailExistence(r.Context(), req.Email)
+	if err != nil {
+		logger.Error("failed to check email existence", zap.Error(err))
+		http.Error(w, user.EmailAlreadyExistsError.Error(), http.StatusConflict)
+		return
+	}
+	if doesEmailExist{
+		logger.Warn("email already exists", zap.String("email", req.Email))
+		http.Error(w, "email already exists", http.StatusConflict)
+		return
+	}
+
+	token, err := verificationStore.GenerateRandomToken(6);
+	if err != nil {
+		logger.Error("failed to store verification document", zap.Error(err))
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.verificationStore.PutBufferedUserDocument(r.Context(),token ,req.Name, req.Email, req.Password)
+	if err != nil {
+		if err == verificationStore.ErrVerificationDocumentAlreadyExists {
+			logger.Warn("Cannot generate Verification token this soon", zap.String("token", token))
+			fmt.Println("BRONCO")
+			http.Error(w, "Too Soon to generate Verification Token", http.StatusConflict)
+			return
+		}
+		logger.Error("failed to store verification document", zap.Error(err))
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.emailSender.SendEmail(req.Email, "Please Verify your email!", fmt.Sprintf("Your verification token is: %s", token), emailsender.GenerateVerificationHTMLBody(token, "Verify your email"))
+	if err != nil {
+		logger.Error("failed to send verification email", zap.Error(err))
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+
+
+func (h *userHandler) FinalizeSignUp(w http.ResponseWriter, r *http.Request) {
+	logger := contextLogger.FromCtx(r.Context())
+	var req FinalizeSignUpRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logger.Error("failed to decode signup request", zap.Error(err))
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
+	fmt.Println("Received token:", req.Token)
+
+	BufferedProviderDocument, err := h.verificationStore.GetBufferedUserDocument(r.Context(), req.Token)
+	if err != nil {
+		if err == verificationStore.ErrVerificationDocumentNotFound {
+			logger.Warn("verification token not found", zap.String("token", req.Token))
+			http.Error(w, "verification token not found", http.StatusBadRequest)
+			return
+		}
+
+		logger.Error("failed to get buffered user document", zap.Error(err))
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.verificationStore.Delete(r.Context(), req.Token)
+	if err != nil {	
+		logger.Error("failed to delete buffered user document", zap.Error(err))
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		return
+	}
 
 	// Log the start of putting the user into the database.
 	logger.Info("starting to store new user in the database",
-		zap.String("name", req.Name),
-		zap.String("email", req.Email),
+		zap.String("name", BufferedProviderDocument.Name),
+		zap.String("email", BufferedProviderDocument.Email),
 	)
 
-	ProviderID, err := h.userStore.Put(r.Context(), req.Name, req.Email, req.Password)
+	ProviderID, err := h.userStore.Put(r.Context(), BufferedProviderDocument.Name, BufferedProviderDocument.Email, BufferedProviderDocument.Password)
 	if err != nil {
-		if err.Error() == fmt.Sprintf("user already exists with this email: %s", req.Email) {
+		if err.Error() == fmt.Sprintf("user already exists with this email: %s", BufferedProviderDocument.Email) {
 			logger.Warn("user already exists",
-				zap.String("email", req.Email),
+				zap.String("email", BufferedProviderDocument.Email),
 			)
 			http.Error(w, "email already in use", http.StatusConflict)
 			return
@@ -109,8 +203,8 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(AuthResponse{
 		ID:      ProviderID,
-		Name:    req.Name,
-		Email:   req.Email,
+		Name:    BufferedProviderDocument.Name,
+		Email:   BufferedProviderDocument.Email,
 		UserID:  ProviderID,
 		Reports: []reports.Report{},
 	}); err != nil {
@@ -122,10 +216,11 @@ func (h *userHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	// Log a successful signup and response.
 	logger.Info("user signup successful",
 		zap.String("provider_id", ProviderID),
-		zap.String("name", req.Name),
-		zap.String("email", req.Email),
+		zap.String("name", BufferedProviderDocument.Name),
+		zap.String("email", BufferedProviderDocument.Email),
 	)
 }
+
 func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 	logger := contextLogger.FromCtx(r.Context())
 	var req LoginRequest
@@ -193,8 +288,41 @@ func (h *userHandler) Login(w http.ResponseWriter, r *http.Request) {
 		zap.String("email", user.Email),
 		zap.String("name", user.Name),
 	)
-
 }
+
+func (h *userHandler) InitializeForgotPassword(w http.ResponseWriter, r *http.Request) {
+	logger := contextLogger.FromCtx(r.Context())
+	var req InitializeForgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode forgot password request", zap.Error(err))
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()	
+
+	err := h.verificationStore.PutResetPasswordDetails(r.Context(), req.Token, req.Email)
+	if err != nil {	
+		if err == verificationStore.ErrVerificationDocumentAlreadyExists {
+			logger.Warn("Cannot generate Verification token this soon", zap.String("token", req.Token))
+			return 
+		}
+		logger.Error("failed to store reset password details", zap.Error(err))
+		http.Error(w, "error Putting reset password details", http.StatusInternalServerError)
+		return
+	}
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", r.Host, req.Token)
+	logger.Info("sending reset password email",
+		zap.String("email", req.Email),
+		zap.String("reset_link", resetLink),
+	)
+	err = h.emailSender.SendEmail(req.Email, "Please Reset your password!", fmt.Sprintf("Your reset password token is: %s", req.Token), emailsender.GeneratePasswordResetHTMLBody(resetLink))
+	if err != nil {
+		logger.Error("failed to send reset password email", zap.Error(err))
+		http.Error(w, "error sending reset password email", http.StatusInternalServerError)
+		return	
+	}
+}
+
 
 func (h *userHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 	logger := contextLogger.FromCtx(r.Context())

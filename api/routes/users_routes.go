@@ -10,7 +10,9 @@ import (
 func UserRoutes(handler userhandler.UserHandler, authMiddleware func(http.Handler) http.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Post("/signup", handler.SignUp)
+	r.Post("/initializeSignup", handler.InitializeSighUp)
+	
+	r.Post("/fianalizeSignup", handler.FinalizeSignUp)
 
 	r.Post("/login", handler.Login)
 

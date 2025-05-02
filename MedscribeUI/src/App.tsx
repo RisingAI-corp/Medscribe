@@ -82,7 +82,7 @@ function App() {
   const renderAuthComponent = () => {
     if (isPending || isIdle || timerActive) {
       return <FallbackScreen />;
-    } else if (isSuccess && isAuthenticated) {
+    } else if (isSuccess || isAuthenticated) {
       return <HomeScreen />;
     } else {
       return <LandingScreen />;
@@ -91,6 +91,7 @@ function App() {
 
   const renderProfileComponent = () => {
     if (isAuthenticated) {
+      console.log('Authenticated:', isAuthenticated);
       return <ProfileScreen />;
     } else {
       return <Navigate to="/" />;
@@ -104,6 +105,11 @@ function App() {
         <Route path="/SignUp" element={<AuthScreen isSignUpRoute={true} />} />
         <Route path="/SignIn" element={<AuthScreen isSignUpRoute={false} />} />
         <Route path="/Profile" element={renderProfileComponent()} />
+        <Route
+          path="reset-password"
+          //TODO: fix this create the page
+          // element={<AuthScreen isSignUpRoute={false} resetPassword={true} />}
+        />
       </Routes>
     </BrowserRouter>
   );

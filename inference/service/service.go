@@ -449,6 +449,7 @@ func getSectionValue(combinedUpdates bson.D, field string) string {
 
 // generateReportSections generates all sections of the report concurrently.
 // It serves as a helper function for both generateReportPipeline and regenerateReport.
+//TODO: you need to to time out the context here/ we should attempt to retry 3 times and then deem a failure
 func (s *inferenceService) generateSoapSections(
 	ctx context.Context,
 	reportRequest *ReportRequest,
