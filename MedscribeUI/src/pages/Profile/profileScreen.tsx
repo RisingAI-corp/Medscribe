@@ -27,9 +27,9 @@ const ProfileScreen = () => {
       <div>
         <Header />
       </div>
-      <div className="flex flex-row flex-1">
+      <div className="flex flex-row flex-1 overflow-hidden">
         <ProfileSidebar onNavChange={setActiveTab} activeTab={activeTab} />
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 overflow-y-auto">
           {sidebarContentDisplay()}
         </div>
       </div>
