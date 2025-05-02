@@ -105,11 +105,11 @@ function App() {
         <Route path="/SignUp" element={<AuthScreen isSignUpRoute={true} />} />
         <Route path="/SignIn" element={<AuthScreen isSignUpRoute={false} />} />
         <Route path="/Profile" element={renderProfileComponent()} />
-        <Route
+        {/* <Route
           path="reset-password"
           //TODO: fix this create the page
           // element={<AuthScreen isSignUpRoute={false} resetPassword={true} />}
-        />
+        /> */}
       </Routes>
     </BrowserRouter>
   );

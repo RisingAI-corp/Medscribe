@@ -195,7 +195,7 @@ const AuthScreen = ({ isSignUpRoute }: { isSignUpRoute: boolean }) => {
                 }}
               />
 
-              {!isSignUp && (
+              {/* {!isSignUp && (
                 <button
                   type="button"
                   onClick={initiateForgotPasswordMutation.mutate({
@@ -205,7 +205,7 @@ const AuthScreen = ({ isSignUpRoute }: { isSignUpRoute: boolean }) => {
                 >
                   Forgot password?
                 </button>
-              )}
+              )} */}
 
               <SocialAuth isSignUp={isSignUp} />
 
