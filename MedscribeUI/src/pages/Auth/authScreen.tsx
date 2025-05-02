@@ -111,21 +111,21 @@ const AuthScreen = ({ isSignUpRoute }: { isSignUpRoute: boolean }) => {
     },
   });
 
-  const initiateForgotPasswordMutation = useMutation({
-    mutationFn: () => {
-      //TODO implement
-    },
-    onSuccess: () => {
-      //TODO implement
-    },
-    onError: error => {
-      setError({
-        message: 'Invalid email or password. Please try again.',
-        type: 'login',
-      });
-      console.error('Error logging in:', error);
-    },
-  });
+  // const initiateForgotPasswordMutation = useMutation({
+  //   mutationFn: () => {
+  //     //TODO implement
+  //   },
+  //   onSuccess: () => {
+  //     //TODO implement
+  //   },
+  //   onError: error => {
+  //     setError({
+  //       message: 'Invalid email or password. Please try again.',
+  //       type: 'login',
+  //     });
+  //     console.error('Error logging in:', error);
+  //   },
+  // });
 
   const handleSubmit = () => {
     setError(null);
